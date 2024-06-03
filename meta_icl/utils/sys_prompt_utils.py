@@ -12,6 +12,12 @@ KEY = ""
 dashscope.api_key = KEY
 
 DASHSCOPE_MAX_BATCH_SIZE = 25
+DefaultModelConfig = {
+    'model': 'qwen-max',
+    'seed': 1234,
+    'result_format': 'message',
+    'temperature': 0.1
+}
 
 import numpy as np
 from scipy.spatial.distance import cdist
@@ -166,12 +172,7 @@ def load_json_file(json_file_path):
     return data
 
 
-DefaultModelConfig = {
-    'model': 'qwen-max',
-    'seed': 1234,
-    'result_format': 'message',
-    'temperature': 0.1
-}
+
 import re
 
 

@@ -260,23 +260,3 @@ if __name__ == '__main__':
                    eval_key_list=eval_key_list,
                    intention_pth=intention_pth
                    )
-
-    #
-    # example_list = load_json_file(examples_list_pth)
-
-    # sav_dir = "data/"
-    # prefix = "intention_analysis_examples"
-    #
-    # embedding_sav_pth = build_example_stock(example_list, search_key, sav_dir, sav_type='npy', prefix=prefix,
-    #                                         embedding_model=embedding_model)
-    # update_icl_configs(config_pth=config_pth,
-    #                    embedding_pth=embedding_sav_pth,
-    #                    embedding_model=embedding_model,
-    #                    examples_list_pth=examples_list_pth)
-
-    # from meta_icl.utils.utils import convert_xlsx_2_json
-    # pth = "data/user_query_intention_examples.xlsx"
-    # eval_key = "chat_history"
-    # convert_xlsx_2_json(json_file_path="test.json",
-    #                     excel_file_path=pth,
-    #                     eval_key_list=eval_key)
