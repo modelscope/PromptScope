@@ -1,0 +1,10 @@
+{
+    "analyzer_config": {
+        "base_model": "Qwen_70B",
+        "embedding_pth": "data/icl_examples/test_icl_build_emb_model:<text_embedding_v2>_search_key:['user_query', 'chat_history']_examples_ver_2024-06-03 12:35:49.npy",
+        "examples_pth": "data/icl_examples/test_icl_build_icl_examples_ver_2024-06-03 12:35:49.json",
+        "topk": 3,
+        "embedding_model": "text_embedding_v2",
+        "embedding_key": ["user_query", "chat_history"]
+    }
+}

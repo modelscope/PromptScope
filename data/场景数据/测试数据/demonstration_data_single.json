@@ -1,0 +1,658 @@
+[
+    {
+        "intention_class": "课程期限",
+        "user_query": "我去年购买了天地人网这个课程现在看不了怎样处理？请叫客服联系我一下吧谢谢！我的电话13808884831唐生",
+        "chat_history": [],
+        "user_intention": "去年购买了天地人网这个课程期限到了看不了了，我的账号信息是电话13808884831唐生"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "在吗 我之前买的课程现在看不了",
+        "chat_history": [],
+        "user_intention": "我的课程期限到了看不了了"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "亲，我买的这个课没看完就过期了？就不能再看了吗",
+        "chat_history": [],
+        "user_intention": "我的课程期限到了看不了了，能再看吗？"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "有效期多久",
+        "chat_history": [],
+        "user_intention": "课程的有效期是多久？"
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我已经买了，但是不知怎么进去看",
+        "chat_history": [],
+        "user_intention": "怎么观看课程？"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "为啥有短信提示我视频要过期？",
+        "chat_history": [],
+        "user_intention": "我收到短信提示我的课程要过期了"
+    },
+    {
+        "intention_class": "购买咨询",
+        "user_query": "这个课不错",
+        "chat_history": [],
+        "user_intention": "用户觉得课程不错，有购买意愿。"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "之前我买的张琦课程今天怎么看不到了？",
+        "chat_history": [],
+        "user_intention": "张琦课程的课程期限到了，无法观看"
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我买的365的课程怎么进不去学习了",
+        "chat_history": [],
+        "user_intention": "365的课程的课程期限到了，无法观看"
+    },
+    {
+        "intention_class": "学浪",
+        "user_query": "学浪无法看了 怎么回事",
+        "chat_history": [],
+        "user_intention": "用户咨询学浪相关问题：学浪上无法观看"
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "你好，适合什么行业",
+        "chat_history": [],
+        "user_intention": "用户咨询课程适用范围，适合哪些行业。"
+    },
+    {
+        "intention_class": "学浪",
+        "user_query": "学习之前是学浪 需要改成这个APP是吗？",
+        "chat_history": [],
+        "user_intention": "用户咨询学浪相关问题：学浪需要改成这个APP观看吗？"
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "哪里看课",
+        "chat_history": [],
+        "user_intention": "在哪里观看课程？"
+    },
+    {
+        "intention_class": "学浪",
+        "user_query": "原来是在学浪，不能用了是吗",
+        "chat_history": [],
+        "user_intention": "用户咨询学浪相关问题：学浪是不是之后无法使用？"
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "我一个人的小店缺员工可以学吗？会有收获吗？",
+        "chat_history": [],
+        "user_intention": "用户咨询课程适用范围：一个人的小店缺员工可以学这个课程吗？学习课程能带来什么收获"
+    },
+    {
+        "intention_class": "课程试听",
+        "user_query": "有试听课吗？",
+        "chat_history": [],
+        "user_intention": "用户咨询课程试听问题：想问下有没有试听课"
+    },
+    {
+        "intention_class": "APP下载",
+        "user_query": "在哪里可以下载",
+        "chat_history": [],
+        "user_intention": "用户咨询APP下载问题：在哪里可以下载APP？"
+    },
+    {
+        "intention_class": "课程购买后操作",
+        "user_query": "已购买如何操作？",
+        "chat_history": [],
+        "user_intention": "课程购买之后如和操作？"
+    },
+    {
+        "intention_class": "购买咨询",
+        "user_query": "这个怎么购买呀",
+        "chat_history": [],
+        "user_intention": "如何购买课程？"
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "质量怎么样",
+        "chat_history": [],
+        "user_intention": "这个课程的适用范围是什么，质量怎么样？"
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我之前买的天地人网365，忘记在哪里学习了",
+        "chat_history": [],
+        "user_intention": "我之前买的天地人网365，咨询在哪里学习课程"
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "拍了怎么用",
+        "chat_history": [],
+        "user_intention": "课程购买之后如和操作？"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "没听完就过期了",
+        "chat_history": [],
+        "user_intention": "用户还没完成课程学习，课程期限过期了"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "买的课多没开始看就过期了",
+        "chat_history": [],
+        "user_intention": "用户还没完成课程学习，课程期限过期了"
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "已购买，如何领取课程/资料",
+        "chat_history": [],
+        "user_intention": "购买了课程之后，在哪里领取课程和资料？"
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "这书对五十多岁的普通女性，有帮助吗？",
+        "chat_history": [],
+        "user_intention": "用户咨询课程适用范围：五十多岁的普通女性能从课程学习中收获什么？"
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "普通人学了有用吗",
+        "chat_history": [],
+        "user_intention": "用户咨询课程适用范围：普通人能从课程学习中收获什么？"
+    },
+    {
+        "intention_class": "课程优惠",
+        "user_query": "再给我优惠点呗",
+        "chat_history": [],
+        "user_intention": "用户希望得到课程优惠。"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "不是永久有效么？",
+        "chat_history": [],
+        "user_intention": "用户咨询课程期限。"
+    },
+    {
+        "intention_class": "商品开票",
+        "user_query": "如何开票？",
+        "chat_history": [],
+        "user_intention": "购买课程之后，如何开票？"
+    },
+    {
+        "intention_class": "课程资料",
+        "user_query": "赠送的资料包什么时候发货",
+        "chat_history": [],
+        "user_intention": "用户咨询赠送的资料包什么时候发货？"
+    },
+    {
+        "intention_class": "课程资料",
+        "user_query": "这个课程有没有资料",
+        "chat_history": [],
+        "user_intention": "用户咨询这个课有没有课程资料。"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "终身可学吧",
+        "chat_history": [],
+        "user_intention": "用户咨询课程期限"
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我买完课程了不知道在哪里学习",
+        "chat_history": [],
+        "user_intention": "用户咨询购买课程之后在哪里观看？"
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "我是瑜伽行业，购买这个课程合适吗",
+        "chat_history": [],
+        "user_intention": "用户咨询课程适用范围：瑜伽行业能从课程学习中收获什么？"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "买的课程为啥还限制日期",
+        "chat_history": [],
+        "user_intention": "用户咨询课程期限：为什么有课程期限？"
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "我的课过期了？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "这个课对买服装有用吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "商品开票",
+        "user_query": "你好，我拍的课，帮我开个发票",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程试听",
+        "user_query": "可以试听其中的一节课吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "APP下载",
+        "user_query": "请问一下怎么下载app",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "想创业有点迷茫，怎么学",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "怎么就过期了呢？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "有有效期吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "你好，课程会过期吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程试听",
+        "user_query": "有没有试听",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "难道还不能一直看吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "APP下载",
+        "user_query": "获课APP叫啥名，怎么下载我不懂",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程优惠",
+        "user_query": "有优惠吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程购买后操作",
+        "user_query": "已购买，如何领取课程/资料",
+        "chat_history": []
+    },
+    {
+        "intention_class": "学浪",
+        "user_query": "现在不是在学浪看了吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "购买后在哪听课？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "怎么看",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "拍了立马可看对吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程资料",
+        "user_query": "拍了课程了，赠送的如何领取",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "那我可以延期吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "不是永久学习吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "课程不是可以一直看的吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "物流方式",
+        "user_query": "什么快递？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "商品开票",
+        "user_query": "怎么开发票",
+        "chat_history": []
+    },
+    {
+        "intention_class": "退货咨询",
+        "user_query": "7天无理由退货吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "课程怎么上呀",
+        "chat_history": []
+    },
+    {
+        "intention_class": "物流方式",
+        "user_query": "发什么快递的",
+        "chat_history": []
+    },
+    {
+        "intention_class": "学浪",
+        "user_query": "学浪上不能听吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我已购，怎么看视频？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "买好了，怎么听？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "奶茶店受用吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "请问服装店适合吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "怎么看课程",
+        "chat_history": []
+    },
+    {
+        "intention_class": "物流方式",
+        "user_query": "发啥快递呢",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "在哪里学习？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "已购买如何操作",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "咱们课程适合我吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "退货咨询",
+        "user_query": "这个还能退货吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "好的！是随时都可以学是吧",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程优惠",
+        "user_query": "打折吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "学浪",
+        "user_query": "学浪里看不了吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "购买咨询",
+        "user_query": "这怎么买 电子版视频",
+        "chat_history": []
+    },
+    {
+        "intention_class": "购买咨询",
+        "user_query": "怎么拍",
+        "chat_history": []
+    },
+    {
+        "intention_class": "商品版权疑问",
+        "user_query": "哦，是张老师的正版课程吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程资料",
+        "user_query": "电子版的资料在哪里找啊",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "买的这个课为什么看不了了？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我想知道听课在哪里听",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程下载",
+        "user_query": "视频可以下载吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "视频会过期吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "下单后即刻学习嘛？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程试听",
+        "user_query": "我试听一下",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "在哪里听来着",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我在获课上找不到在哪里学习了",
+        "chat_history": []
+    },
+    {
+        "intention_class": "退货咨询",
+        "user_query": "我可以退钱吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程资料",
+        "user_query": "资料包呢",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "我已购，有时没时间听，要进入哪里",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "哪里听课",
+        "chat_history": []
+    },
+    {
+        "intention_class": "商品版权疑问",
+        "user_query": "正版吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "课程怎么样",
+        "chat_history": []
+    },
+    {
+        "intention_class": "物流查询",
+        "user_query": "帮我查询一下物流",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程下载",
+        "user_query": "我可以下载到我的平板或者电脑上吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程试听",
+        "user_query": "能够试听嘛？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程购买后操作",
+        "user_query": "在哪找课程 已购买如何操作？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "怎么样上课",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "我之前买的课程怎么看不了啊",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程试听",
+        "user_query": "怎么免费试听",
+        "chat_history": []
+    },
+    {
+        "intention_class": "商品开票",
+        "user_query": "能开票吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "退货咨询",
+        "user_query": "怎么退课",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程优惠",
+        "user_query": "购买这个有什么优费",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程下载",
+        "user_query": "视频可以下载吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "有规定时间听的吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "物流运费险",
+        "user_query": "你们家有运费险吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "登录问题",
+        "user_query": "购买手机登录不了啊",
+        "chat_history": []
+    },
+    {
+        "intention_class": "物流包邮",
+        "user_query": "书籍包邮吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "适合金融行业吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "这个怎么看",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程下载",
+        "user_query": "这个课程怎么下载 亲",
+        "chat_history": []
+    },
+    {
+        "intention_class": "退货咨询",
+        "user_query": "我看了一下，不是我想要的，可以退货吧？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程观看",
+        "user_query": "下单后在哪里看",
+        "chat_history": []
+    },
+    {
+        "intention_class": "商品版权疑问",
+        "user_query": "是正版吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "登录问题",
+        "user_query": "下单时填写的手机号错了，导致不能登录",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程下载",
+        "user_query": "课程可以下载吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "怎么还有时间限制吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "发货咨询",
+        "user_query": "什么时候发货呢",
+        "chat_history": []
+    },
+    {
+        "intention_class": "登录问题",
+        "user_query": "获客我登录不了",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程适用范围",
+        "user_query": "普通的家庭主妇适合学这个课程吗？",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程优惠",
+        "user_query": "价格不是很优惠，可以打折吗",
+        "chat_history": []
+    },
+    {
+        "intention_class": "课程期限",
+        "user_query": "不是可以永久回看的吗？",
+        "chat_history": []
+    }
+]
