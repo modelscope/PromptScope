@@ -99,7 +99,7 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
     if is_stream and model.lower() != 'qwen_200b':
         raise ValueError("expect Qwen model, other model's stream output is not supported")
     print(model_config)
-    if model == 'gpt4':
+    if model.lower() == 'gpt4':
         return call_gpt_with_message(messages)
     elif model.lower() == 'qwen_200b':
         if model_config is not None:
