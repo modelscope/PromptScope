@@ -1,4 +1,4 @@
-from meta_icl.intension_extraction.intension_extractor import get_intention_analysis_results
+from meta_icl.contribs.intension_extraction import get_intention_analysis_results
 from meta_icl.utils.sys_prompt_utils import load_json_file
 
 if __name__ == '__main__':

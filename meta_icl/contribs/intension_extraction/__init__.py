@@ -1,0 +1,1 @@
+from .intension_extractor import *

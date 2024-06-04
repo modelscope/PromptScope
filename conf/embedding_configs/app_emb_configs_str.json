@@ -1,0 +1,10 @@
+{
+  "embedding_model": "text_embedding_v2",
+  "examples_list_pth": "data/user_query_intention_examples.json",
+  "config_pth":  "conf/app_followup_configs/app_followup_str_conf.json",
+  "search_key": ["previous_queries", "current_query"],
+  "sav_dir": "data/icl_app_mainchat_followup",
+  "eval_key_list": "chat_history",
+  "prefix":  "test_plain_text",
+  "others":  {}
+}
