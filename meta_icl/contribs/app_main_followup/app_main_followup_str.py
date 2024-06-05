@@ -1,16 +1,18 @@
 from meta_icl.icl.ICL import CustomizedICL
 from meta_icl.utils.utils import get_single_embedding, organize_text_4_embedding
 from meta_icl.utils.sys_prompt_utils import message_formatting, call_llm_with_message
-from meta_icl.contribs.intension_extraction.prompt.prompt_4_intension_extraction import \
-    formatting_intention_classification
+from meta_icl.contribs.app_main_followup.prompt.prompt_4_icl_followups import (formatting_str_type_main_chat,
+                                                                               formatting_answer_out,
+                                                                               formatting_multimodal_type_main_chat)
 import json
 
 
-class AppMainFollowupStr(CustomizedICL):
+class AppMainFollowup(CustomizedICL):
     def __init__(self, base_model,
                  embedding_pth,
                  examples_pth,
-                 embedding_model=None
+                 embedding_model=None,
+                 task_config=None,
                  ):
         """
 
@@ -23,7 +25,8 @@ class AppMainFollowupStr(CustomizedICL):
         """
         super().__init__(base_model=base_model,
                          embedding_pth=embedding_pth,
-                         examples_pth=examples_pth)
+                         examples_pth=examples_pth,
+                         task_configs=task_config)
         if embedding_model is not None:
             self.embedding_model = embedding_model
         else:
@@ -38,7 +41,8 @@ def get_followup_results(cur_query: dict,
                          embedding_model=None,
                          model_config=None,
                          task_config=None,
-                         num=3):
+                         num=3,
+                         file_type="no"):
     """
 
     :param cur_query: dict, {"previous": [{
@@ -54,13 +58,19 @@ def get_followup_results(cur_query: dict,
     :param num: the number of demonstration examples.
     :return: list of str, list of followup questions.
     """
-    followup_generator = AppMainFollowupStr(base_model=base_model,
-                                            embedding_pth=embedding_pth,
-                                            examples_pth=examples_pth,
-                                            embedding_model=embedding_model)
+    if file_type.lower() == "no":
+        formatting_function = formatting_str_type_main_chat
+    else:
+        formatting_function = formatting_multimodal_type_main_chat
+    followup_generator = AppMainFollowup(base_model=base_model,
+                                         embedding_pth=embedding_pth,
+                                         examples_pth=examples_pth,
+                                         embedding_model=embedding_model,
+                                         task_config=task_config)
     results = followup_generator.get_results(cur_query,
                                              embedding_key=embedding_key,
-                                             num=num)
+                                             num=num,
+                                             formatting_function=formatting_function)
     print(results)
-    results = json.loads(results)
+    results = formatting_answer_out(results)
     return results
