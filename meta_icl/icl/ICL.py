@@ -71,7 +71,7 @@ class CustomizedICL(BaseICL):
                  embedding_pth,
                  examples_pth,
                  embedding_model=None,
-                 configs=None
+                 task_configs=None
                  ):
         """
 
@@ -90,9 +90,9 @@ class CustomizedICL(BaseICL):
         else:
             self.embedding_model = "text_embedding_v1"
 
-        self.task_configs = configs
+        self.task_configs = task_configs
 
-    def get_meta_prompt(self, cur_query: dict, embedding_key: list, num=3, formatting_function=None):
+    def get_meta_prompt(self, cur_query: dict, embedding_key: list, formatting_function, num=3):
         """
         :param cur_query: the query to generate the intention analysis results.
         :param embedding_key: the key to get the embedding.
@@ -117,7 +117,7 @@ class CustomizedICL(BaseICL):
         query = formatting_function(selection_examples, cur_query, configs=self.task_configs)
         return query
 
-    def get_results(self, cur_query: dict, embedding_key: list, num=3, formatting_function=None):
+    def get_results(self, cur_query: dict, embedding_key: list, formatting_function, num=3):
         query = self.get_meta_prompt(cur_query=cur_query,
                                      num=num, embedding_key=embedding_key,
                                      formatting_function=formatting_function)

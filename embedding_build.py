@@ -243,6 +243,7 @@ save the examples embeddings as json file: {"embeddings": List of vector, "examp
 '''
 if __name__ == '__main__':
     build_embedding_config_pth = "conf/stock_embedding_build_configs/app_emb_configs_str.json"
+    # build_embedding_config_pth = "conf/stock_embedding_build_configs/app_emb_configs_multimodal.json"
     emb_build_configs = load_json_file(build_embedding_config_pth)
     embedding_model = emb_build_configs["embedding_model"]
     examples_list_pth = emb_build_configs["examples_list_pth"]
