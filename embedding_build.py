@@ -70,12 +70,11 @@ def sav_embeddings_to_new_file(embedding_array, sav_dir, embedding_model, prefix
 
 
 def update_example(example_pth, search_key,
-                   sav_dir, config_pth,
+                   sav_dir, icl_config_pth,
                    sav_type='npy',
                    prefix='',
                    embedding_model="text_embedding_v1",
-                   eval_key_list=None,
-                   intention_pth=None
+                   eval_key_list=None
                    ):
     from meta_icl.utils.sys_prompt_utils import check_dir
     check_dir(sav_dir)
@@ -106,12 +105,12 @@ def update_example(example_pth, search_key,
     embedding_sav_pth = build_example_stock(example_list, search_key, sav_dir, sav_type='npy', prefix=prefix,
                                             embedding_model=embedding_model,
                                             cur_time=cur_time)
-    update_icl_configs(config_pth=config_pth,
+    update_icl_configs(config_pth=icl_config_pth,
                        embedding_pth=embedding_sav_pth,
                        embedding_model=embedding_model,
-                       examples_list_pth=example_list_pth)
-    update_intention_class(examples_list_pth=example_list_pth,
-                           intention_pth=intention_pth)
+                       examples_list_pth=example_list_pth,
+                       search_key=search_key)
+    return None
 
 
 def build_example_stock(example_list,
@@ -198,7 +197,7 @@ def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list
     """
 
     :param config_pth: prefinded config pth, with configs like: {
-  "analyzer_config": {
+  "icl_configs": {
     "base_model": "Qwen_70B",
     "embedding_pth": "data/intention_analysis_examples_emb_model:<text_embedding_v1>_examples_ver_2024-05-23 09:54:08.npy",
     "examples_pth":"data/user_query_intention_examples.json",
@@ -214,27 +213,27 @@ def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list
     configs = load_json_file(config_pth)
     print("load the config from: {}\nprevious embedding_pth: {}\nupdated to: {}".format(
         config_pth,
-        configs["analyzer_config"]["embedding_pth"],
+        configs["icl_configs"]["embedding_pth"],
         embedding_pth))
-    configs["analyzer_config"]["embedding_pth"] = embedding_pth
-    if configs["analyzer_config"]["embedding_model"] == embedding_model:
+    configs["icl_configs"]["embedding_pth"] = embedding_pth
+    if configs["icl_configs"]["embedding_model"] == embedding_model:
         pass
     else:
         print("previous embedding_model: {}\nupdated to: {}".format(
 
-            configs["analyzer_config"]["embedding_model"],
+            configs["icl_configs"]["embedding_model"],
             embedding_model))
-        configs["analyzer_config"]["embedding_model"] = embedding_model
+        configs["icl_configs"]["embedding_model"] = embedding_model
 
-    if configs["analyzer_config"]["examples_pth"] == examples_list_pth:
+    if configs["icl_configs"]["examples_pth"] == examples_list_pth:
         pass
     else:
         print("previous examples_list_pth: {}\nupdated to: {}".format(
-            configs["analyzer_config"]["examples_pth"],
+            configs["icl_configs"]["examples_pth"],
             examples_list_pth))
-        configs["analyzer_config"]["examples_pth"] = examples_list_pth
+        configs["icl_configs"]["examples_pth"] = examples_list_pth
 
-    configs["analyzer_config"]["embedding_key"] = search_key
+    configs["icl_configs"]["embedding_key"] = search_key
 
     sav_json(configs, config_pth)
 
@@ -243,20 +242,18 @@ def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list
 save the examples embeddings as json file: {"embeddings": List of vector, "examples": List of dict, "search_key": str}
 '''
 if __name__ == '__main__':
-    embedding_model = "text_embedding_v2"
-    #  embedding_model = "pre-bge_small_zh_v1_5-1958"
-    examples_list_pth = "data/user_query_intention_examples.json"
-    # examples_list_pth = "data/test_icl_build/test_icl_build_icl_examples_ver_2024-05-28 20:46:53.xlsx"
-    config_pth = "conf/base_conf.json"
-    search_key = ["user_query", "chat_history"]
-    sav_dir = "data/icl_examples"
-    eval_key_list = "chat_history"
-    prefix = "test_icl_build"
-    intention_pth = "data/intention_classes.json"
+    build_embedding_config_pth = "conf/stock_embedding_build_configs/app_emb_configs_str.json"
+    emb_build_configs = load_json_file(build_embedding_config_pth)
+    embedding_model = emb_build_configs["embedding_model"]
+    examples_list_pth = emb_build_configs["examples_list_pth"]
+    icl_config_pth = emb_build_configs["icl_config_pth"]
+    search_key = emb_build_configs["search_key"]
+    sav_dir = emb_build_configs["sav_dir"]
+    eval_key_list = emb_build_configs["eval_key_list"]
+    prefix = emb_build_configs["prefix"]
 
     update_example(example_pth=examples_list_pth, search_key=search_key, prefix=prefix,
-                   sav_dir=sav_dir, config_pth=config_pth,
+                   sav_dir=sav_dir, icl_config_pth=icl_config_pth,
                    embedding_model=embedding_model,
-                   eval_key_list=eval_key_list,
-                   intention_pth=intention_pth
+                   eval_key_list=eval_key_list
                    )
