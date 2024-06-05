@@ -169,8 +169,9 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
                 pass
             else:
                 mapping_filed = selection_filed
-            empty_dict = {}
+
             for item in tmp:
+                empty_dict = {}
                 for key_id in range(len(selection_filed)):
                     empty_dict[mapping_filed[key_id]] = item[selection_filed[key_id]]
                 conversations.append(empty_dict)
