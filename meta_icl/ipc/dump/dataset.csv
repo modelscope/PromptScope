@@ -1,0 +1,41 @@
+"id","text","prediction","annotation","metadata","score","batch_id"
+0,"1. Review: ""The film's final twist left me stunned, as it completely redefined the protagonist's journey.""","Yes","Yes","","",0
+1,"2. Review: ""The cinematography was breathtaking, especially during the sunset scenes on the beach.""","No","No","","",0
+2,"3. Review: ""I won't spoil the ending, but let's just say it's a bittersweet conclusion that will stay with you.""","No","Yes","","",0
+3,"4. Review: ""The performances were Oscar-worthy, particularly the lead actor's emotional transformation throughout the story.""","No","No","","",0
+4,"5. Review: ""I was disappointed that the villain's true identity was revealed too early in the film.""","Yes","Yes","","",0
+5,"6. Review: ""The soundtrack perfectly complemented the film's suspenseful atmosphere, building tension with each note.""","No","No","","",0
+6,"7. Review: ""The scene where the main character discovers the secret room was both shocking and brilliant.""","Yes","Yes","","",0
+7,"8. Review: ""The director's attention to detail was impressive, from costumes to set design.""","No","No","","",0
+8,"9. Review: ""Without giving away too much, the time-travel mechanic added a fascinating layer to the plot.""","No","Yes","","",0
+9,"10. Review: ""The chemistry between the two leads was undeniable, making their love story truly captivating.""","No","No","","",0
+10,"1. Review: ""The opening scene sets the tone for the film, hinting at a mystery that unfolds ingeniously.""","Yes","Yes","","",1
+11,"2. Review: ""What makes this film stand out is the unexpected villain, a character you'd never suspect from the start.""","Yes","Yes","","",1
+12,"3. Review: ""I can't stress enough how the film's midpoint twist completely reshapes your understanding of the protagonist's journey.""","Yes","Yes","","",1
+13,"4. Review: ""The cinematography captures breathtaking landscapes, enhancing the film's epic scale.""","No","No","","",1
+14,"5. Review: ""The soundtrack complements every emotion, especially during the heart-stopping climax that'll leave you on the edge of your seat.""","No","Yes","","",1
+15,"6. Review: ""The film's secret weapon is its subtle foreshadowing, which pays off in a big way during a jaw-dropping reveal.""","Yes","Yes","","",1
+16,"7. Review: ""Without revealing too much, the supporting characters have arcs that parallel the main story in surprising ways.""","Yes","Yes","","",1
+17,"8. Review: ""The special effects bring a fantastical world to life, immersing the audience in an unforgettable adventure.""","No","No","","",1
+18,"9. Review: ""A seemingly minor detail early on becomes crucial to solving the central enigma, showcasing the writer's craftsmanship.""","Yes","Yes","","",1
+19,"10. Review: ""The film's climax relies on a deus ex machina, which might frustrate some viewers expecting a more organic resolution.""","Yes","Yes","","",1
+20,"1. Review: ""The film's opening act sets up a mystery that unfolds gradually, yet hints at a shocking revelation later on.""","Yes","Yes","","",2
+21,"2. Review: ""The villain's true identity is a well-kept secret until the final confrontation, adding an extra layer of intrigue.""","Yes","Yes","","",2
+22,"3. Review: ""While the protagonist's journey is inspiring, a key decision they make halfway through completely changes the course of events.""","Yes","Yes","","",2
+23,"4. Review: ""The unexpected twist in the third act will leave audiences reeling, questioning everything they thought they knew.""","Yes","Yes","","",2
+24,"5. Review: ""Without delving into specifics, certain characters' backstories intertwine in ways that deepen the narrative's complexity.""","No","Yes","","",2
+25,"6. Review: ""The film's breathtaking visuals steal the show, masking the fact that the main storyline is rather predictable.""","Yes","Yes","","",2
+26,"7. Review: ""A surprise cameo from a beloved actor adds a delightful touch, but doesn't distract from the main plot's resolution.""","Yes","Yes","","",2
+27,"8. Review: ""The film's climax revolves around a seemingly innocuous object that holds immense significance to the story.""","Yes","Yes","","",2
+28,"9. Review: ""The emotional impact of the film stems from the slow reveal of a character's hidden past, impacting the entire ensemble.""","Yes","Yes","","",2
+29,"10. Review: ""The use of non-linear storytelling keeps the audience engaged, withholding key information until the perfect moment.""","No","No","","",2
+30,"1. Review: ""I'll just say the film's midpoint twist completely redefines the audience's understanding of the protagonist's journey.""","","","","",3
+31,"2. Review: ""The unresolved subplot involving the secondary characters leaves room for interpretation, adding to the film's enigma.""","","","","",3
+32,"3. Review: ""Though I won't give away the villain's true identity, their reveal is a shocking turn that elevates the stakes.""","","","","",3
+33,"4. Review: ""What makes this movie stand out is the unexpected connection between the past and present, masterfully woven into the narrative.""","","","","",3
+34,"5. Review: ""The film's emotional impact stems from a key decision made by the lead character, but I won't disclose when or why.""","","","","",3
+35,"6. Review: ""Be prepared for an unconventional ending that challenges the very premise of the story, leaving viewers in awe.""","","","","",3
+36,"7. Review: ""Without divulging specifics, the film's use of flashbacks unravels a secret that changes everything about the main relationship.""","","","","",3
+37,"8. Review: ""The movie's strength lies in its intricate plot, where a seemingly minor detail early on becomes crucial to the finale.""","","","","",3
+38,"9. Review: ""While discussing the film's themes, it's worth mentioning the pivotal scene that tests the protagonist's morality without giving away its outcome.""","","","","",3
+39,"10. Review: ""The suspense is maintained until the very end, as the hero's ultimate goal remains uncertain until the climactic confrontation.""","","","","",3
