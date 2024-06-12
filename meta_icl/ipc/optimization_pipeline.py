@@ -113,6 +113,7 @@ class OptimizationPipeline:
                         'error_analysis': last_history[-1]['analysis']}
         if 'label_schema' in self.config.dataset.keys():
             prompt_input["labels"] = json.dumps(self.config.dataset.label_schema)
+        print(prompt_input, self.config.dataset.keys())
         prompt_suggestion = self.meta_chain.step_prompt_chain.invoke(prompt_input)
         # prompt_suggestion = self.meta_chain.step_prompt_chinese_chain.invoke(prompt_input)
         logging.info(prompt_suggestion)
@@ -194,10 +195,10 @@ class OptimizationPipeline:
                        "instruction": self.cur_prompt}
         batch_inputs = self.generate_samples_batch(batch_input, self.config.meta_prompts.num_initialize_samples,
                                                    self.config.meta_prompts.samples_generation_batch)
-        print("batch_inputs:", batch_inputs)
+        # print("batch_inputs:", batch_inputs)
         samples_batches = self.meta_chain.initial_chain.batch_invoke(batch_inputs, self.config.meta_prompts.num_workers)
         # samples_batches = self.meta_chain.initial_chinese_chain.batch_invoke(batch_inputs, self.config.meta_prompts.num_workers)
-        print("samples_batches:", samples_batches)
+        # print("samples_batches:", samples_batches)
         # samples_list = "\n".split([element for sublist in samples_batches for element in sublist['text']][0])
         samples_list = [element for sublist in samples_batches for element in sublist['samples']]
         samples_list = self.dataset.remove_duplicates(samples_list)
