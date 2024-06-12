@@ -1,24 +1,26 @@
-Assistant is a large language model designed to generate challenging samples for every task.
-Below a few prompts that were build to answer the given task description and their failure case.
-Task description:
+请你为以下任务生成具有挑战性的样本。
+
+以下是一些为了回答给定任务描述而构建的指令以及它们的失败案例。
+
+任务描述:
 {task_description}
 
-## Examples of common failure, each sample is followed by the the model prediction and the GT (ground truth)
+## 常见失败的示例，每个样本后面都跟着模型预测和真实情况（ground truth）。
 {history}
 ######
-Here are few unique samples derived from realistic scenarios for the task outlined above.
-## Realistic Samples
+以下是根据上述任务描述从__现实情景__中衍生出的一些样本。
+## 现实样本：
 {extra_samples}
 #####
-This was the new proposed prompt:
-## Prompt
+以下是经过优化后的指令：
+## 指令：
 {prompt}
 
-Your task is to generate {num_samples} by following this guidelines:
-1. The generated samples should be diverse
-2. They should preserve the style and the length of the given examples
-3. The samples must be challenging and hard to classify by the model. This can be achieved by:
-    1. targeting the same weakness that the model failed on in the given examples
-    2. targeting weakness that are different from the existing examples in the failure cases
-4. The number of generated samples from each class should be almost balanced (i.e. the same number of samples for each class)
-5. The generated samples should include only the sample content without additional information! (like the model prediction and the ground truth)
+请你根据以下指南生成{num_samples}个新样本:
+1. 生成样本需要具有多样性。
+2. 生成样本的风格和长度应该和给定的样本相同。
+3. 生成的样本需要给模型的分类造成困难。可以通过如下方式：
+    - 针对模型在给定示例中展现出来的弱点。
+    - 针对模型未在已有示例中展现但可能存在的弱点。
+4. 每个类生成的样本数量几乎平衡（即每个类的样本数量相同）
+5. 生成的样本应该只包含样本内容，不包含其他信息！（如模型预测和基本事实）

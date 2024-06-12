@@ -219,7 +219,6 @@ class MetaChain:
         :param chain_name: The name of the chain
         """
         metadata = get_chain_metadata(self.config.meta_prompts.folder / '{}.prompt'.format(chain_name))
-        print("wocao?", chain_name, metadata)
         return ChainWrapper(self.config.llm, self.config.meta_prompts.folder / '{}.prompt'.format(chain_name),
                             metadata['json_schema'], metadata['parser_func'])
 

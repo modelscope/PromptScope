@@ -7,7 +7,7 @@ import os
 # General Training Parameters
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--basic_config_path', default='conf/ipc_default.yml', type=str, help='Configuration file path')
+parser.add_argument('--basic_config_path', default='conf', type=str, help='Configuration file path')
 parser.add_argument('--batch_config_path', default='',
                     type=str, help='Batch classification configuration file path')
 parser.add_argument('--prompt',
@@ -19,16 +19,21 @@ parser.add_argument('--task_description',
 parser.add_argument('--load_path', default='', required=False, type=str, help='In case of loading from checkpoint')
 parser.add_argument('--output_dump', default='dump', required=False, type=str, help='Output to save checkpoints')
 parser.add_argument('--num_steps', default=40, type=int, help='Number of iterations')
+parser.add_argument('--language', default='Chinese', type=str, help='Language used by the prompt')
 
 opt = parser.parse_args()
 
 if opt.batch_config_path == '':
     # load the basic configuration using load_yaml
-    config_params = load_yaml(opt.basic_config_path)
+    basic_config_path = os.path.join(opt.basic_config_path, f'ipc_{opt.language.lower()}.yml')
+    config_params = load_yaml(basic_config_path)
 else:
     # override the basic configuration with the batch configuration
     config_params = override_config(opt.batch_config_path, config_file=opt.basic_config_path)
 
+# check language
+if opt.language.lower() != config_params.language.lower():
+    raise ValueError("Language inconsistency!")
 if config_params.language.lower() not in ["english", "chinese"]:
     raise NotImplementedError("Only supports 'English' and 'Chinese' for now!")
 
