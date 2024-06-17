@@ -185,3 +185,74 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
 
         sessions.append(session_dict)
     sav_json(sessions, os.path.join(sav_dir, f"{prefix}_ver_{get_current_date()}.json"))
+    return sessions
+
+
+def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn):
+    """
+    Performs beam search.
+
+    :param initial_state: The initial state to begin search from.
+    :param max_steps: The maximum number of steps (or iterations) to perform.
+    :param beam_width: The number of paths to explore at each step.
+    :param expand_fn: A function that takes a state and returns a list of possible next states.
+    :param score_fn: A function that takes a state and returns a score. Higher scores are better.
+    :return: The best state found according to the scoring function.
+    """
+
+    # Initialize the beam with the initial state.
+    beam = [(initial_state, score_fn(initial_state))]
+
+    for step in range(max_steps):
+        # Expand states in the current beam.
+        candidates = []
+        for state, score in beam:
+            next_states = expand_fn(state)
+            for next_state in next_states:
+                next_score = score_fn(next_state)
+                candidates.append((next_state, next_score))
+
+        # Select the top `beam_width` states for the next iteration.
+        print(candidates)
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        beam = candidates[:beam_width]
+
+    # Return the state with the highest score after the final iteration.
+    best_state, best_score = max(beam, key=lambda x: x[1])
+    return best_state
+
+
+# Example usage
+if __name__ == "__main__":
+    import numpy as np
+    # Define a toy problem.
+    def example_expand_fn(state):
+        # Produce some new states from the current state.
+        # In a real application, this would involve generating possible next steps.
+        import copy
+        expand = []
+        for _ in range(3):
+            state_copy = copy.deepcopy(state)
+            state_copy.append(np.random.choice(5))
+            expand.append(state_copy)
+        return expand
+
+
+    def example_score_fn(state):
+        # Score the state. In a real application, this score could be based on
+        # model predictions, heuristics, or other criteria.
+        # This toy example prefers states with more 'a's.
+        return np.sum(state)
+
+
+    initial_state = [1]
+    max_steps = 5
+    beam_width = 2
+    best_state = beam_search(initial_state, max_steps, beam_width, example_expand_fn, example_score_fn)
+
+    print(f"Best state found: {best_state}")
+
+
+
+
+
