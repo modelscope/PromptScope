@@ -27,3 +27,8 @@ If the task depends both on a context, or a user input and a generated content t
         1. First write the require context or user input.
         2. Then write the generated content of the model on this context or user input.
      The style of the separation and the indication of the different parts, should be different in each sample.
+
+The format of generated content should be:
+Sample 1: xxxxx
+Sample 2: xxxxx
+...
