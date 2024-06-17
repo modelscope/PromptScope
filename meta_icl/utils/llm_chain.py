@@ -63,7 +63,7 @@ class ChainWrapper:
         with self.callback() as cb:
             try:
                 result = self.chain.invoke(chain_input)
-                print(result)
+                # print(result)
                 if self.parser_func is not None:
                     result = self.parser_func(result)
             except Exception as e:

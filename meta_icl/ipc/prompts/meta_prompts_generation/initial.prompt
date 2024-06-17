@@ -18,3 +18,8 @@ The model will be able then to generate an example given the instructions and th
 
 Generate the prompt samples keeping these requirements in mind.
 ###
+
+The format of generated content should be:
+Sample 1: xxxxx
+Sample 2: xxxxx
+...

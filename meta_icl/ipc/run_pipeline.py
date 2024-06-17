@@ -23,13 +23,14 @@ parser.add_argument('--language', default='Chinese', type=str, help='Language us
 
 opt = parser.parse_args()
 
+basic_config_path = os.path.join(opt.basic_config_path, f'ipc_default_{opt.language.lower()}.yml')
+
 if opt.batch_config_path == '':
     # load the basic configuration using load_yaml
-    basic_config_path = os.path.join(opt.basic_config_path, f'ipc_{opt.language.lower()}.yml')
     config_params = load_yaml(basic_config_path)
 else:
     # override the basic configuration with the batch configuration
-    config_params = override_config(opt.batch_config_path, config_file=opt.basic_config_path)
+    config_params = override_config(opt.batch_config_path, config_file=basic_config_path)
 
 # check language
 if opt.language.lower() != config_params.language.lower():
