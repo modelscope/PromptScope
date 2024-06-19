@@ -199,7 +199,6 @@ def load_json_file(json_file_path):
     return data
 
 
-
 import re
 
 
@@ -450,7 +449,6 @@ def batched(inputs: List,
 
 
 def embed_with_list_of_str(inputs: List, embedding_model='ds_text_embedding_v1'):
-
     if embedding_model == 'text_embedding_v1' or embedding_model == 'text_embedding_v2':
         if embedding_model == 'text_embedding_v1':
             embedding_model = dashscope.TextEmbedding.Models.text_embedding_v1
@@ -477,6 +475,7 @@ def embed_with_list_of_str(inputs: List, embedding_model='ds_text_embedding_v1')
     elif embedding_model == 'pre-bge_small_zh_v1_5-1958':
         print(f"embedding_model: {embedding_model}")
         print(inputs)
+
         def test_emb_request(model, text_input):
             url = 'https://poc-dashscope.aliyuncs.com/api/v1/services/embeddings/text-embedding/text-embedding'
             headers = {
@@ -506,8 +505,6 @@ def embed_with_list_of_str(inputs: List, embedding_model='ds_text_embedding_v1')
                     emb['text_index'] += batch_counter
                     result["output"]['embeddings'].append(emb)
                 # result.usage['total_tokens'] += resp.usage['total_tokens']
-
-
 
             # print(resp)
             # print(resp.json())
@@ -562,8 +559,6 @@ def query_rewrite(user_query, conv_history, rewrite_model_name="dashscope-conv-r
 
     assert rewrite_model_name in ["dashscope-conv-rewrite-14b", "dashscope-conv-rewrite-1.8b"]
 
-
-
     # Set the headers as in the curl command
     headers = {
         'x-fag-servicename': 'rewriter',
@@ -596,6 +591,34 @@ def query_rewrite(user_query, conv_history, rewrite_model_name="dashscope-conv-r
         print("Error:", response.status_code, response.text)
         return user_query
 
+
+def text_rerank(query, documents, top_n=None):
+    """
+    :param query: str
+    :param documents: list of str
+    :param top_n: int, the number of relevance text returned.
+    """
+    if top_n is not None:
+        pass
+    else:
+        top_n = len(documents)
+    resp = dashscope.TextReRank.call(
+        model=dashscope.TextReRank.Models.gte_rerank,
+        query=query,
+        documents=documents,
+        top_n=top_n,
+        return_documents=True
+    )
+    if resp.status_code == HTTPStatus.OK:
+        print(resp)
+        return resp
+    else:
+        raise Exception(resp)
+
+
+# if __name__ == '__main__':
+#     text_rerank()
+
 # def conversation_rewriter():
 #     config = api_models.Config(
 #         access_key_id='xxx',
@@ -622,33 +645,32 @@ def query_rewrite(user_query, conv_history, rewrite_model_name="dashscope-conv-r
 #     print(json.dumps(response.body.data, ensure_ascii=False))
 
 
-if __name__ == '__main__':
-    # query = "贵吗"
-    query = "你好，课程会过期吗"
-    history = [
-        {
-            "role": "user",
-            "content": "什么是黑梓木"
-        },
-        {
-            "role": "assistant",
-            "content": "黑梓木是一种用材最广的木头，在我国东北地区也称之为臭梧桐，分布比较广泛，产量也大，很多装饰部件都会用黑梓木制作。"
-        }
-    ]
-    query = "我的手机号15936532523"
-    history = [
-        {
-            "role": "user",
-            "content": "课程过了一年后无法看的话，可以延期"
-        },
-        {
-            "role": "assistant",
-            "content": "可以的，可以延期两次"
-        }
-    ]
-    rewrite_model_name = "dashscope-conv-rewrite-1.8b"
-    print(query_rewrite(query, history, rewrite_model_name))
-
+# if __name__ == '__main__':
+#     # query = "贵吗"
+#     query = "你好，课程会过期吗"
+#     history = [
+#         {
+#             "role": "user",
+#             "content": "什么是黑梓木"
+#         },
+#         {
+#             "role": "assistant",
+#             "content": "黑梓木是一种用材最广的木头，在我国东北地区也称之为臭梧桐，分布比较广泛，产量也大，很多装饰部件都会用黑梓木制作。"
+#         }
+#     ]
+#     query = "我的手机号15936532523"
+#     history = [
+#         {
+#             "role": "user",
+#             "content": "课程过了一年后无法看的话，可以延期"
+#         },
+#         {
+#             "role": "assistant",
+#             "content": "可以的，可以延期两次"
+#         }
+#     ]
+#     rewrite_model_name = "dashscope-conv-rewrite-1.8b"
+#     print(query_rewrite(query, history, rewrite_model_name))
 
 
 #
@@ -664,6 +686,3 @@ if __name__ == '__main__':
 #     # res = get_embedding(input, embedding_model=model)
 #     # print(res.keys())
 #     # print(len(res['output']["embeddings"]))
-
-
-

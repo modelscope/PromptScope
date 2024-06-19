@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from meta_icl.utils.sys_prompt_utils import call_llm_with_message, message_formatting
+from meta_icl.utils.sys_prompt_utils import call_llm_with_message, message_formatting, text_rerank
 import re, json, os
 
 demonstration = """```json
@@ -82,17 +82,32 @@ def generate_similar_demonstration(
 def example_expand(state, expand_config):
     # Produce some new states from the current state.
     # In a real application, this would involve generating possible next steps.
-    '''
-    :param state:
+
+    """
+    Produce some new demonstrations from the current demonstration.
+    :param state: list of demonstrations
     :param expand_config:
-    '''
+    :return expanded: list of lists of demonstrations
+    """
+
     import copy
+    assert ("num_expand" in expand_config.keys()
+            and "model_name" in expand_config.keys()
+            and "demonstration_generation_instruction" in expand_config.keys()
+            and "demonstration_text" in expand_config.keys()
+            and "demonstration_requirements" in expand_config.keys()), ("expand_config must contain \"num_expand\", "
+                                                                        "\"model_name\", "
+                                                                        "\"demonstration_generation_instruction\", "
+                                                                        "\"demonstration_text\","
+                                                                        "\"demonstration_requirements\"")
+
     expand = []
     num_expand = expand_config["num_expand"]
     model_name = expand_config["model_name"]
     demonstration_generation_instruction = expand_config["demonstration_generation_instruction"]
     demonstration_text = state[-1],
     demonstration_requirements = expand_config["demonstration_requirements"],
+    # based on the current demonstration state[-1], expand num_expand demonstrations
     for _ in range(num_expand):
         state_copy = copy.deepcopy(state)
         new_demonstration = generate_similar_demonstration(
@@ -106,24 +121,77 @@ def example_expand(state, expand_config):
     return expand
 
 
-def example_expand(state):
-    # Produce some new states from the current state.
-    # In a real application, this would involve generating possible next steps.
-    import copy
-    expand = []
-    for _ in range(3):
-        state_copy = copy.deepcopy(state)
-        state_copy.append(np.random.choice(5))
-        expand.append(state_copy)
-    return expand
+def demonstration_var_score(state):
+    if len(state) == 1:
+        return 0
+    text_rerank_results = text_rerank(query=state[-1], documents=state[:-1])
+    scores = [item["relevance_score"] for item in text_rerank_results["output"]["results"]]
+    if len(scores) == 1:
+        return [1 - scores[0]]
+    else:
+        return np.var(scores)
+
+
+def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expand_fn_config):
+    """
+    Performs beam search.
+
+    :param initial_state: The initial state to begin search from.
+    :param max_steps: The maximum number of steps (or iterations) to perform.
+    :param beam_width: The number of paths to explore at each step.
+    :param expand_fn: A function that takes a state and returns a list of possible next states.
+    :param score_fn: A function that takes a state and returns a score. Higher scores are better.
+    :return: The best state found according to the scoring function.
+    """
+
+    # Initialize the beam with the initial state.
+    beam = [(initial_state, score_fn(initial_state))]
+
+    for step in range(max_steps):
+        # Expand states in the current beam.
+        candidates = []
+        for state, score in beam:
+            next_states = expand_fn(state, expand_fn_config)
+            for next_state in next_states:
+                next_score = score_fn(next_state)
+                candidates.append((next_state, next_score))
+
+        # Select the top `beam_width` states for the next iteration.
+        print(candidates)
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        beam = candidates[:beam_width]
+
+    # Return the state with the highest score after the final iteration.
+    best_state, best_score = max(beam, key=lambda x: x[1])
+    return best_state
+
+
+def demonstration_score_fn(state):
+    # Score the state. In a real application, this score could be based on
+    # model predictions, heuristics, or other criteria.
+    # This toy example prefers states with more 'a's.
+    return np.sum(state)
+
+
+# def example_expand(state):
+#     # Produce some new states from the current state.
+#     # In a real application, this would involve generating possible next steps.
+#     import copy
+#     expand = []
+#     for _ in range(3):
+#         state_copy = copy.deepcopy(state)
+#         state_copy.append(np.random.choice(5))
+#         expand.append(state_copy)
+#     return expand
 
 
 if __name__ == '__main__':
-    model_name = "qwen2-57b-a14b-instruct"
-    demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
-    demonstration_text = demonstration,
-    demonstration_requirements = other_requirements,
-    results = generate_similar_demonstration(demonstration_text=demonstration_text,
-                                             demonstration_requirements=demonstration_requirements,
-                                             model_name=model_name,
-                                             demonstration_generation_instruction=demonstration_generation_instruction)
+    pass
+    # model_name = "qwen2-57b-a14b-instruct"
+    # demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
+    # demonstration_text = demonstration,
+    # demonstration_requirements = other_requirements,
+    # results = generate_similar_demonstration(demonstration_text=demonstration_text,
+    #                                          demonstration_requirements=demonstration_requirements,
+    #                                          model_name=model_name,
+    #                                          demonstration_generation_instruction=demonstration_generation_instruction)
