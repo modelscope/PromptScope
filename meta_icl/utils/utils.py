@@ -188,38 +188,7 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
     return sessions
 
 
-def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn):
-    """
-    Performs beam search.
 
-    :param initial_state: The initial state to begin search from.
-    :param max_steps: The maximum number of steps (or iterations) to perform.
-    :param beam_width: The number of paths to explore at each step.
-    :param expand_fn: A function that takes a state and returns a list of possible next states.
-    :param score_fn: A function that takes a state and returns a score. Higher scores are better.
-    :return: The best state found according to the scoring function.
-    """
-
-    # Initialize the beam with the initial state.
-    beam = [(initial_state, score_fn(initial_state))]
-
-    for step in range(max_steps):
-        # Expand states in the current beam.
-        candidates = []
-        for state, score in beam:
-            next_states = expand_fn(state)
-            for next_state in next_states:
-                next_score = score_fn(next_state)
-                candidates.append((next_state, next_score))
-
-        # Select the top `beam_width` states for the next iteration.
-        print(candidates)
-        candidates.sort(key=lambda x: x[1], reverse=True)
-        beam = candidates[:beam_width]
-
-    # Return the state with the highest score after the final iteration.
-    best_state, best_score = max(beam, key=lambda x: x[1])
-    return best_state
 
 
 # Example usage
