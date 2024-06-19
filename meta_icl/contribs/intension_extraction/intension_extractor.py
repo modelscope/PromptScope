@@ -93,7 +93,7 @@ def get_intention_analysis_results(cur_query: dict,
     :param examples_pth: the path of the examples
     :param embedding_model: the model to get the embedding.
         currently only dashscope embedding model is available: "text_embedding_v1"
-    :param num: the number of demonstration examples.
+    :param num: the number of demonstration.md examples.
     :return: dict, example:{"user_intention": "无法观看已购买的课程，寻求帮助。", "intention_class": "无法观看课程" }
     """
     intention_analyzer = IntentionAnalysis(base_model=base_model,
