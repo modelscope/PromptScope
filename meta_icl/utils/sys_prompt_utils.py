@@ -133,7 +133,34 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
             model_config = {
                 'model': 'qwen-plus',
                 'seed': 1234,
-                'result_format': 'message'
+                'result_format': 'message',
+                'temperature': 0.1
+            }
+
+        return call_qwen_with_message_with_retry(messages,
+                                                 model_config=model_config)
+    elif model.lower() == "qwen2-72b-instruct":
+        if model_config is not None:
+            pass
+        else:
+            model_config = {
+                'model': 'qwen2-72b-instruct',
+                'seed': 1234,
+                'result_format': 'message',
+                'temperature': 0.1
+            }
+
+        return call_qwen_with_message_with_retry(messages,
+                                                 model_config=model_config)
+    elif model.lower().split('-')[0] == "qwen2":
+        if model_config is not None:
+            pass
+        else:
+            model_config = {
+                'model': model,
+                'seed': 1234,
+                'result_format': 'message',
+                'temperature': 0.1
             }
 
         return call_qwen_with_message_with_retry(messages,
@@ -227,7 +254,7 @@ def call_qwen_with_message_with_retry(messages,
                                       model_config=DefaultModelConfig):
     cnt = 0
     # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
-    while cnt < 10:
+    while cnt < 2:
         try:
             _, res = call_qwen_with_messages(messages,
                                              model_config=model_config)
@@ -354,7 +381,7 @@ def call_gpt_with_message(messages, model_config={'model': 'gpt-4'}):
         return response.json()
 
     cnt = 0
-    while cnt < 10:
+    while cnt < 2:
         completion = None
         try:
             res = get_response(messages, model_config)

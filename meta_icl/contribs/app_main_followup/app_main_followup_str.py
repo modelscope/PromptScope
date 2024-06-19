@@ -55,7 +55,7 @@ def get_followup_results(cur_query: dict,
     :param examples_pth: the path of the examples
     :param embedding_model: the model to get the embedding.
         currently only dashscope embedding model is available: "text_embedding_v1"
-    :param num: the number of demonstration examples.
+    :param num: the number of demonstration.md examples.
     :return: list of str, list of followup questions.
     """
     if file_type.lower() == "no":
