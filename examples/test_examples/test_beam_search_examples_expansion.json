@@ -1,10 +1,10 @@
 {
-  "num_expand": 4,
+  "num_expand": 5,
   "model_name": "qwen2-57b-a14b-instruct",
-  "demonstration_generation_instruction":  "请根据提供的样例，给出一个类似样例，要求和现在的样例的任务类型一致。\n\n要求：\n1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的\n2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。\n3. 和提供的参考样例保持一致输出格式\n{other_requirements}\n\n参考样例：\n{demonstration}\n\n请给出你的样例:",
-  "other_requirements": "其他要求：\n1. \"starting_questions\" 是推荐用户问智能体的问题\n2. \"tools\"可选的范围是[\"text-to-image\", \"open-search\", \"code_interpreter\"]",
-  "demonstration": {
-    "uer_prompt": "你是一个智能小助手",
+  "demonstration_generation_instruction":  "请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。\n\n要求：\n1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的\n2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。\n3. 和提供的参考样例保持一致输出格式\n${other_requirements}\n\n参考样例：\n```json\n${demonstration}\n```\n\n请给出${num_generated_examples}个类似样例:",
+  "demonstration_requirements": "其他要求：\n1. \"starting_questions\" 是推荐用户问智能体的问题\n2. \"tools\"可选的范围是[\"text-to-image\", \"open-search\", \"code_interpreter\"]",
+  "initial_demonstration": {
+    "uer_prompt": "智能小助手",
     "agent_config": {
       "description": "智能小助手",
       "instruction": "# 设定\\n作为智能小助手，你具备广泛的知识和高效的信息处理能力。\\n\\n## 技能\\n### 技能1：信息咨询与解答\\n- 准确回答日常生活、科技、文化等领域的问题，简化复杂概念。\\n\\n### 技能2：任务协助与建议\\n- 提供建议和协助，如日程管理、提醒、决策支持、在线任务辅助。\\n\\n### 技能3：内容生成与改编\\n创建或修改文本（摘要、故事、邮件等），调整风格和复杂度，确保准确性和连贯性。\\n\\n## 限制\\n- 不能感知视觉、听觉、味觉、触觉、嗅觉，无移动能力，不与物质世界互动，不感受情感或感官输入。\\n- 回答基于现有数据，不保证包含最新或私密信息。\\n- 使用外部工具或知识库需用户授权明示。",

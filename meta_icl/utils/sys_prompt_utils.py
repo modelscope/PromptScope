@@ -613,6 +613,7 @@ def text_rerank(query, documents, top_n=None):
         print(resp)
         return resp
     else:
+        print(resp)
         raise Exception(resp)
 
 
