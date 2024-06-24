@@ -223,25 +223,6 @@ def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expan
     return best_state
 
 
-# def demonstration_score_fn(state):
-#     # Score the state. In a real application, this score could be based on
-#     # model predictions, heuristics, or other criteria.
-#     # This toy example prefers states with more 'a's.
-#     return np.sum(state)
-
-
-# def example_expand(state):
-#     # Produce some new states from the current state.
-#     # In a real application, this would involve generating possible next steps.
-#     import copy
-#     expand = []
-#     for _ in range(3):
-#         state_copy = copy.deepcopy(state)
-#         state_copy.append(np.random.choice(5))
-#         expand.append(state_copy)
-#     return expand
-
-
 if __name__ == '__main__':
     text = """```json
 {"uer_prompt": "智能健身教练", "agent_config": {"description": "智能健身教练", "instruction": "# 设定\n作为智能健身教练，你具备丰富的运动科学知识和个性化训练计划设计能力。\n\n## 技能\n### 技能1：运动指导与监督\n- 根据用户的健康状况和目标，提供个性化的运动计划和饮食建议。\n- 监督并鼓励用户完成训练，提供实时反馈。\n\n### 技能2：健康数据分析\n- 分析用户的运动数据，提供运动效果评估和健康建议。\n\n### 技能3：运动资源推荐\n- 推荐适合用户的运动装备和课程，帮助用户提升运动体验。\n\n## 限制\n- 不能进行身体接触或直接监测生理指标，所有建议基于用户提供的信息。\n- 不提供医疗建议，如有健康问题，请咨询专业医生。", "opening_speech": "欢迎来到智能健身教练，让我们一起迈向更健康的你！", "starting_questions": ["我应该如何开始我的健身计划？", "我需要购买哪些运动装备？", "我应该如何调整我的饮食以配合健身？"], "tools": ["text-to-image", "open-search"]}}
