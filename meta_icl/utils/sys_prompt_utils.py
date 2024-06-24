@@ -250,20 +250,28 @@ def fill_in_variables(variables, template_text):
 
 
 def call_qwen_with_message_with_retry(messages,
-                                      model_config=DefaultModelConfig):
-    cnt = 0
-    # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
-    while cnt < 2:
-        try:
-            _, res = call_qwen_with_messages(messages,
-                                             model_config=model_config)
-            print(res)
-            return res['output']['choices'][0]['message']['content']
-        except Exception as e:
-            print(messages)
-            print('Error {}, sleep 3s and retry'.format(e))
-            cnt += 1
-            time.sleep(3)
+                                      model_config=DefaultModelConfig, **kwargs):
+    try:
+        _, res = call_qwen_with_messages(messages,
+                                         model_config=model_config)
+        print(res)
+        return res['output']['choices'][0]['message']['content']
+    except Exception as e:
+        print(messages)
+        print('Error {}, sleep 3s and retry'.format(e))
+    # cnt = 0
+    # # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
+    # while cnt < 2:
+    #     try:
+    #         _, res = call_qwen_with_messages(messages,
+    #                                          model_config=model_config)
+    #         print(res)
+    #         return res['output']['choices'][0]['message']['content']
+    #     except Exception as e:
+    #         print(messages)
+    #         print('Error {}, sleep 3s and retry'.format(e))
+    #         cnt += 1
+    #         time.sleep(3)
     raise ValueError('Failed in generating answer!')
     # return 'Failed in generating answer!'
 
