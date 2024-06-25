@@ -16,7 +16,7 @@ DefaultModelConfig = {
     'model': 'qwen-max',
     'seed': 1234,
     'result_format': 'message',
-    'temperature': 0.1
+    'temperature': 1.0
 }
 
 import numpy as np
@@ -134,7 +134,7 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
                 'model': 'qwen-plus',
                 'seed': 1234,
                 'result_format': 'message',
-                'temperature': 0.1
+                'temperature': 1.0
             }
 
         return call_qwen_with_message_with_retry(messages,
@@ -147,7 +147,7 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
                 'model': 'qwen2-72b-instruct',
                 'seed': 1234,
                 'result_format': 'message',
-                'temperature': 0.1
+                'temperature': 1.0
             }
 
         return call_qwen_with_message_with_retry(messages,

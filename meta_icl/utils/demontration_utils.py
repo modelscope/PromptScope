@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 from meta_icl.utils.sys_prompt_utils import call_llm_with_message, message_formatting, text_rerank
-import re, json, os
+import re, json, os, copy
 import numpy as np
 
-demonstration = {
-    "uer_prompt": "你是一个智能小助手",
-    "agent_config": {
-        "description": "智能小助手",
-        "instruction": "# 设定\\n作为智能小助手，你具备广泛的知识和高效的信息处理能力。\\n\\n## 技能\\n### 技能1：信息咨询与解答\\n- "
-                       "准确回答日常生活、科技、文化等领域的问题，简化复杂概念。\\n\\n### 技能2：任务协助与建议\\n- 提供建议和协助，如日程管理、提醒、决策支持、在线任务辅助。\\n\\n### "
-                       "技能3：内容生成与改编\\n创建或修改文本（摘要、故事、邮件等），调整风格和复杂度，确保准确性和连贯性。\\n\\n## 限制\\n- "
-                       "不能感知视觉、听觉、味觉、触觉、嗅觉，无移动能力，不与物质世界互动，不感受情感或感官输入。\\n- 回答基于现有数据，不保证包含最新或私密信息。\\n- 使用外部工具或知识库需用户授权明示。",
-        "opening_speech": "你好呀，我是你的智能小助手",
-        "starting_questions": ["今天天气怎么样？", "今天的新闻热点有哪些？", "今天美股行情如何？"],
-        "tools": ["text-to-image", "open-search"]
-    }
-}
+# demonstration = {
+#     "uer_prompt": "你是一个智能小助手",
+#     "agent_config": {
+#         "description": "智能小助手",
+#         "instruction": "# 设定\\n作为智能小助手，你具备广泛的知识和高效的信息处理能力。\\n\\n## 技能\\n### 技能1：信息咨询与解答\\n- "
+#                        "准确回答日常生活、科技、文化等领域的问题，简化复杂概念。\\n\\n### 技能2：任务协助与建议\\n- 提供建议和协助，如日程管理、提醒、决策支持、在线任务辅助。\\n\\n### "
+#                        "技能3：内容生成与改编\\n创建或修改文本（摘要、故事、邮件等），调整风格和复杂度，确保准确性和连贯性。\\n\\n## 限制\\n- "
+#                        "不能感知视觉、听觉、味觉、触觉、嗅觉，无移动能力，不与物质世界互动，不感受情感或感官输入。\\n- 回答基于现有数据，不保证包含最新或私密信息。\\n- 使用外部工具或知识库需用户授权明示。",
+#         "opening_speech": "你好呀，我是你的智能小助手",
+#         "starting_questions": ["今天天气怎么样？", "今天的新闻热点有哪些？", "今天美股行情如何？"],
+#         "tools": ["text-to-image", "open-search"]
+#     }
+# }
 
 Default_Instruction_4_Demonstration_Generation = """请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。
 
 要求：
 1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的
 2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。
-3. 和提供的参考样例保持一致输出格式
+3. 和提供的参考样例保持一致输出格式，并且每个样例用markdown json 形式单独区分。
 ${other_requirements}
 
 参考样例：
@@ -38,6 +38,7 @@ other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户
 
 def extract_from_markdown_json(text):
     """
+    extract the json from markdown text to a list of dictionaries.
     :param text:
     :return results_list: list of dict
     """
@@ -58,7 +59,6 @@ def extract_from_markdown_json(text):
         except json.JSONDecodeError as e:
             print("cannot decode JSON string: ", e)
     return results_list
-
 
     # if match:
     #     json_text = match.group(1)
@@ -87,6 +87,7 @@ def generate_similar_demonstration(
         demonstration_requirements=None,
         model_config=None):
     """
+    generate demonstration based on the reference demonstration (demonstration_text)
     :param demonstration_text:
     :param demonstration_requirements:
     :param model_name:
@@ -98,10 +99,14 @@ def generate_similar_demonstration(
         pass
     else:
         demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
-    # prompt = demonstration_generation_instruction.format(demonstration=demonstration_text,
-    #                                                      other_requirements=demonstration_requirements)
+    # extract demonstration text
     if isinstance(demonstration_text, dict):
         demonstration_text = json.dumps(demonstration_text, ensure_ascii=False)
+
+    # replace the variables in demonstration_generation_instruction, including:
+    # ${demonstration} the reference demonstration
+    # ${num_generated_examples},
+    # ${other_requirements}
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${demonstration}",
                                                                                         demonstration_text)
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",
@@ -135,6 +140,7 @@ def demonstration_expand(state, expand_config):
                                                                         "\"demonstration_requirements\"")
 
     expand = []
+    # extract the required parameters from expand_config
     num_expand = expand_config["num_expand"]
     model_name = expand_config["model_name"]
     demonstration_generation_instruction = expand_config["demonstration_generation_instruction"]
@@ -156,16 +162,6 @@ def demonstration_expand(state, expand_config):
         state_copy = copy.deepcopy(state)
         state_copy.append(new_demonstration)
         expand.append(state_copy)
-    # for _ in range(num_expand):
-    #     state_copy = copy.deepcopy(state)
-    #     new_demonstration = generate_similar_demonstration(
-    #         demonstration_text=demonstration_text,
-    #         demonstration_requirements=demonstration_requirements,
-    #         model_name=model_name,
-    #         demonstration_generation_instruction=demonstration_generation_instruction)
-    #     print("new_demonstration: \n{}".format(new_demonstration))
-    #     state_copy.append(new_demonstration)
-    #     expand.append(state_copy)
     return expand
 
 
@@ -180,8 +176,10 @@ def demonstration_var_score(state):
     scores = [item["relevance_score"] for item in text_rerank_results["output"]["results"]]
     print(scores)
     if len(scores) == 1:
-        return [1 - scores[0]]
+        print(1 - scores[0])
+        return 1 - scores[0]
     else:
+        print(np.var(scores))
         return np.var(scores)
 
 
@@ -197,9 +195,14 @@ def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expan
     :param expand_fn_config: the config for the expand_fn, a function that takes a state and returns a list of possible next states.
     :return: The best state found according to the scoring function.
     """
+    print("initial state: {}".format(initial_state))
+    print("type of init: {}".format(type(initial_state)))
+
+
+    all_states = [json.loads(initial_state[0])]
 
     # Initialize the beam with the initial state.
-    beam = [(initial_state, score_fn(initial_state))]
+    beam = [[initial_state, score_fn(initial_state)]]
     print("beam: {}".format(beam))
 
     for step in range(max_steps):
@@ -208,19 +211,23 @@ def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expan
         candidates = []
         for state, score in beam:
             next_states = expand_fn(state, expand_fn_config)
+            for item in next_states:
+                all_states.append(item[-1])
             print("next_states: \n{}".format(next_states))
             for next_state in next_states:
                 next_score = score_fn(next_state)
-                candidates.append((next_state, next_score))
+                print("next_score: {}".format(next_score))
+                candidates.append([next_state, next_score])
 
         # Select the top `beam_width` states for the next iteration.
         print(candidates)
+        print("length of candidates: {}".format(len(candidates)))
         candidates.sort(key=lambda x: x[1], reverse=True)
         beam = candidates[:beam_width]
 
     # Return the state with the highest score after the final iteration.
     best_state, best_score = max(beam, key=lambda x: x[1])
-    return best_state
+    return best_state, all_states
 
 
 if __name__ == '__main__':
