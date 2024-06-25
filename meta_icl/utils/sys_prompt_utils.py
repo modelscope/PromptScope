@@ -94,13 +94,13 @@ def load_csv(pth):
     return csv_columns
 
 
-def call_llm_with_message(messages, model: str, model_config=None, is_stream=False):
+def call_llm_with_message(messages, model: str, model_config=None, is_stream=False, **kwargs):
     # print("\n***** messages *****\n{}\n".format(messages))
     if is_stream and model.lower() != 'qwen_200b':
         raise ValueError("expect Qwen model, other model's stream output is not supported")
     print(model_config)
     if model.lower() == 'gpt4':
-        return call_gpt_with_message(messages)
+        return call_gpt_with_message(messages, **kwargs)
     elif model.lower() == 'qwen_200b':
         if model_config is not None:
             pass
@@ -111,9 +111,9 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
                 'result_format': 'message'
             }
         if is_stream:
-            return call_qwen_with_stream(messages, model_config=model_config)
+            return call_qwen_with_stream(messages, model_config=model_config, **kwargs)
         else:
-            return call_qwen_with_message_with_retry(messages, model_config=model_config)
+            return call_qwen_with_message_with_retry(messages, model_config=model_config, **kwargs)
     elif model.lower() == 'qwen_14b':
         if model_config is not None:
             pass
@@ -125,7 +125,7 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
             }
 
         return call_qwen_with_message_with_retry(messages,
-                                                 model_config=model_config)
+                                                 model_config=model_config, **kwargs)
     elif model.lower() == 'qwen_70b':
         if model_config is not None:
             pass
@@ -138,7 +138,7 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
             }
 
         return call_qwen_with_message_with_retry(messages,
-                                                 model_config=model_config)
+                                                 model_config=model_config, **kwargs)
     elif model.lower() == "qwen2-72b-instruct":
         if model_config is not None:
             pass
@@ -151,7 +151,7 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
             }
 
         return call_qwen_with_message_with_retry(messages,
-                                                 model_config=model_config)
+                                                 model_config=model_config, **kwargs)
     elif model.lower().split('-')[0] == "qwen2":
         if model_config is not None:
             pass
@@ -164,7 +164,7 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
             }
 
         return call_qwen_with_message_with_retry(messages,
-                                                 model_config=model_config)
+                                                 model_config=model_config, **kwargs)
     else:
         dashscope.base_http_api_url = 'https://poc-dashscope.aliyuncs.com/api/v1'
         dashscope.base_websocket_api_url = 'https://poc-dashscope.aliyuncs.com/api-ws/v1/inference'
@@ -174,7 +174,8 @@ def call_llm_with_message(messages, model: str, model_config=None, is_stream=Fal
                 'seed': 1234,
                 'result_format': 'message'
             }
-            return call_qwen_with_message_with_retry(messages, model_config=model_config)
+            return call_qwen_with_message_with_retry(messages, model_config=model_config, **kwargs)
+
         except:
             raise ValueError('model: {} is not supported!'.format(model))
 
@@ -251,32 +252,34 @@ def fill_in_variables(variables, template_text):
 
 def call_qwen_with_message_with_retry(messages,
                                       model_config=DefaultModelConfig, **kwargs):
+
+
+    cnt = 0
+    error_message = ""
+    # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
     try:
         _, res = call_qwen_with_messages(messages,
-                                         model_config=model_config)
+                                         model_config=model_config,
+                                         **kwargs)
         print(res)
         return res['output']['choices'][0]['message']['content']
     except Exception as e:
-        print(messages)
-        print('Error {}, sleep 3s and retry'.format(e))
-    # cnt = 0
-    # # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
-    # while cnt < 2:
-    #     try:
-    #         _, res = call_qwen_with_messages(messages,
-    #                                          model_config=model_config)
-    #         print(res)
-    #         return res['output']['choices'][0]['message']['content']
-    #     except Exception as e:
-    #         print(messages)
-    #         print('Error {}, sleep 3s and retry'.format(e))
-    #         cnt += 1
-    #         time.sleep(3)
-    raise ValueError('Failed in generating answer!')
+        print(traceback.format_exc())
+        print("\n\nmessages: {}".format(e))
+        # error_message = e
+        # logger.query_error(
+        #     request_id=request_id,
+        #     message=f"error:  {error_message} "
+        # )
+        # raise (
+        #     f"error:  {error_message} "
+        # )
     # return 'Failed in generating answer!'
 
 
-def call_qwen_with_messages(messages, model_config=DefaultModelConfig):
+def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs):
+    request_id = kwargs.get('request_id')
+
     if "temperature" in model_config.keys():
         temperature = model_config['temperature']
     else:
@@ -302,29 +305,49 @@ def call_qwen_with_messages(messages, model_config=DefaultModelConfig):
                 ))
 
 
-def call_qwen_with_stream(messages, model_config=DefaultModelConfig):
-    responses = dashscope.Generation.call(
+def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs):
+    # try:
+    #     request_id = kwargs.get('request_id')
+    #     X_DashScope_EUID = kwargs.get('X_DashScope_EUID')
+    #     logger.query_info(request_id=request_id,
+    #                       message='X_DashScope_EUID: {}'.format(X_DashScope_EUID))
+    # except Exception as e:
+    #     request_id = kwargs.get('request_id')
+    #     logger.query_error(
+    #         request_id=request_id,
+    #         message=f"error:  {e} "
+    #     )
+    #     raise ParsingRuntimeError()
+
+    request_id = kwargs.get('request_id')
+    X_DashScope_EUID = kwargs.get('X_DashScope_EUID')
+
+    if "temperature" in model_config.keys():
+        temperature = model_config['temperature']
+    else:
+        temperature = 0.85
+    response = dashscope.Generation.call(
         model_config['model'],
         # dashscope.Generation.Models.qwen_max,
         messages=messages,
         # set the random seed, optional, default to 1234 if not set
         seed=model_config['seed'],
         result_format='message',  # set the result to be "message" format.
-        stream=True,
-        incremental_output=True
-    )
-    full_content = ''  # with incrementally we need to merge output.
-    for response in responses:
-        if response.status_code == HTTPStatus.OK:
-            yield response.output.choices[0]['message']['content']
-            print(response)
-        else:
-            print('Request id: %s, Status code: %s, error code: %s, error message: %s' % (
-                response.request_id, response.status_code,
-                response.code, response.message
-            ))
+        temperature=temperature,
+        headers={"X-DashScope-Euid": X_DashScope_EUID},
 
-    return responses
+    )
+    # logger.query_info(request_id=request_id,
+    #                   message='X_DashScope_EUID: {}, dash return: {}'.format(X_DashScope_EUID, response))
+    if response.status_code == HTTPStatus.OK:
+        print(response)
+        return True, response
+    else:
+        return (False,
+                'Request id: %s, Status code: %s, error code: %s, error message: %s' % (
+                    response.request_id, response.status_code,
+                    response.code, response.message
+                ))
 
 
 def call_qwen_with_prompt(prompt, model_config=DefaultModelConfig):
@@ -623,7 +646,6 @@ def text_rerank(query, documents, top_n=None):
     else:
         print(resp)
         raise Exception(resp)
-
 
 # if __name__ == '__main__':
 #     text_rerank()
