@@ -124,6 +124,20 @@ def load_csv(pth):
 
 
 def call_llm_with_message(messages, model: str, model_config=None, is_stream=False, **kwargs):
+    """
+    :param messages: the messages to call the model;
+    :param model: the model to call; Default: False;
+    support: "gpt4", "Qwen_200B", "Qwen_14B", "Qwen_70B", "qwen2*", dashscope base models
+    :param model_config: the model config, example: {
+    'model': 'qwen-max',
+    'seed': 1234,
+    'result_format': 'message',
+    'temperature': 0.85
+}
+Attention: If both model and model_config are given, the model_config will be used.
+    :param is_stream: whether the stream output is required. Default: False
+    :param kwargs: other keyword arguments
+    """
     # print("\n***** messages *****\n{}\n".format(messages))
     if is_stream and model.lower() != 'qwen_200b':
         raise ValueError("expect Qwen model, other model's stream output is not supported")
