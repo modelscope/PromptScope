@@ -1,7 +1,7 @@
 import random
 from http import HTTPStatus
 import dashscope
-import time
+import time, copy
 import csv
 import json
 import re
@@ -16,11 +16,40 @@ DefaultModelConfig = {
     'model': 'qwen-max',
     'seed': 1234,
     'result_format': 'message',
-    'temperature': 1.0
+    'temperature': 0.85
 }
 
 import numpy as np
 from scipy.spatial.distance import cdist
+
+
+def convert_model_name_to_model_config(model_name: str, add_random=False, **kwargs) -> dict:
+    if model_name.lower() == 'qwen_200b':
+        model_name = 'qwen_max'
+    elif model_name.lower() == 'qwen_14b':
+        model_name = 'qwen-turbo'
+    elif model_name.lower() == 'qwen_70b':
+        model_name = 'qwen-plus'
+
+    model_config = copy.deepcopy(DefaultModelConfig)
+    model_config['model'] = model_name
+
+    if add_random:
+        model_config['seed'] = np.random.randint(1, 10000)
+        model_config['temperature'] = 1.2
+
+    else:
+        model_config['model'] = model_name
+        for key, value in kwargs.items():
+            model_config[key] = value
+    return model_config
+
+
+
+
+
+
+
 
 
 def find_top_k_embeddings(query_embedding, list_embeddings, k):
@@ -264,7 +293,7 @@ def call_qwen_with_message_with_retry(messages,
         print(res)
         return res['output']['choices'][0]['message']['content']
     except Exception as e:
-        print(traceback.format_exc())
+        # print(traceback.format_exc())
         print("\n\nmessages: {}".format(e))
         # error_message = e
         # logger.query_error(

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from meta_icl.utils.sys_prompt_utils import call_llm_with_message, message_formatting, text_rerank
+from meta_icl.utils.sys_prompt_utils import (call_llm_with_message, message_formatting, text_rerank,
+                                             convert_model_name_to_model_config)
 import re, json, os, copy
 import numpy as np
 
@@ -114,6 +115,7 @@ def generate_similar_demonstration(
     prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
     print(prompt)
     prompt = message_formatting(system_prompt=None, query=prompt)
+    model_config = convert_model_name_to_model_config(model_name, add_random=True)
     results = call_llm_with_message(prompt, model=model_name, model_config=model_config)
     print("[generate_similar_demonstration]-generated results: {}".format(results))
     return extract_from_markdown_json(results)
@@ -145,7 +147,10 @@ def demonstration_expand(state, expand_config):
     model_name = expand_config["model_name"]
     demonstration_generation_instruction = expand_config["demonstration_generation_instruction"]
     print("[demonstration_expand] state: {}".format(state))
-    demonstration_text = state[-1]
+    if isinstance(state[-1], str):
+        demonstration_text = state[-1]
+    else:
+        demonstration_text = json.dumps(state[-1], ensure_ascii=False)
     print(demonstration_text)
     demonstration_requirements = expand_config["demonstration_requirements"]
     print("demonstration_requirements: {}".format(demonstration_requirements))
@@ -198,8 +203,16 @@ def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expan
     print("initial state: {}".format(initial_state))
     print("type of init: {}".format(type(initial_state)))
 
+    if isinstance(initial_state[0], str):
+        all_states = [json.loads(initial_state[0])]
+    else:
+        all_states = [initial_state[0]]
 
-    all_states = [json.loads(initial_state[0])]
+
+
+
+
+
 
     # Initialize the beam with the initial state.
     beam = [[initial_state, score_fn(initial_state)]]
