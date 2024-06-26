@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     expand_config = load_json_file(generation_config_pth)
     sav_file_name = "beach_search_gen_demo_{}_{}.json".format(get_current_date(), expand_config["model_name"])
-    initial_state = [json.dumps(expand_config["initial_demonstration"], ensure_ascii=False)]
+    initial_state = [expand_config["initial_demonstration"]]
     best_state, all_expands = beam_search(initial_state=initial_state,
                                           max_steps=3,
                                           beam_width=3,
