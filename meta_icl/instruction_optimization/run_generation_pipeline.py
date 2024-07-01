@@ -42,7 +42,7 @@ if opt.prompt == '':
 else:
     initial_prompt = opt.prompt
 
-ranker_pipeline = OptimizationPipeline(ranker_config_params, output_path=os.path.join(opt.output_dump, 'ranker'))
+ranker_pipeline = IPC(ranker_config_params, output_path=os.path.join(opt.output_dump, 'ranker'))
 if opt.load_dump != '':
     ranker_pipeline.load_state(os.path.join(opt.load_dump, 'ranker'))
     ranker_pipeline.predictor.init_chain(ranker_config_params.dataset.label_schema)
@@ -59,7 +59,7 @@ generation_config_params.eval.function_params.instruction = best_prompt['prompt'
 generation_config_params.eval.function_params.label_schema = ranker_config_params.dataset.label_schema
 
 
-generation_pipeline = OptimizationPipeline(generation_config_params, task_description, initial_prompt,
+generation_pipeline = IPC(generation_config_params, task_description, initial_prompt,
                                            output_path=os.path.join(opt.output_dump, 'generator'))
 if opt.load_dump != '':
     generation_pipeline.load_state(os.path.join(opt.load_dump, 'generator'))

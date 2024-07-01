@@ -14,10 +14,11 @@ if [ "$language" = "english" ]; then
             --num_steps 3
     elif [ "$q_type" = "generation" ]; then
         python run_generation_pipeline.py \
-            --prompt "Write a good and comprehensive movie review about a specific movie." \
-            --task_description "Assistant is a large language model that is tasked with writing movie reviews." \
+            --prompt "Propose a standard for scientific researchers to ranking papers in the range of 1 to 5." \
+            --task_description "Assistant is a large language model that is tasked with ranking papers." \
             --language $language
-            --load_dump '/mnt1/yunze.gy/Meta-ICL/meta_icl/ipc/dump'
+            --num_steps 3
+            # --load_dump '/mnt1/yunze.gy/Meta-ICL/meta_icl/ipc/dump'
     else
         echo "Unsupported question type: $q_type"
     fi

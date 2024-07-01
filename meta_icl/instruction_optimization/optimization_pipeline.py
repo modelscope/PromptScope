@@ -1,6 +1,6 @@
 import pandas as pd
 
-from eval.evaluator import Eval
+from meta_icl.evaluation.evaluator import Eval
 from dataset.base_dataset import DatasetBase
 from meta_icl.core.utils import MetaChain
 from estimator import give_estimator
@@ -11,9 +11,9 @@ import json
 import logging
 import wandb
 
-class OptimizationPipeline:
+class IPC:
     """
-    The main pipeline for optimization. The pipeline is composed of 4 main components:
+    The main pipeline for intent-based prompt calibration (IPC). The pipeline is composed of 4 main components:
     1. dataset - The dataset handle the data including the annotation and the prediction
     2. annotator - The annotator is responsible generate the GT
     3. predictor - The predictor is responsible to generate the prediction

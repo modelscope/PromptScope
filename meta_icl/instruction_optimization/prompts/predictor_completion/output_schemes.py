@@ -24,3 +24,6 @@ def prediction_generation_parser(response: dict) -> dict:
     matches = pattern.findall(response['text'])
     predictions = [{'id': int(match[0]), 'prediction': match[1].strip()} for match in matches]
     return {'results': predictions}
+
+prediction_generation_chinese_parser = prediction_generation_parser
+prediction_chinese_parser = prediction_parser

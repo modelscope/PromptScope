@@ -1,0 +1,10 @@
+dataset:
+    label_schema:  ["1","2","3","4","5"]
+
+meta_prompts:
+    folder: 'prompts/meta_prompts_ranking'
+
+annotator:
+    config:
+        instruction:
+            '给生成的电影评价打分，最高分为5分，代表生成内容完全遵循指令，且具有很高的质量；最低分为1分，代表未遵循指令，且质量很低。'

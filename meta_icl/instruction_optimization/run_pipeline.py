@@ -49,7 +49,7 @@ else:
     initial_prompt = opt.prompt
 
 # Initializing the pipeline
-pipeline = OptimizationPipeline(config_params, task_description, initial_prompt, output_path=opt.output_dump)
+pipeline = IPC(config_params, task_description, initial_prompt, output_path=opt.output_dump)
 if (opt.load_path != ''):
     pipeline.load_state(opt.load_path)
 best_prompt = pipeline.run_pipeline(opt.num_steps)
