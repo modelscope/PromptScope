@@ -1,6 +1,6 @@
-from meta_icl.icl.ICL import CustomizedICL
-from meta_icl.utils.utils import get_single_embedding, organize_text_4_embedding
-from meta_icl.utils.sys_prompt_utils import message_formatting, call_llm_with_message
+from meta_icl.core.online_icl.icl import CustomizedICL
+from meta_icl.core.utils import get_single_embedding, organize_text_4_embedding
+from meta_icl.core.utils import message_formatting, call_llm_with_message
 from meta_icl.contribs.intension_extraction.prompt.prompt_4_intension_extraction import formatting_intention_classification
 import json
 

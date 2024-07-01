@@ -3,7 +3,7 @@ import random, json
 
 from datetime import datetime
 
-from meta_icl.utils.sys_prompt_utils import get_embedding
+from meta_icl.core.utils.sys_prompt_utils import get_embedding
 
 
 def get_current_date():
@@ -49,7 +49,7 @@ def convert_xlsx_2_json(json_file_path, excel_file_path, eval_key_list=()):
     print(data_dicts)
 
     # Print the JSON data
-    from meta_icl.utils.sys_prompt_utils import sav_json
+    from meta_icl.core.utils.sys_prompt_utils import sav_json
     sav_json(data=data_dicts, json_file_path=json_file_path)
     return data_dicts
 
@@ -92,12 +92,12 @@ def load_file(file_pth):
         import numpy as np
         return np.load(file_pth)
     elif file_type == 'json':
-        from meta_icl.utils.sys_prompt_utils import load_json_file
+        from meta_icl.core.utils.sys_prompt_utils import load_json_file
         return load_json_file(file_pth)
     elif file_type == 'josnl':
         return load_jsonl(file_pth)
     elif file_type == 'csv':
-        from meta_icl.utils.sys_prompt_utils import load_csv
+        from meta_icl.core.utils.sys_prompt_utils import load_csv
         return load_csv(file_pth)
     else:
         ValueError(f'cannot support file type: {file_type}!')

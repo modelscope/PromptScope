@@ -1,6 +1,6 @@
 from http import HTTPStatus
 import dashscope
-from meta_icl.utils.sys_prompt_utils import *
+from meta_icl.core.utils import *
 
 
 def simple_multimodal_conversation_call():

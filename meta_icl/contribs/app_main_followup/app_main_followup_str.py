@@ -1,6 +1,6 @@
-from meta_icl.icl.ICL import CustomizedICL
-from meta_icl.utils.utils import get_single_embedding, organize_text_4_embedding
-from meta_icl.utils.sys_prompt_utils import message_formatting, call_llm_with_message
+from meta_icl.core.online_icl.icl import CustomizedICL
+from meta_icl.core.utils import get_single_embedding, organize_text_4_embedding
+from meta_icl.core.utils import message_formatting, call_llm_with_message
 from meta_icl.contribs.app_main_followup.prompt.prompt_4_icl_followups import (formatting_str_type_main_chat,
                                                                                formatting_answer_out,
                                                                                formatting_multimodal_type_main_chat)

@@ -1,7 +1,7 @@
 import json
-from meta_icl.utils.sys_prompt_utils import get_embedding, sav_json, load_json_file
-from meta_icl.utils.utils import load_jsonl, get_current_date, load_file, organize_text_4_embedding
-from meta_icl.icl.ICL import BaseRetrive
+from meta_icl.core.utils import get_embedding, sav_json, load_json_file
+from meta_icl.core.utils import load_jsonl, get_current_date, load_file, organize_text_4_embedding
+from meta_icl.core.online_icl.icl import BaseRetrive
 import re, os, time
 import numpy as np
 
@@ -76,13 +76,13 @@ def update_example(example_pth, search_key,
                    embedding_model="text_embedding_v1",
                    eval_key_list=None
                    ):
-    from meta_icl.utils.sys_prompt_utils import check_dir
+    from meta_icl.core.utils import check_dir
     check_dir(sav_dir)
     cur_time = get_current_date()
-    from meta_icl.utils.utils import convert_json_2_xlx
+    from meta_icl.core.utils import convert_json_2_xlx
     if example_pth.split('.')[-1] == "xlsx":
         json_path = os.path.join(sav_dir, f"{prefix}_icl_examples_ver_{cur_time}.json")
-        from meta_icl.utils.utils import convert_xlsx_2_json
+        from meta_icl.core.utils import convert_xlsx_2_json
         example_list = convert_xlsx_2_json(json_path, example_pth, eval_key_list=eval_key_list)
         example_list_pth = json_path
 

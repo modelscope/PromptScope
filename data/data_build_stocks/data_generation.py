@@ -1,4 +1,4 @@
-from meta_icl.utils.sys_prompt_utils import call_llm_with_message
+from meta_icl.core.utils import call_llm_with_message
 
 Followup_Question_Rec_Fix_Example = """任务描述：请根据大模型和当前用户的对话历史，给出{num_question}个用户可能继续问大模型的问题。\n
 
@@ -26,7 +26,7 @@ $$用户可能继续问智能体的问题$$:
 """
 
 if __name__ == '__main__':
-    from meta_icl.utils.sys_prompt_utils import message_formatting
+    from meta_icl.core.utils import message_formatting
     history_queries = []
     cur_query = """总结一下要点：我们的产品具有以下特点：
 保障全面：我们的车险产品涵盖了车辆损失险、第三者责任险、车上人员责任险、盗抢险、玻璃单独破碎险、自燃损失险、车身划痕险、不计免赔险等多种险种，可以为您的车辆提供全方位的保障。

@@ -2,7 +2,7 @@ import pandas as pd
 
 from eval.evaluator import Eval
 from dataset.base_dataset import DatasetBase
-from meta_icl.utils.llm_chain import MetaChain
+from meta_icl.core.utils import MetaChain
 from estimator import give_estimator
 from pathlib import Path
 import pickle

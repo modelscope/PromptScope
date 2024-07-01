@@ -1,16 +1,20 @@
 from typing import List, Dict
 from abc import ABC, abstractmethod
 
-from meta_icl.utils.utils import sample_elements_and_ids, random_selection_method
-from meta_icl.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings, message_formatting,
-                                             call_llm_with_message)
-from meta_icl.utils.utils import load_file
-from meta_icl.icl.base_retriever import CosineSimilarityRetriever
+from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_method
+from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings, message_formatting,
+                                                  call_llm_with_message)
+from meta_icl.core.utils.utils import load_file
+from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever
 
 
 class BaseICL(ABC):
     @abstractmethod
     def get_meta_prompt(self):
+        pass
+
+    @abstractmethod
+    def _load_demonstration_selector(self):
         pass
 
 
@@ -23,6 +27,9 @@ class EmbeddingICL(BaseICL):
         self.opt_model = opt_model
         self._get_example_embeddings(embedding_pth)
         self._get_example_list(examples_pth)
+        self._load_demonstration_selector()
+
+    def _load_demonstration_selector(self):
         self.example_selector = CosineSimilarityRetriever(example_list=self.examples,
                                                           embeddings=self.embeddings)
 

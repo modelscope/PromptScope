@@ -1,10 +1,12 @@
 from typing import List, Dict
 from abc import ABC, abstractmethod
 
-from meta_icl.utils.utils import sample_elements_and_ids, random_selection_method
-from meta_icl.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings, message_formatting,
-                                             call_llm_with_message)
-from meta_icl.utils.utils import load_file
+from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_method
+from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings, message_formatting,
+                                                  call_llm_with_message)
+from meta_icl.core.utils.utils import load_file
+
+import bm25s
 
 
 class BaseRetriever(ABC):
@@ -17,9 +19,25 @@ class BaseRetriever(ABC):
 
 
 class BM25Retriever(BaseRetriever):
-    def __init__(self, example_list=None):
+    def __init__(self, example_list=None, bm25_index_pth=None, **kwargs):
         self.example_list = example_list
+        assert (bm25_index_pth is not None) or (example_list is not None), ("either example_list or bm25_index_pth "
+                                                                            "must be provided.")
+        if bm25_index_pth is not None:
+            self.retriever = bm25s.BM25.load(bm25_index_pth, load_corpus=True)
+
+        if kwargs.get("stemmer_algo", None) is not None:
+            self.stemmer = bm25s.Stemmer(algo=kwargs["stemmer_algo"])
+        else:
+            self.stemmer = None
+
         super().__init__()
+
+    def topk_selection(self, query: str, num: int):
+        """
+        """
+        query_tokens = bm25s.tokenize(query, stemmer=self.stemmer)
+        results, scores = reloaded_retriever.retrieve(query_tokens, k=num)
 
 
 class CosineSimilarityRetriever(BaseRetriever):
