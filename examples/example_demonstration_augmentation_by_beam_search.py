@@ -1,6 +1,6 @@
-from meta_icl.utils.demontration_utils import beam_search, demonstration_expand, demonstration_var_score
-from meta_icl.utils.sys_prompt_utils import load_json_file, sav_json
-from meta_icl.utils.utils import get_current_date
+from meta_icl.core.utils import beam_search, demonstration_expand, demonstration_var_score
+from meta_icl.core.utils import load_json_file, sav_json
+from meta_icl.core.utils import get_current_date
 import json, os, copy
 
 if __name__ == '__main__':

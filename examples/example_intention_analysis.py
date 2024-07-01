@@ -1,5 +1,5 @@
 from meta_icl.contribs.intension_extraction import get_intention_analysis_results
-from meta_icl.utils.sys_prompt_utils import load_json_file
+from meta_icl.core.utils import load_json_file
 
 if __name__ == '__main__':
     config_pth = "conf/base_conf.json"

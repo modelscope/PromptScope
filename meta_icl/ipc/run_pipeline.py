@@ -1,5 +1,5 @@
 from optimization_pipeline import OptimizationPipeline
-from meta_icl.utils.config import load_yaml, override_config
+from meta_icl.core.utils import load_yaml, override_config
 import argparse
 
 import os

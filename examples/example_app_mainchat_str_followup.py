@@ -1,5 +1,5 @@
 from meta_icl.contribs.app_main_followup.app_main_followup_str import get_followup_results
-from meta_icl.utils.sys_prompt_utils import load_json_file
+from meta_icl.core.utils import load_json_file
 
 if __name__ == '__main__':
     config_pth = "conf/app_followup_configs/app_followup_str_conf.json"

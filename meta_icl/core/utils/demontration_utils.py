@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from meta_icl.utils.sys_prompt_utils import (call_llm_with_message, message_formatting, text_rerank,
-                                             convert_model_name_to_model_config)
+from meta_icl.core.utils.sys_prompt_utils import (call_llm_with_message, message_formatting, text_rerank,
+                                                  convert_model_name_to_model_config)
 import re, json, os, copy
 import numpy as np
 

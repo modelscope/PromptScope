@@ -1,5 +1,5 @@
-from meta_icl.utils.sys_prompt_utils import load_csv, sav_json
-from meta_icl.utils.utils import get_current_date, combine_session
+from meta_icl.core.utils import load_csv, sav_json
+from meta_icl.core.utils import get_current_date, combine_session
 import pandas as pd
 import os
 

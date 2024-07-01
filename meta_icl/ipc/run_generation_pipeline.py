@@ -1,5 +1,5 @@
 from optimization_pipeline import OptimizationPipeline
-from meta_icl.utils.config import load_yaml, modify_input_for_ranker, validate_generation_config, override_config
+from meta_icl.core.utils import load_yaml, modify_input_for_ranker, validate_generation_config, override_config
 import argparse
 import os
 from estimator.estimator_llm import LLMEstimator

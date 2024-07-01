@@ -1,4 +1,4 @@
-from meta_icl.utils.sys_prompt_utils import load_csv, sav_json, load_json_file
+from meta_icl.core.utils import load_csv, sav_json, load_json_file
 import os, random
 def convert_csv_2_json(data, load_key_list, sav_key_list, fill_in_keys):
     num_samples = len(data[load_key_list[0]])

@@ -1,4 +1,4 @@
-from meta_icl.utils.sys_prompt_utils import load_json_file, sav_json
+from meta_icl.core.utils import load_json_file, sav_json
 
 data_pth = "data/场景数据/测试数据/批跑：2024-05-16 18:19:52_test_set_results.json"
 data = load_json_file(data_pth)

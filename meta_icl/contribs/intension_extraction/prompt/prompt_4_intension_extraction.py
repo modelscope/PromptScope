@@ -1,4 +1,4 @@
-from meta_icl.utils.sys_prompt_utils import load_json_file
+from meta_icl.core.utils import load_json_file
 
 Instruction_for_query_rewrite = """你是一个优秀的客服专员，你能根据用户与客服的历史对话背景和当前用户query来精准识别用户当前的意图。
 请直接清晰完整地输出用户当前意图。
