@@ -1,7 +1,7 @@
 from meta_icl.core.online_icl.icl.ICL import BM25ICL
 
 from meta_icl.core.online_icl.icl import EmbeddingICL
-from meta_icl.core.utils import get_single_embedding, organize_text_4_embedding
+from meta_icl.core.utils import get_single_embedding, organize_text_4_embedding, timer
 from meta_icl.core.utils import message_formatting, call_llm_with_message
 from meta_icl.contribs.app_main_followup.prompt.prompt_4_icl_followups import (formatting_str_type_main_chat,
                                                                                formatting_answer_out,
@@ -9,16 +9,28 @@ from meta_icl.contribs.app_main_followup.prompt.prompt_4_icl_followups import (f
 import json
 
 
+
 class AppMainFollowupBM25(BM25ICL):
-    def __init__(self, icl_configs, task_configs, **kwargs):
+    def __init__(self, icl_configs, task_configs):
         """
 
-        :param base_model: the base model to generate the intention analysis results.
-        currently available choices: "Qwen_200B", "Qwen_70B", and "Qwen_14B"
-        :param embedding_pth: the path storing the embedding vectors of the examples
-        :param examples_pth: the path of the examples
-        :param embedding_model: the model to get the embedding.
-        currently only dashscope embedding model is available: "text_embedding_v1"
+        :param icl_configs: configs for ICL
+        :param task_configs: configs for task
+        Examples: {
+    "icl_configs": {
+        "BM25_index_pth": "data/icl_bm25_demo/demonstrations_2024-07-02 12:09:11",
+        "examples_pth": "data/icl_app_mainchat_followup/main_chat_str_icl_examples_ver_2024-06-05 22:34:25.json",
+        "topk": 3,
+        "retriever_key_list": [
+            "chat_history",
+            "last_query"
+        ]
+    },
+    "task_configs": {
+        "base_model": "Qwen_70B",
+        "num_questions": 3
+    }
+}
         """
         base_model = task_configs["base_model"]
         BM25_index_pth = icl_configs["BM25_index_pth"]
@@ -32,10 +44,11 @@ class AppMainFollowupBM25(BM25ICL):
                          task_configs=task_configs)
 
 
+@timer
 def get_BM25_followup_results(cur_query: dict,
-                         task_configs: dict,
-                         icl_configs: dict,
-                         file_type="no", **kwargs):
+                              task_configs: dict,
+                              icl_configs: dict,
+                              file_type="no", **kwargs):
     """
     """
     if file_type.lower() == "no":
@@ -47,7 +60,7 @@ def get_BM25_followup_results(cur_query: dict,
     results = followup_generator.get_results(
         cur_query,
         formatting_function=formatting_function,
-        num=icl_configs["topk"],  **kwargs
+        num=icl_configs["topk"], **kwargs
     )
     print(results)
     results = formatting_answer_out(results)

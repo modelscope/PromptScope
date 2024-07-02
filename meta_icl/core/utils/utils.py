@@ -4,6 +4,20 @@ import random, json
 from datetime import datetime
 
 from meta_icl.core.utils.sys_prompt_utils import get_embedding
+import time
+import logging
+from functools import wraps
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+def timer(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        duration = end_time - start_time
+        logging.info(f"Function {func.__name__!r} execute with {duration:.4f} s")
+        return result
+    return wrapper
 
 
 def get_current_date():

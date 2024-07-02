@@ -9,7 +9,7 @@
         ]
     },
     "task_configs": {
-        "base_model": "Qwen_70B",
+        "base_model": "Qwen_14B",
         "num_questions": 3
     }
 }
