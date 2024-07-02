@@ -59,6 +59,15 @@ def extract_from_markdown_json(text):
             results_list.append(data_dict)
         except json.JSONDecodeError as e:
             print("cannot decode JSON string: ", e)
+
+        try:
+            data_dict = match.replace("\n", "\\n")
+            data_dict = json.loads(f'[{data_dict}]')
+            results_list.extend(data_dict)
+        except json.JSONDecodeError as e:
+            print("cannot decode JSON string: ", e)
+
+
     return results_list
 
     # if match:
