@@ -14,12 +14,17 @@ class BaseRetriever(ABC):
         pass
 
     @abstractmethod
-    def topk_selection(self):
+    def topk_selection(self, query: str, num: int) -> Dict[str, List]:
+        pass
+
+    @abstractmethod
+    def get_examples(self, selection_ids: List) -> List:
         pass
 
 
 class BM25Retriever(BaseRetriever):
     def __init__(self, example_list=None, bm25_index_pth=None, **kwargs):
+
         self.example_list = example_list
         assert (bm25_index_pth is not None) or (example_list is not None), ("either example_list or bm25_index_pth "
                                                                             "must be provided.")
@@ -33,11 +38,34 @@ class BM25Retriever(BaseRetriever):
 
         super().__init__()
 
-    def topk_selection(self, query: str, num: int):
+    def topk_selection(self, query: str, num: int) -> Dict:
         """
         """
         query_tokens = bm25s.tokenize(query, stemmer=self.stemmer)
-        results, scores = reloaded_retriever.retrieve(query_tokens, k=num)
+        results, scores = self.retriever.retrieve(query_tokens, k=num)
+        results = [element for row in results for element in row]
+        scores = [element for row in scores for element in row]
+        print(f"results: {results}\ntype: {type(scores)}\nscores: {scores}, type: {type(scores)}")
+        selection_idx = [item["id"] for item in results]
+
+        # selected_examples = [item["text"] for item in results]
+
+        return {
+            "selection_idx": selection_idx,
+            "selection_score": scores,
+            # "selected_examples": selected_examples
+        }
+
+    def get_examples(self, selection_ids: List) -> List:
+        """
+
+        :param selection_ids: list of idx
+        :return: the examples selected
+        """
+        if self.example_list is not None:
+            return [self.example_list[idx] for idx in selection_ids]
+        else:
+            ValueError("example_list is None, please provide the example list!")
 
 
 class CosineSimilarityRetriever(BaseRetriever):
@@ -57,7 +85,9 @@ class CosineSimilarityRetriever(BaseRetriever):
                                                   list_embeddings=self.embeddings, k=num)
         selection_idx = [item[0] for item in selection_results]
         selection_score = [item[2] for item in selection_results]
-        return {"selection_idx": selection_idx, "selection_score": selection_score}
+
+        return {"selection_idx": selection_idx,
+                "selection_score": selection_score}
 
     def get_examples(self, selection_ids: List) -> List:
         """
