@@ -3,9 +3,10 @@ import random, json
 
 from datetime import datetime
 
-from meta_icl.core.utils.sys_prompt_utils import get_embedding
+from meta_icl.core.utils.sys_prompt_utils import get_embedding, message_formatting, call_llm_with_message
 import time
 import logging
+import re
 from functools import wraps
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 def timer(func):
@@ -18,7 +19,48 @@ def timer(func):
         logging.info(f"Function {func.__name__!r} execute with {duration:.4f} s")
         return result
     return wrapper
+def extract_from_markdown_json(text):
+    """
+    extract the json from markdown text to a list of dictionaries.
+    :param text:
+    :return results_list: list of dict
+    """
+    print("[extract_from_markdown_json] input_text: \n{}\n\n".format(text))
+    # pattern = r'```json\n(.*?)```'
+    # match = re.search(pattern, text, re.DOTALL)
 
+    # matches = re.findall(r'```json\n\s+(.+?)\s+```', text, re.DOTALL)
+    matches = re.findall(r"```json\n(.*?)\n```", text, re.DOTALL)
+    results_list = []
+    print(matches)
+    for match in matches:
+        try:
+            # data_dict = eval(match)
+            data_dict = match.replace("\n", "\\n")
+            data_dict = json.loads(data_dict)
+            results_list.append(data_dict)
+        except json.JSONDecodeError as e:
+            print("cannot decode JSON string: ", e)
+            try:
+                data_dict = match.replace("\n", "\\n")
+                data_dict = json.loads(f'[{data_dict}]')
+                results_list.extend(data_dict)
+            except json.JSONDecodeError as e:
+                print("cannot decode JSON string: ", e)
+                try:
+                    messages = message_formatting(system_prompt=None, query=f"convert the following text to the json string that can by executed by json.loads() in python. Please directly output the answer. text:\n{match}")
+                    results = call_llm_with_message(messages=messages, model="Qwen_200B")
+                    print("refine by qwen_200B: {}".format(results))
+                    data_dict = json.loads(results)
+                    results_list.append(data_dict)
+                except json.JSONDecodeError as e:
+                    print("cannot decode JSON string: ", e)
+
+
+
+
+
+    return results_list
 
 def get_current_date():
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
