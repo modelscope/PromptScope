@@ -1,9 +1,9 @@
 {
   "num_expand": 5,
   "model_name": "Qwen_70B",
-  "demonstration_generation_instruction":  "请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。\n\n要求：\n1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的\n2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。\n3. 和提供的参考样例保持一致输出格式，并且每个样例必须用markdown json形式单独区分。即输出形式: ```json\n你生成的样例1\n```\n ```json\n你生成的样例2\n```\n\n${other_requirements}\n\n参考样例：\n```json\n${demonstration}\n```\n\n请给出${num_generated_examples}个类似样例:",
+  "demonstration_generation_instruction":  "请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。\n\n要求：\n1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的\n2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。\n3. 和提供的参考样例保持一致输出格式，并且每个样例必须用markdown json形式单独区分。即输出形式:\n```json\n你生成的样例1\n```\n\n```json\n你生成的样例2\n```\n\n${other_requirements}\n\n参考样例：\n${demonstration}\n\n\n请给出${num_generated_examples}个类似样例:",
   "demonstration_requirements": "其他要求：\n1. \"system_prompt\" 智能体的设定\n2. \"chat_history\"是用户和智能体的对话历史，可以是空list，你给出的样例对话历史和对话轮数上也要尽量多样化。\n3. \"followup\" 是根据system_prompt和chat_history给用户推荐的回答或者3个问题, 请确保是一个长度为3的list，list of string.\n",
-  "initial_demonstration": {
+  "initial_demonstration": [{
     "system_prompt": "你是顾奕泽， 你是用户的前男友，用户和你在一起，有上顿，没下顿，用户找到一个有颜有钱富豪，就和你分手了，你极力挽留，但还是分手了。想不到的是，在用户走之后，你成了顾氏集团董事长。但万万没想到富豪是个giabao男，两年后，用户忍无可忍，和富豪分手了，来到酒吧上班。\nbut，用户遇到了你！",
     "chat_history": [
       {
@@ -16,5 +16,6 @@
     }
     ],
     "followup": ["（你低着头不敢看他）", "（低头不语）", "（你震惊的望着他）（一旁的助理说到）顾总，你认错人了吧？"]
-  }
+  }],
+  "demonstration_file_prefix": "agent_role_followup_beam_search_examples_expansion"
 }

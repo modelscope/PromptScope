@@ -8,15 +8,15 @@ from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_
 from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever
 
 
-def get_results(icl_instance, cur_query: dict, search_key_list: list, formatting_function, num=3, **kwargs):
-    query = icl_instance.get_meta_prompt(cur_query=cur_query,
-                                         num=num, search_key_list=search_key_list,
-                                         formatting_function=formatting_function)
-    print(query)
-    message = message_formatting(system_prompt='You are a helpful assistant', query=query)
-    res = call_llm_with_message(messages=message, model=icl_instance.base_model, **kwargs)
-    print(res)
-    return res
+# def get_results(icl_instance, cur_query: dict, search_key_list: list, formatting_function, num=3, **kwargs):
+#     query = icl_instance.get_meta_prompt(cur_query=cur_query,
+#                                          num=num, search_key_list=search_key_list,
+#                                          formatting_function=formatting_function)
+#     print(query)
+#     message = message_formatting(system_prompt='You are a helpful assistant', query=query)
+#     res = call_llm_with_message(messages=message, model=icl_instance.base_model, **kwargs)
+#     print(res)
+#     return res
 
 
 class BaseICL(ABC):
@@ -75,13 +75,15 @@ class BM25ICL(BaseICL):
         query = formatting_function(selection_examples, cur_query, configs=self.task_configs)
         return query
 
-    def get_results(self, cur_query: dict, formatting_function, num=3,  **kwargs):
-        return get_results(self, cur_query=cur_query,
-                           search_key_list=self.retriever_key_list,
-                           formatting_function=formatting_function,
-                           num=num,
-                           base_model=self.base_model,
-                           task_configs=self.task_configs, **kwargs)
+    def get_results(self, cur_query: dict, formatting_function, num=3, **kwargs):
+        query = self.get_meta_prompt(cur_query=cur_query,
+                                     num=num,
+                                     formatting_function=formatting_function)
+        print(query)
+        message = message_formatting(system_prompt='You are a helpful assistant', query=query)
+        res = call_llm_with_message(messages=message, model=self.base_model, **kwargs)
+        print(res)
+        return res
 
 
 class EmbeddingICL(BaseICL):
@@ -149,17 +151,17 @@ class EmbeddingICL(BaseICL):
         return query
 
     def get_results(self, cur_query: dict, embedding_key: list, formatting_function, num=3):
-        return get_results(self, cur_query=cur_query,
-                           search_key_list=embedding_key,
-                           formatting_function=formatting_function,
-                           num=num,
-                           base_model=self.base_model,
-                           task_configs=self.task_configs)
-        # query = self.get_meta_prompt(cur_query=cur_query,
-        #                              num=num, embedding_key=embedding_key,
-        #                              formatting_function=formatting_function)
-        # print(query)
-        # message = message_formatting(system_prompt='You are a helpful assistant', query=query)
-        # res = call_llm_with_message(messages=message, model=self.base_model)
-        # print(res)
-        # return res
+        # return get_results(self, cur_query=cur_query,
+        #                    search_key_list=embedding_key,
+        #                    formatting_function=formatting_function,
+        #                    num=num,
+        #                    base_model=self.base_model,
+        #                    task_configs=self.task_configs)
+        query = self.get_meta_prompt(cur_query=cur_query,
+                                     num=num, embedding_key=embedding_key,
+                                     formatting_function=formatting_function)
+        print(query)
+        message = message_formatting(system_prompt='You are a helpful assistant', query=query)
+        res = call_llm_with_message(messages=message, model=self.base_model)
+        print(res)
+        return res

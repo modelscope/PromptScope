@@ -32,29 +32,44 @@ def extract_from_markdown_json(text):
     # matches = re.findall(r'```json\n\s+(.+?)\s+```', text, re.DOTALL)
     matches = re.findall(r"```json\n(.*?)\n```", text, re.DOTALL)
     results_list = []
-    print(matches)
+    print("matches: \n{}\n".format(matches))
     for match in matches:
         try:
             # data_dict = eval(match)
             data_dict = match.replace("\n", "\\n")
+            print("try1: \n{}\n".format(data_dict))
             data_dict = json.loads(data_dict)
             results_list.append(data_dict)
+
         except json.JSONDecodeError as e:
             print("cannot decode JSON string: ", e)
             try:
-                data_dict = match.replace("\n", "\\n")
+                data_dict = """{}""".format(match)
                 data_dict = json.loads(f'[{data_dict}]')
                 results_list.extend(data_dict)
             except json.JSONDecodeError as e:
                 print("cannot decode JSON string: ", e)
                 try:
-                    messages = message_formatting(system_prompt=None, query=f"convert the following text to the json string that can by executed by json.loads() in python. Please directly output the answer. text:\n{match}")
-                    results = call_llm_with_message(messages=messages, model="Qwen_200B")
-                    print("refine by qwen_200B: {}".format(results))
-                    data_dict = json.loads(results)
-                    results_list.append(data_dict)
+                    data_dict = match.replace("\n", "\\n")
+                    print("try2: \n{}\n".format(data_dict))
+                    data_dict = json.loads(f'[{data_dict}]')
+                    results_list.extend(data_dict)
                 except json.JSONDecodeError as e:
                     print("cannot decode JSON string: ", e)
+                    try:
+                        messages = message_formatting(system_prompt=None,
+                                                      query=f"convert the following text to the json string that can by executed by json.loads() in python. Please directly output the answer. text:\n{match}")
+                        results = call_llm_with_message(messages=messages, model="Qwen_200B")
+                        print("refine by qwen_200B: {}".format(results))
+                        results = results.replace("```json", "```")
+                        data_dict = json.loads(results)
+                        results_list.append(data_dict)
+                    except json.JSONDecodeError as e:
+                        print("cannot decode JSON string: ", e)
+                        raise ValueError(f"cannot decode JSON string: {e}")
+
+
+
 
 
 

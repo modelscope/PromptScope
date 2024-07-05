@@ -20,11 +20,8 @@ if __name__ == '__main__':
         "last_query": "最重要的是养老和医疗保险吗，其中养老保险最好不中断缴纳是吗",
     }
 
-
-
-    results =get_BM25_followup_results(cur_query=cur_query,
-                         task_configs=conf["task_configs"],
-                         icl_configs=conf["icl_configs"],
-                         file_type="no")
+    results = get_BM25_followup_results(cur_query=cur_query,
+                                        task_configs=conf["task_configs"],
+                                        icl_configs=conf["icl_configs"],
+                                        file_type="no")
     print(results)
-

@@ -33,26 +33,6 @@ other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户
 
 
 
-
-    # if match:
-    #     json_text = match.group(1)
-    #     print("extracted json string：{}".format(json_text))
-    #     # 加载提取的字符串为JSON对象
-    #     try:
-    #         json_object = json.loads(json_text)
-    #         print("generated results: {}".format(
-    #             json.dumps(json_object,
-    #                        indent=2,
-    #                        ensure_ascii=False)))
-    #         return json.dumps(json_object,
-    #                           indent=2,
-    #                           ensure_ascii=False)
-    #     except json.JSONDecodeError as e:
-    #         print("cannot decode JSON string: ", e)
-    # else:
-    #     print("No JSON string is found")
-
-
 def generate_similar_demonstration(
         demonstration_text,
         demonstration_generation_instruction,
@@ -86,7 +66,7 @@ def generate_similar_demonstration(
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",
                                                                                         str(num_generated_examples))
     prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
-    print(prompt)
+    print("prompt: \n{}\n".format(prompt))
     prompt = message_formatting(system_prompt=None, query=prompt)
     model_config = convert_model_name_to_model_config(model_name, add_random=True)
     results = call_llm_with_message(prompt, model=model_name, model_config=model_config)
@@ -121,10 +101,12 @@ def demonstration_expand(state, expand_config):
     demonstration_generation_instruction = expand_config["demonstration_generation_instruction"]
     print("[demonstration_expand] state: {}".format(state))
     if isinstance(state[-1], str):
-        demonstration_text = state[-1]
+        demonstration_text = "\n".join(f"```json\n{item}\n```" for item in state)
     else:
-        demonstration_text = json.dumps(state[-1], ensure_ascii=False)
-    print(demonstration_text)
+        demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```" for item in state)
+        print("demonstration_text: \n{}\n".format(demonstration_text))
+
+    # print("demonstration_text: \n{}\n".format(demonstration_text))
     demonstration_requirements = expand_config["demonstration_requirements"]
     print("demonstration_requirements: {}".format(demonstration_requirements))
     # based on the current demonstration state[-1], expand num_expand demonstrations
@@ -175,17 +157,12 @@ def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expan
     """
     print("initial state: {}".format(initial_state))
     print("type of init: {}".format(type(initial_state)))
+    all_states = []
 
     if isinstance(initial_state[0], str):
-        all_states = [json.loads(initial_state[0])]
+        all_states = [json.loads(item) for item in initial_state]
     else:
-        all_states = [initial_state[0]]
-
-
-
-
-
-
+        all_states.extend(initial_state)
 
     # Initialize the beam with the initial state.
     beam = [[initial_state, score_fn(initial_state)]]
