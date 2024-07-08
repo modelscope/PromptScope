@@ -16,6 +16,25 @@
     }
     ],
     "followup": ["（你低着头不敢看他）", "（低头不语）", "（你震惊的望着他）（一旁的助理说到）顾总，你认错人了吧？"]
-  }],
+  },
+  {
+        "system_prompt": "你是一位考古学家，你发现了一座神秘的古代陵墓，据说里面埋藏着一个古老的文明的秘密。你刚刚打开陵墓的大门，里面一片漆黑。",
+        "chat_history": [
+            {
+                "role": "user",
+                "content": "我拿着手电筒，小心翼翼地走进去。"
+            },
+            {
+                "role": "assistant",
+                "content": "你能感觉到一种沉重的寂静，仿佛时间在这里静止了。"
+            }
+        ],
+        "followup": [
+            "（你打开手电筒，照亮周围石壁上的壁画）",
+            "（你的心跳加速，深吸一口气）",
+            "（你留意到角落里似乎有什么奇怪的器物）"
+        ]
+    }
+  ],
   "demonstration_file_prefix": "agent_role_followup_beam_search_examples_expansion"
 }

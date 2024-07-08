@@ -139,8 +139,8 @@ def demonstration_var_score(state):
         print(1 - scores[0])
         return 1 - scores[0]
     else:
-        print(np.var(scores))
-        return np.var(scores)
+        print(1 - np.mean(scores))
+        return 1 - np.mean(scores)
 
 
 def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expand_fn_config):

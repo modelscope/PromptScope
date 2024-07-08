@@ -8,7 +8,7 @@ import time
 import logging
 import re
 from functools import wraps
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from loguru import logger
 def timer(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -16,7 +16,7 @@ def timer(func):
         result = func(*args, **kwargs)
         end_time = time.time()
         duration = end_time - start_time
-        logging.info(f"Function {func.__name__!r} execute with {duration:.4f} s")
+        logger.info(f"Function {func.__name__!r} execute with {duration:.4f} s")
         return result
     return wrapper
 def extract_from_markdown_json(text):
@@ -25,48 +25,49 @@ def extract_from_markdown_json(text):
     :param text:
     :return results_list: list of dict
     """
-    print("[extract_from_markdown_json] input_text: \n{}\n\n".format(text))
+    logger.info("[extract_from_markdown_json] input_text: \n{}\n\n".format(text))
     # pattern = r'```json\n(.*?)```'
     # match = re.search(pattern, text, re.DOTALL)
 
     # matches = re.findall(r'```json\n\s+(.+?)\s+```', text, re.DOTALL)
     matches = re.findall(r"```json\n(.*?)\n```", text, re.DOTALL)
     results_list = []
-    print("matches: \n{}\n".format(matches))
+    logger.info("matches: \n{}\n".format(matches))
     for match in matches:
         try:
             # data_dict = eval(match)
             data_dict = match.replace("\n", "\\n")
-            print("try1: \n{}\n".format(data_dict))
+            logger.info("try1: \n{}\n".format(data_dict))
             data_dict = json.loads(data_dict)
             results_list.append(data_dict)
 
         except json.JSONDecodeError as e:
-            print("cannot decode JSON string: ", e)
+            logger.info("try1: cannot decode JSON string: ", e)
             try:
                 data_dict = """{}""".format(match)
                 data_dict = json.loads(f'[{data_dict}]')
                 results_list.extend(data_dict)
             except json.JSONDecodeError as e:
-                print("cannot decode JSON string: ", e)
+                logger.info("try2: cannot decode JSON string: ", e)
                 try:
                     data_dict = match.replace("\n", "\\n")
-                    print("try2: \n{}\n".format(data_dict))
+                    logger.info("try3: \n{}\n".format(data_dict))
                     data_dict = json.loads(f'[{data_dict}]')
                     results_list.extend(data_dict)
                 except json.JSONDecodeError as e:
-                    print("cannot decode JSON string: ", e)
+                    logger.info("try4: cannot decode JSON string: ", e)
                     try:
                         messages = message_formatting(system_prompt=None,
                                                       query=f"convert the following text to the json string that can by executed by json.loads() in python. Please directly output the answer. text:\n{match}")
                         results = call_llm_with_message(messages=messages, model="Qwen_200B")
-                        print("refine by qwen_200B: {}".format(results))
+                        logger.info("refine by qwen_200B: {}".format(results))
                         results = results.replace("```json", "```")
                         data_dict = json.loads(results)
                         results_list.append(data_dict)
                     except json.JSONDecodeError as e:
-                        print("cannot decode JSON string: ", e)
-                        raise ValueError(f"cannot decode JSON string: {e}")
+                        logger.info("cannot decode JSON string: ", e)
+                        # raise ValueError(f"cannot decode JSON string: {e}")
+    return results_list
 
 
 
