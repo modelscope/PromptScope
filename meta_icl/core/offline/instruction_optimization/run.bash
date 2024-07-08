@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export CONFIG_FILE_PATH="/mnt1/yunze.gy/Meta-ICL/conf/ipc_configs"
+
 # Define the language variable (You can set this variable to either 'english' or 'chinese' based on your need or pass it as an argument)
 language=$1
 q_type=$2

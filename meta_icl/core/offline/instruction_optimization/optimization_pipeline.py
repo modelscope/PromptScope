@@ -1,9 +1,9 @@
 import pandas as pd
 
-from meta_icl.evaluation.evaluator import Eval
-from dataset.base_dataset import DatasetBase
+from meta_icl.core.evaluation.evaluator import Eval
+from meta_icl.core.utils.ipc_base_dataset import DatasetBase
 from meta_icl.core.utils import MetaChain
-from estimator import give_estimator
+from ipc_estimator import give_estimator
 from pathlib import Path
 import pickle
 import os

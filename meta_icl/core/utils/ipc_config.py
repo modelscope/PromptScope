@@ -7,9 +7,10 @@ from langchain.llms.huggingface_pipeline import HuggingFacePipeline
 from langchain_community.chat_models import AzureChatOpenAI
 from langchain.chains import LLMChain
 import logging
+import os
 
-LLM_ENV = yaml.safe_load(open('conf/llm_env.yml', 'r'))
-
+config_file_path = os.getenv('CONFIG_FILE_PATH')
+LLM_ENV = yaml.safe_load(open(os.path.join(config_file_path, 'ipc_llm_env.yml'), 'r'))
 
 class Color:
     RED = '\033[91m'

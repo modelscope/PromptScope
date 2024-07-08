@@ -3,7 +3,7 @@ import pandas as pd
 from .estimator_argilla import ArgillaEstimator
 from .estimator_llm import LLMEstimator
 from .estimator_llm_batch import LLMBatchEstimator
-from dataset.base_dataset import DatasetBase
+from meta_icl.core.utils.ipc_base_dataset import DatasetBase
 
 
 class DummyEstimator:

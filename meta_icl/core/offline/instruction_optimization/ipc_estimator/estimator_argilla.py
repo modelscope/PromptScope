@@ -3,7 +3,7 @@ import time
 import pandas as pd
 from argilla.client.singleton import active_client
 from meta_icl.core.utils import Color
-from dataset.base_dataset import DatasetBase
+from meta_icl.core.utils.ipc_base_dataset import DatasetBase
 import json
 import webbrowser
 import base64

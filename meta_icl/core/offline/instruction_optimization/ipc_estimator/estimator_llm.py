@@ -1,6 +1,6 @@
 from meta_icl.core.utils import ChainWrapper, get_chain_metadata
 from pathlib import Path
-from dataset.base_dataset import DatasetBase
+from meta_icl.core.utils.ipc_base_dataset import DatasetBase
 import pandas as pd
 
 class LLMEstimator:

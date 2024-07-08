@@ -1,4 +1,4 @@
-from optimization_pipeline import OptimizationPipeline
+from optimization_pipeline import IPC
 from meta_icl.core.utils import load_yaml, override_config
 import argparse
 
@@ -7,7 +7,7 @@ import os
 # General Training Parameters
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--basic_config_path', default='conf', type=str, help='Configuration file path')
+parser.add_argument('--basic_config_path', default='/mnt1/yunze.gy/Meta-ICL/conf/ipc_configs', type=str, help='Configuration file path')
 parser.add_argument('--batch_config_path', default='',
                     type=str, help='Batch classification configuration file path')
 parser.add_argument('--prompt',
