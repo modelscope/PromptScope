@@ -696,7 +696,7 @@ def call_llama_with_messages():
                 {'role': 'user', 'content': '介绍下故宫？'}]
     response = dashscope.Generation.call(
         # model='llama2-7b-chat-v2',
-        model = "llama3-70b-instruct",
+        model="llama3-70b-instruct",
         messages=messages,
         result_format='message',  # set the result to be "message" format.
     )

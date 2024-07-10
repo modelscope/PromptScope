@@ -3,12 +3,13 @@ import random, json
 
 from datetime import datetime
 
-from meta_icl.core.utils.sys_prompt_utils import get_embedding, message_formatting, call_llm_with_message
+from meta_icl.core.utils.sys_prompt_utils import get_embedding, message_formatting, call_llm_with_message, sav_json
 import time
 import logging
 import re
 from functools import wraps
 from loguru import logger
+
 
 
 def timer(func):
@@ -221,6 +222,9 @@ def get_single_embedding(query, embedding_model, search_key=None):
 
 
 def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None, prefix="", mapping_filed=None):
+    import pandas as pd
+    import os
+
     data = pd.read_csv(csv_pth)
     print(data.keys())
     sav_dir = json_sav_dir

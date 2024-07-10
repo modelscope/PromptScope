@@ -1,7 +1,7 @@
 import json
 from meta_icl.core.utils import get_embedding, sav_json, load_json_file
 from meta_icl.core.utils import load_jsonl, get_current_date, load_file, organize_text_4_embedding
-from meta_icl.core.online_icl.icl import BaseRetrive
+
 import re, os, time
 import numpy as np
 

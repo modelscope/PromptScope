@@ -1,19 +1,15 @@
 import os.path
-from abc import ABC
 
 import bm25s
 from meta_icl.core.utils.utils import organize_text_4_embedding, get_current_date
 from meta_icl.core.utils.sys_prompt_utils import load_json_file
 from meta_icl.core.utils.retrieve_utils import STOPWORDS_EN, STOPWORDS_ZH
 import Stemmer
+from meta_icl.core.offline.demonstration_stock_preparation.base_stock_builder import BaseStockBuilder
 
 
 def get_demonstration_corpus(examples_list, search_key):
     return organize_text_4_embedding(examples_list, search_key)
-
-
-class BaseStockBuilder(ABC):
-    pass
 
 
 class BM25StockBuilder(BaseStockBuilder):
