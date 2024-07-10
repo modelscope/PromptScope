@@ -9,6 +9,8 @@ import logging
 import re
 from functools import wraps
 from loguru import logger
+
+
 def timer(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -18,7 +20,10 @@ def timer(func):
         duration = end_time - start_time
         logger.info(f"Function {func.__name__!r} execute with {duration:.4f} s")
         return result
+
     return wrapper
+
+
 def extract_from_markdown_json(text):
     """
     extract the json from markdown text to a list of dictionaries.
@@ -69,14 +74,6 @@ def extract_from_markdown_json(text):
                         # raise ValueError(f"cannot decode JSON string: {e}")
     return results_list
 
-
-
-
-
-
-
-
-    return results_list
 
 def get_current_date():
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -260,12 +257,11 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
     return sessions
 
 
-
-
-
 # Example usage
 if __name__ == "__main__":
     import numpy as np
+
+
     # Define a toy problem.
     def example_expand_fn(state):
         # Produce some new states from the current state.
@@ -292,8 +288,3 @@ if __name__ == "__main__":
     best_state = beam_search(initial_state, max_steps, beam_width, example_expand_fn, example_score_fn)
 
     print(f"Best state found: {best_state}")
-
-
-
-
-
