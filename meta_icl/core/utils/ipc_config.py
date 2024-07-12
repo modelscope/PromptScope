@@ -72,7 +72,7 @@ def get_llm(config: dict):
         )
     elif config['type'] == 'Tongyi':
         from langchain_community.llms.tongyi import Tongyi
-        return Tongyi(temperature=temperature, model=config['name'],
+        return Tongyi(temperature=temperature, model_name=config['name'],
                               dashscope_api_key=LLM_ENV['tongyi']['QWEN_API_KEY'],
                               model_kwargs=model_kwargs)
     else:
@@ -111,8 +111,6 @@ def validate_generation_config(base_config, generation_config):
     if "label_schema" not in generation_config.dataset or \
             base_config.dataset.label_schema != generation_config.dataset.label_schema:
         raise Exception("Generation label schema must match the basic config.")
-
-
 def modify_input_for_ranker(config, task_description, initial_prompt):
     modifiers_config = yaml.safe_load(open('prompts/modifiers/modifiers.yml', 'r'))
     task_desc_setup = load_prompt(modifiers_config['ranker']['task_desc_mod'])

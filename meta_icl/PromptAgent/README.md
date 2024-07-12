@@ -2,16 +2,7 @@
 <img src="./images/Header.png" alt="Expert-level Prompting" title="Expert-level Prompting"/>
 </p>
 
-## News
-- Jun. 27, 2024: LLM Reasoners library now integrates PromptAgent! See the **adapted PromptAgent** here: [Link](https://github.com/maitrix-org/llm-reasoners/tree/main/examples/PromptAgent/MedQA)
-- May 17, 2024: Modify arguments control, use yaml file to set arguments for PromptAgent.
-- May  15, 2024: Different models (openai, palm, huggingface models) are supported by PromptAgent.
-- Jan. 16, 2024: PromptAgent has been accepted by ICLR 2024!  
-- Dec. 17, 2023: Refined the code for ease of reading and use by users.
 # PromptAgent
-
-
-
 This is the official repo for "PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization".   PromptAgent is a novel automatic prompt optimization method that autonomously crafts prompts equivalent in quality to those handcrafted by experts, i.e., expert-level prompts. [[arXiv](https://arxiv.org/abs/2310.16427)]
 <p align="center">
 <img src="./images/expert_prompt_00.jpg" alt="Expert-level Prompting" width="700" title="Expert-level Prompting"/>
@@ -20,6 +11,12 @@ Unlike discovering magic/local prompt variants as existing prompt optimization m
 <p align="center">
 <img src="./images/mcts_00.jpg" alt="Expert-level Prompting" width="700" title="Expert-level Prompting"/>
 </p>
+
+## News
+- May 17, 2024: Modify arguments control, use yaml file to set arguments for PromptAgent.
+- May  15, 2024: Different models (openai, palm, huggingface models) are supported by PromptAgent.
+- Jan. 16, 2024: PromptAgent has been accepted by ICLR 2024!  
+- Dec. 17, 2023: Refined the code for ease of reading and use by users.
 
 ## Installation
 
@@ -122,17 +119,14 @@ def generate(self, input: str):
   ...
   return str
 ```
-Then you may add the model_type name and the class name in the __init__.py in the language_model folder.
 You can also contact us, if you meet any issue or would like to add to the official PromptAgent repo.
 ## How to add a new task?
-Our base task class can be seen in the tasks/base_task.py file, where the tasks specific functions are explained in detail. Our current tasks includes selection question tasks and NER tasks. Adding new selection tasks is relatively easy. Please refer to the .py files in the tasks folder. First, create a new task.py file and a new CustomTask class. Then, there are several task-specific functions to be implemented in your customized task.py file: 
-1. Load your dataset: We recommend spliting your dataset into "train" and "test" and storing them into json file. Related functions: load_task_dataset, transform_format
-2. Input formating: For selection questions, it is necessary to combine question and options before inputing into the pred_model. Related functions: clean_labels, build_forward_prompts_completion
-3. Answer extraction: Extract the final answer from the model's response. Related functions: clean_response  
-4. Design correction metric: For each task, we need a define "correctness" for two reasons. In PromptAgent, we need to sample one batch and find the errors of base models, so cal_correct is needed for comparing the predictions and labels. Also. we need a reward for MCTS (cal_metric), which is the validation set accuracy for most of the tasks.
+Our current tasks includes selection question tasks and NER tasks. Adding new selection tasks is relatively easy. Please refer to the .py files in the tasks folder. First, create a new task.py file and a new CustomTask class. Then, there are several task-specific functions to be implemented in your customized task.py file: 
+1. Load your dataset: We recommend spliting your dataset into "train" and "test" and storing them into json file.
+2. Input formating: For selection questions, it is necessary to combine question and options before inputing into the pred_model.
+3. Answer extraction: Extract the final answer from the model's response.   
 
 After that, you can run PromptAgent on your customized dataset!
-
 
 ## TODO
 - We will extend the features to enable flexible training/testing pipeline with new tasks.  
