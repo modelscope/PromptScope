@@ -1,11 +1,11 @@
-from meta_icl.core.online_icl.icl import CustomizedICL
+from meta_icl.core.online_icl.icl import EmbeddingICL
 from meta_icl.core.utils import get_single_embedding, organize_text_4_embedding
 from meta_icl.core.utils import message_formatting, call_llm_with_message
 from meta_icl.contribs.app_main_followup.prompt.prompt_4_icl_followups import formatting_str_type_main_chat
 import json
 
 
-class AppMainFollowupStr(CustomizedICL):
+class AppMainFollowupStr(EmbeddingICL):
     def __init__(self, base_model,
                  embedding_pth,
                  examples_pth,

@@ -8,7 +8,8 @@ import re
 import random
 from typing import Generator, List
 
-KEY = ""
+# KEY = ""
+KEY = "***REMOVED***"
 dashscope.api_key = KEY
 
 DASHSCOPE_MAX_BATCH_SIZE = 25
@@ -690,8 +691,32 @@ def text_rerank(query, documents, top_n=None):
         print(resp)
         raise Exception(resp)
 
-# if __name__ == '__main__':
-#     text_rerank()
+def call_llama_with_messages():
+    messages = [{'role': 'system', 'content': 'You are a helpful assistant.'},
+                {'role': 'user', 'content': '介绍下故宫？'}]
+    response = dashscope.Generation.call(
+        # model='llama2-7b-chat-v2',
+        model="llama3-70b-instruct",
+        messages=messages,
+        result_format='message',  # set the result to be "message" format.
+    )
+    if response.status_code == HTTPStatus.OK:
+        print(response)
+    else:
+        print('Request id: %s, Status code: %s, error code: %s, error message: %s' % (
+            response.request_id, response.status_code,
+            response.code, response.message
+        ))
+
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    call_llama_with_messages()
 
 # def conversation_rewriter():
 #     config = api_models.Config(
