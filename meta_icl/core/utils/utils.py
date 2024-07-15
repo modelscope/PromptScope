@@ -3,7 +3,77 @@ import random, json
 
 from datetime import datetime
 
-from meta_icl.core.utils.sys_prompt_utils import get_embedding
+from meta_icl.core.utils.sys_prompt_utils import get_embedding, message_formatting, call_llm_with_message, sav_json
+import time
+import re
+from functools import wraps
+from loguru import logger
+
+import yaml
+
+
+def timer(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        duration = end_time - start_time
+        logger.info(f"Function {func.__name__!r} execute with {duration:.4f} s")
+        return result
+
+    return wrapper
+
+
+def extract_from_markdown_json(text):
+    """
+    extract the json from markdown text to a list of dictionaries.
+    :param text:
+    :return results_list: list of dict
+    """
+    logger.info("[extract_from_markdown_json] input_text: \n{}\n\n".format(text))
+    # pattern = r'```json\n(.*?)```'
+    # match = re.search(pattern, text, re.DOTALL)
+
+    # matches = re.findall(r'```json\n\s+(.+?)\s+```', text, re.DOTALL)
+    matches = re.findall(r"```json\n(.*?)\n```", text, re.DOTALL)
+    results_list = []
+    logger.info("matches: \n{}\n".format(matches))
+    for match in matches:
+        try:
+            # data_dict = eval(match)
+            data_dict = match.replace("\n", "\\n")
+            logger.info("try1: \n{}\n".format(data_dict))
+            data_dict = json.loads(data_dict)
+            results_list.append(data_dict)
+
+        except json.JSONDecodeError as e:
+            logger.info("try1: cannot decode JSON string: ", e)
+            try:
+                data_dict = """{}""".format(match)
+                data_dict = json.loads(f'[{data_dict}]')
+                results_list.extend(data_dict)
+            except json.JSONDecodeError as e:
+                logger.info("try2: cannot decode JSON string: ", e)
+                try:
+                    data_dict = match.replace("\n", "\\n")
+                    logger.info("try3: \n{}\n".format(data_dict))
+                    data_dict = json.loads(f'[{data_dict}]')
+                    results_list.extend(data_dict)
+                except json.JSONDecodeError as e:
+                    logger.info("try4: cannot decode JSON string: ", e)
+                    try:
+                        messages = message_formatting(system_prompt=None,
+                                                      query=f"convert the following text to the json string that can by executed by json.loads() in python. Please directly output the answer. text:\n{match}")
+                        results = call_llm_with_message(messages=messages, model="Qwen_200B")
+                        logger.info("refine by qwen_200B: {}".format(results))
+                        results = results.replace("```json", "```")
+                        data_dict = json.loads(results)
+                        results_list.append(data_dict)
+                    except json.JSONDecodeError as e:
+                        logger.info("cannot decode JSON string: ", e)
+                        # raise ValueError(f"cannot decode JSON string: {e}")
+    return results_list
 
 
 def get_current_date():
@@ -152,6 +222,9 @@ def get_single_embedding(query, embedding_model, search_key=None):
 
 
 def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None, prefix="", mapping_filed=None):
+    import pandas as pd
+    import os
+
     data = pd.read_csv(csv_pth)
     print(data.keys())
     sav_dir = json_sav_dir
@@ -188,12 +261,36 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
     return sessions
 
 
+def convert_json_2_yaml(json_file_path, yaml_file_path):
+    with open(json_file_path, 'r') as f:
+        data = json.load(f)
+        logger.info(f"load json file: {json_file_path}")
+    sav_yaml(data=data, yaml_file_path=yaml_file_path)
 
+def load_yaml_file(yaml_file_path):
+    try:
+        with open(yaml_file_path, 'r') as file:
+            # Load the YAML content
+            yaml_content = yaml.safe_load(file)
+            # Print the YAML content
+            print(yaml.dump(yaml_content, default_flow_style=False))
+            return yaml_content
+    except Exception as e:
+        logger.error(f"Error loading YAML file: {e}")
+
+def sav_yaml(data, yaml_file_path):
+    yaml_text = yaml.dump(data, allow_unicode=True, sort_keys=False)
+    print(yaml_text)
+    with open(yaml_file_path, 'w') as f:
+        f.write(yaml_text)
+        logger.info(f"save yaml file to: {yaml_file_path}")
 
 
 # Example usage
 if __name__ == "__main__":
     import numpy as np
+
+
     # Define a toy problem.
     def example_expand_fn(state):
         # Produce some new states from the current state.
@@ -220,8 +317,3 @@ if __name__ == "__main__":
     best_state = beam_search(initial_state, max_steps, beam_width, example_expand_fn, example_score_fn)
 
     print(f"Best state found: {best_state}")
-
-
-
-
-

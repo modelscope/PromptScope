@@ -7,7 +7,8 @@ import setuptools
 requires = [
     "dashscope",
     "scipy",
-    "numpy"
+    "numpy",
+    "bm25s"
 ]
 
 setuptools.setup(

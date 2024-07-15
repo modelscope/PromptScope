@@ -1,0 +1,10 @@
+{
+  "retriever_name": "BM25",
+  "examples_list_pth": "data/data_build_stocks/mainchat_followup_demonstrations_str.json",
+  "icl_config_pth":  "conf/app_followup_configs/app_followup_str_conf.json",
+  "search_key": ["system_prompt","chat_history", "last_query"],
+  "sav_dir": "data/app_data/agent_followup_data/icl_data",
+  "eval_key_list": "chat_history",
+  "prefix":  "agent_followup_str",
+  "others":  {}
+}
