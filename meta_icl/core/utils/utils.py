@@ -5,11 +5,11 @@ from datetime import datetime
 
 from meta_icl.core.utils.sys_prompt_utils import get_embedding, message_formatting, call_llm_with_message, sav_json
 import time
-import logging
 import re
 from functools import wraps
 from loguru import logger
 
+import yaml
 
 
 def timer(func):
@@ -259,6 +259,31 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
         sessions.append(session_dict)
     sav_json(sessions, os.path.join(sav_dir, f"{prefix}_ver_{get_current_date()}.json"))
     return sessions
+
+
+def convert_json_2_yaml(json_file_path, yaml_file_path):
+    with open(json_file_path, 'r') as f:
+        data = json.load(f)
+        logger.info(f"load json file: {json_file_path}")
+    sav_yaml(data=data, yaml_file_path=yaml_file_path)
+
+def load_yaml_file(yaml_file_path):
+    try:
+        with open(yaml_file_path, 'r') as file:
+            # Load the YAML content
+            yaml_content = yaml.safe_load(file)
+            # Print the YAML content
+            print(yaml.dump(yaml_content, default_flow_style=False))
+            return yaml_content
+    except Exception as e:
+        logger.error(f"Error loading YAML file: {e}")
+
+def sav_yaml(data, yaml_file_path):
+    yaml_text = yaml.dump(data, allow_unicode=True, sort_keys=False)
+    print(yaml_text)
+    with open(yaml_file_path, 'w') as f:
+        f.write(yaml_text)
+        logger.info(f"save yaml file to: {yaml_file_path}")
 
 
 # Example usage
