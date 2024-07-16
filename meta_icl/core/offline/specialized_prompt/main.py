@@ -2,7 +2,7 @@ from optimization_pipeline import IPC
 from meta_icl.core.utils.ipc_config import modify_input_for_ranker, validate_generation_config, override_config
 import argparse
 import os
-from meta_icl.core.offline.specialized_prompt.utils import prompt_rewrite, prompt_evaluation
+from meta_icl.core.offline.specialized_prompt.utils import prompt_rewrite, prompt_evaluation, generate_query
 import json
 # General Training Parameters
 
@@ -57,7 +57,9 @@ def main():
     ranking_prompt = ranker_mod_prompt
     print("Rewriting prompts")
     prompts = prompt_rewrite(initial_prompt)
-    evaluation = prompt_evaluation(prompts, ranking_prompt)
+    print("Rewrited prompts: ", prompts)
+    query = generate_query(initial_prompt)
+    evaluation = prompt_evaluation(prompts, ranking_prompt, query)
 
     print("Saving")
     with open('results.txt', 'a+') as f:
