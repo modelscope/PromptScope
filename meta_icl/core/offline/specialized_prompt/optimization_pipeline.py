@@ -1,8 +1,8 @@
 import pandas as pd
 
-from meta_icl.core.evaluation.evaluator import Eval
+from meta_icl.core.offline.specialized_prompt.evaluation.evaluator_langchain import Eval
 from meta_icl.core.utils.ipc_base_dataset import DatasetBase
-from meta_icl.core.utils import MetaChain
+from meta_icl.core.utils.llm_chain import MetaChain
 from ipc_estimator import give_estimator
 from pathlib import Path
 import pickle

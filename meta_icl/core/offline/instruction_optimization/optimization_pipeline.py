@@ -1,17 +1,17 @@
 import pandas as pd
 
-from meta_icl.core.evaluation.evaluator import Eval
-from meta_icl.core.utils.ipc_base_dataset import DatasetBase
-from meta_icl.core.utils import MetaChain
 from ipc_estimator import give_estimator
 from pathlib import Path
 import pickle
 import os
 import json
-import logging
 import wandb
+import logging
 
-class IPC:
+from meta_icl.core.evaluation.evaluator_langchain import Eval
+from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
+
+class IPC_Optimization(IPC_Generation):
     """
     The main pipeline for intent-based prompt calibration (IPC). The pipeline is composed of 4 main components:
     1. dataset - The dataset handle the data including the annotation and the prediction
@@ -28,29 +28,6 @@ class IPC:
         :param initial_prompt: Provide an initial prompt to solve the task
         :param output_path: The output dir to save dump, by default the dumps are not saved
         """
-
-        if config.use_wandb:  # In case of using W&B
-            wandb.login()
-            self.wandb_run = wandb.init(
-                project="AutoGPT",
-                config=config,
-            )
-        if output_path == '':
-            self.output_path = None
-        else:
-            if not os.path.isdir(output_path):
-                os.makedirs(output_path)
-            self.output_path = Path(output_path)
-            logging.basicConfig(filename=self.output_path / 'info.log', level=logging.DEBUG,
-                                format='%(asctime)s - %(levelname)s - %(message)s', force=True)
-
-        self.dataset = None
-        self.config = config
-        self.meta_chain = MetaChain(config)
-        self.initialize_dataset()
-
-        self.task_description = task_description
-        self.cur_prompt = initial_prompt
 
         self.predictor = give_estimator(config.predictor)
         self.annotator = give_estimator(config.annotator)
