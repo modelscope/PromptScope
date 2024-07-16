@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
-from meta_icl.core.evaluation import eval_utils as utils
+from meta_icl.core.offline.specialized_prompt.evaluation import eval_utils as utils
 
 class Eval:
     """

@@ -1,5 +1,5 @@
 from optimization_pipeline import IPC
-from meta_icl.core.utils import modify_input_for_ranker, validate_generation_config, override_config
+from meta_icl.core.utils.ipc_config import modify_input_for_ranker, validate_generation_config, override_config
 import argparse
 import os
 from meta_icl.core.offline.specialized_prompt.utils import prompt_rewrite, prompt_evaluation
@@ -19,10 +19,12 @@ def main():
     parser.add_argument('--output_dump', default='dump', required=False, type=str, help='Output to save checkpoints')
     parser.add_argument('--num_ranker_steps', default=3, type=int, help='Number of iterations')
     parser.add_argument('--language', default='Chinese', type=str, help='Language used by the prompt')
+    parser.add_argument('--config_file_path', default='', required=False, type=str, help='Config file path')
 
     opt = parser.parse_args()
 
-    basic_config_path = os.getenv('CONFIG_FILE_PATH')
+    os.environ['CONFIG_FILE_PATH'] = opt.config_file_path
+    basic_config_path = opt.config_file_path
     ranker_config_path = os.path.join(basic_config_path, f'ipc_rank_{opt.language.lower()}.yml')
     basic_config_path = os.path.join(basic_config_path, f'ipc_default_{opt.language.lower()}.yml')
 
