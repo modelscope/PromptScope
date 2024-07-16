@@ -1,6 +1,6 @@
 import random
-from sentence_transformers import SentenceTransformer
-import faiss
+
+
 import pandas as pd
 
 
@@ -23,6 +23,7 @@ class Dedup:
         """
         Generate embeddings for the given texts using the SentenceTransformer model.
         """
+        from sentence_transformers import SentenceTransformer
         model = SentenceTransformer(self.model_name)
         embeddings = model.encode(texts, show_progress_bar=True)
         return embeddings
@@ -39,6 +40,7 @@ class Dedup:
 
         # Build the FAISS index
         embeddings_dim = embeddings.shape[1]
+        import faiss
         index = faiss.IndexFlatL2(embeddings_dim)
         index.add(embeddings)
         return index, embeddings

@@ -1,4 +1,4 @@
-from ipc_estimator.estimator_llm import LLMEstimator
+from meta_icl.core.offline.specialized_prompt.ipc_estimator.estimator_llm import LLMEstimator
 from meta_icl.core.utils.ipc_base_dataset import DatasetBase
 import pandas as pd
 

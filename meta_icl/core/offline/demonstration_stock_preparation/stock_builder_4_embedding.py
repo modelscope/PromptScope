@@ -4,112 +4,11 @@ from meta_icl.core.utils.utils import (get_current_date,
                                        convert_json_2_xlx,
                                        organize_text_4_embedding,
                                        sav_yaml, load_yaml_file)
-from meta_icl.core.utils.config_utils import load_config
-from meta_icl.core.utils.sys_prompt_utils import load_json_file, sav_json, check_dir, get_embedding
+from meta_icl.core.utils.config_utils import load_config, update_icl_configs_embedding
+from meta_icl.core.utils.sys_prompt_utils import load_json_file, get_embedding
 import os
 import numpy as np
-from loguru import logger
-import yaml
-
-
-def demonstration_backup(sav_dir, demonstration_pth, prefix='', eval_key_list=None):
-    """
-    Backs up the demonstration file and converts it into JSON and Excel formats.
-    :param sav_dir: (str), The path of the directory where files will be saved.
-    :param demonstration_pth: (str), The path of the original demonstration file.
-    :param prefix: (str), Prefix for the backup filenames, default is an empty string.
-    :param eval_key_list: List of evaluation keys, default is None.
-
-    Returns:
-    :return example_list: (list), The list of examples after conversion.
-    :return example_list_pth: (str), The path of the converted JSON file.
-    """
-    check_dir(sav_dir)
-    cur_time = get_current_date()
-    if demonstration_pth.split('.')[-1] == "xlsx":
-        json_path = os.path.join(sav_dir, f"{prefix}_icl_examples_ver_{cur_time}.json")
-        example_list = convert_xlsx_2_json(json_path, demonstration_pth, eval_key_list=eval_key_list)
-        example_list_pth = json_path
-        excel_file_path = os.path.join(sav_dir, f"{prefix}_icl_examples_ver_{cur_time}.xlsx")
-        convert_json_2_xlx(json_path, excel_file_path)
-
-    elif demonstration_pth.split('.')[-1] == "json":
-        example_list = load_json_file(demonstration_pth)
-        excel_file_path = os.path.join(sav_dir, f"{prefix}_icl_examples_ver_{cur_time}.xlsx")
-        convert_json_2_xlx(demonstration_pth, excel_file_path)
-        json_path = os.path.join(sav_dir, f"{prefix}_icl_examples_ver_{cur_time}.json")
-        sav_json(example_list, json_path)
-        example_list_pth = json_path
-
-    else:
-        logger.error("currently support .xlsx and .json, other types need to add load data function!")
-        raise ValueError("currently support .xlsx and .json, other types need to add load data function!")
-    logger.info(f"demonstration backup done! The json_file_pth: {json_path}; xlsx_file_pth: {excel_file_path}")
-    print(f"xlsx path: {excel_file_path}\njson path: {json_path}")
-    return example_list, example_list_pth
-
-
-def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, examples_list_pth, search_key):
-    """
-
-    :param config_pth: prefinded config pth, with configs like: {
-  "icl_configs": {
-    "base_model": "Qwen_70B",
-    "embedding_pth": "data/intention_analysis_examples_emb_model:<text_embedding_v1>_examples_ver_2024-05-23 09:54:08.npy",
-    "examples_pth":"data/user_query_intention_examples.json",
-    "topk": 3,
-    "embedding_model": "text_embedding_v1"
-    "search_key": "user_query"
-    }
-}
-    :param embedding_pth: the embedding pth
-    :return:
-    """
-    # if the config file is json file
-    if config_pth.split('.')[-1] == "json":
-        configs = load_json_file(config_pth)
-        is_yaml = False
-    elif config_pth.split('.')[-1] == "yaml":
-        configs = yaml.load(open(config_pth, 'r'), Loader=yaml.FullLoader)
-        is_yaml = True
-    else:
-        logger.error("currently support .json and .yaml, other types need to add load data function!")
-        raise ValueError("currently support .json and .yaml, other types need to add load data function!")
-
-    logger.info("load the config from: {}".format(config_pth))
-
-    try:
-        logger.info("previous embedding_pth: {}\nupdated to: {}".format(
-            config_pth,
-            configs["icl_configs"]["embedding_pth"],
-            embedding_pth))
-    except:
-        logger.info("Specify the embedding_pth as: {}".format(embedding_pth))
-
-    configs["icl_configs"]["embedding_pth"] = embedding_pth
-
-    try:
-        logger.info("previous embedding_model: {}\nupdated to: {}".format(
-            config_pth,
-            configs["icl_configs"]["embedding_model"],
-            embedding_pth))
-    except:
-        logger.info("Specify the embedding_model as: {}".format(embedding_model))
-    configs["icl_configs"]["embedding_model"] = embedding_model
-
-    try:
-        logger.info("previous examples_pth: {}\nupdated to: {}".format(
-            config_pth,
-            configs["icl_configs"]["examples_pth"],
-            embedding_pth))
-    except:
-        logger.info("Specify the examples_pth as: {}".format(examples_list_pth))
-    configs["icl_configs"]["examples_pth"] = examples_list_pth
-
-    if is_yaml:
-        sav_yaml(configs, config_pth)
-    else:
-        sav_json(configs, config_pth)
+from meta_icl.core.utils.retrieve_utils import demonstration_backup
 
 
 class EmbeddingStockBuilder(BaseStockBuilder):
@@ -175,11 +74,11 @@ class EmbeddingStockBuilder(BaseStockBuilder):
         cur_time = get_current_date()
         embedding_sav_pth = self.build_example_stock(cur_time=cur_time)
         self._update_embedding_sav_pth(embedding_sav_pth=embedding_sav_pth)
-        update_icl_configs(config_pth=self.online_icl_pth,
-                           embedding_pth=self.embedding_sav_pth,
-                           embedding_model=self.embedding_model,
-                           examples_list_pth=self.demonstration_json_pth,
-                           search_key=self.search_key)
+        update_icl_configs_embedding(config_pth=self.online_icl_pth,
+                                     embedding_pth=self.embedding_sav_pth,
+                                     embedding_model=self.embedding_model,
+                                     examples_list_pth=self.demonstration_json_pth,
+                                     search_key=self.search_key)
         return None
 
 
@@ -191,8 +90,9 @@ def prepare_embedding_stock(stock_builder_config_pth: str):
 
 if __name__ == '__main__':
     stock_builder_config_pth = "conf/agent_followup_configs/demonstration_stock_config.yaml"
-
-    stock_build_configs = load_yaml_file(stock_builder_config_pth)
-
-    stock_builder = EmbeddingStockBuilder(stock_build_configs)
-    stock_builder.update_example()
+    prepare_embedding_stock(stock_builder_config_pth)
+    #
+    # stock_build_configs = load_yaml_file(stock_builder_config_pth)
+    #
+    # stock_builder = EmbeddingStockBuilder(stock_build_configs)
+    # stock_builder.build_stock()
