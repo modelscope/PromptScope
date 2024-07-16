@@ -10,7 +10,8 @@ import logging
 import os
 
 # config_file_path = os.environ.get('CONFIG_FILE_PATH')
-LLM_ENV = yaml.safe_load(open(os.path.join('/mnt1/yunze.gy/Meta-ICL/conf/ipc_configs', 'ipc_llm_env.yml'), 'r'))
+config_file_path = "conf/ipc_configs"
+LLM_ENV = yaml.safe_load(open(os.path.join(config_file_path, 'ipc_llm_env.yml'), 'r'))
 
 class Color:
     RED = '\033[91m'
