@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime
 import csv
 
-from meta_icl.core.utils import Dedup
+from meta_icl.core.utils.ipc_dedup import Dedup
 
 class DatasetBase:
     """
