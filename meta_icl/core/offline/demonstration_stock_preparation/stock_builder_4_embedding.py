@@ -3,7 +3,8 @@ from meta_icl.core.utils.utils import (get_current_date,
                                        convert_xlsx_2_json,
                                        convert_json_2_xlx,
                                        organize_text_4_embedding,
-                                       sav_yaml)
+                                       sav_yaml, load_yaml_file)
+from meta_icl.core.utils.config_utils import load_config
 from meta_icl.core.utils.sys_prompt_utils import load_json_file, sav_json, check_dir, get_embedding
 import os
 import numpy as np
@@ -48,7 +49,7 @@ def demonstration_backup(sav_dir, demonstration_pth, prefix='', eval_key_list=No
     return example_list, example_list_pth
 
 
-def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list_pth, search_key):
+def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, examples_list_pth, search_key):
     """
 
     :param config_pth: prefinded config pth, with configs like: {
@@ -87,8 +88,6 @@ def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list
 
     configs["icl_configs"]["embedding_pth"] = embedding_pth
 
-
-
     try:
         logger.info("previous embedding_model: {}\nupdated to: {}".format(
             config_pth,
@@ -97,15 +96,6 @@ def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list
     except:
         logger.info("Specify the embedding_model as: {}".format(embedding_model))
     configs["icl_configs"]["embedding_model"] = embedding_model
-    # if configs["icl_configs"]["embedding_model"] == embedding_model:
-    #     pass
-    # else:
-    #     logger.info("previous embedding_model: {}\nupdated to: {}".format(
-    #
-    #         configs["icl_configs"]["embedding_model"],
-    #         embedding_model))
-    #     configs["icl_configs"]["embedding_model"] = embedding_model
-
 
     try:
         logger.info("previous examples_pth: {}\nupdated to: {}".format(
@@ -114,18 +104,7 @@ def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list
             embedding_pth))
     except:
         logger.info("Specify the examples_pth as: {}".format(examples_list_pth))
-
     configs["icl_configs"]["examples_pth"] = examples_list_pth
-
-    # if configs["icl_configs"]["examples_pth"] == examples_list_pth:
-    #     pass
-    # else:
-    #     logger.info("previous examples_list_pth: {}\nupdated to: {}".format(
-    #         configs["icl_configs"]["examples_pth"],
-    #         examples_list_pth))
-    #
-    #
-    # configs["icl_configs"]["embedding_key"] = search_key
 
     if is_yaml:
         sav_yaml(configs, config_pth)
@@ -192,7 +171,7 @@ class EmbeddingStockBuilder(BaseStockBuilder):
     def _update_embedding_sav_pth(self, embedding_sav_pth: str):
         self.embedding_sav_pth = embedding_sav_pth
 
-    def update_example(self):
+    def build_stock(self):
         cur_time = get_current_date()
         embedding_sav_pth = self.build_example_stock(cur_time=cur_time)
         self._update_embedding_sav_pth(embedding_sav_pth=embedding_sav_pth)
@@ -204,9 +183,14 @@ class EmbeddingStockBuilder(BaseStockBuilder):
         return None
 
 
+def prepare_embedding_stock(stock_builder_config_pth: str):
+    stock_builder_configs = load_config(config_pth=stock_builder_config_pth, as_edict=False)
+    embedding_stock_builder = EmbeddingStockBuilder(stock_builder_configs)
+    embedding_stock_builder.build_stock()
+
+
 if __name__ == '__main__':
     stock_builder_config_pth = "conf/agent_followup_configs/demonstration_stock_config.yaml"
-    from meta_icl.core.utils.utils import load_yaml_file
 
     stock_build_configs = load_yaml_file(stock_builder_config_pth)
 
