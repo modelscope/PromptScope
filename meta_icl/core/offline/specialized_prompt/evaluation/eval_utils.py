@@ -1,4 +1,4 @@
-from meta_icl.core.offline.instruction_optimization.ipc_estimator.estimator_llm import LLMEstimator
+from meta_icl.core.offline.specialized_prompt.ipc_estimator.estimator_llm import LLMEstimator
 
 def set_function_from_iterrow(func):
     def wrapper(dataset):
