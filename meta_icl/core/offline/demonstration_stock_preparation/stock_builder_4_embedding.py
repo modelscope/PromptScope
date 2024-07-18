@@ -89,7 +89,7 @@ def prepare_embedding_stock(stock_builder_config_pth: str):
 
 
 if __name__ == '__main__':
-    stock_builder_config_pth = "conf/agent_followup_configs/demonstration_stock_config.yaml"
+    stock_builder_config_pth = "conf/agent_followup_configs/demonstration_embedding_stock_config.yaml"
     prepare_embedding_stock(stock_builder_config_pth)
     #
     # stock_build_configs = load_yaml_file(stock_builder_config_pth)

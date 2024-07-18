@@ -6,6 +6,7 @@ from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embe
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
 from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever
+from loguru import logger
 
 
 # def get_results(icl_instance, cur_query: dict, search_key_list: list, formatting_function, num=3, **kwargs):
@@ -68,7 +69,8 @@ class BM25ICL(BaseICL):
         """
         query_to_search = organize_text_4_embedding(example_list=[cur_query],
                                                     search_key=self.retriever_key_list)
-        selection_results = self.example_selector.topk_selection(query=query_to_search, num=num)
+        logger.info(f"query to search: {query_to_search}")
+        selection_results = self.example_selector.topk_selection(query=query_to_search[0], num=num)
         print(f"selection_results: {selection_results}")
         selection_examples = self.example_selector.get_examples(selection_results["selection_idx"])
         print(f"selection_examples: {selection_examples}")
@@ -91,7 +93,8 @@ class EmbeddingICL(BaseICL):
                  embedding_pth,
                  examples_pth,
                  embedding_model=None,
-                 task_configs=None
+                 task_configs=None,
+                 retriever_key_list: List = None
                  ):
         """
 
@@ -114,6 +117,7 @@ class EmbeddingICL(BaseICL):
         self._get_example_embeddings(embedding_pth)
         self._get_example_list(examples_pth)
         self._load_demonstration_selector()
+        self.retriever_key_list = retriever_key_list
 
     def _load_demonstration_selector(self):
         self.example_selector = CosineSimilarityRetriever(example_list=self.examples,
@@ -125,7 +129,7 @@ class EmbeddingICL(BaseICL):
     def _get_example_list(self, examples_pth):
         self.examples = load_file(examples_pth)
 
-    def get_meta_prompt(self, cur_query: dict, embedding_key: list, formatting_function, num=3):
+    def get_meta_prompt(self, cur_query: dict, formatting_function, num=3):
         """
         :param cur_query: the query to generate the intention analysis results.
         :param embedding_key: the key to get the embedding.
@@ -134,6 +138,7 @@ class EmbeddingICL(BaseICL):
 
         :return: the meta prompt
         """
+        embedding_key = self.retriever_key_list
         try:
             test_to_query_embedding = organize_text_4_embedding(example_list=[cur_query],
                                                                 search_key=embedding_key)
@@ -150,18 +155,13 @@ class EmbeddingICL(BaseICL):
         query = formatting_function(selection_examples, cur_query, configs=self.task_configs)
         return query
 
-    def get_results(self, cur_query: dict, embedding_key: list, formatting_function, num=3):
-        # return get_results(self, cur_query=cur_query,
-        #                    search_key_list=embedding_key,
-        #                    formatting_function=formatting_function,
-        #                    num=num,
-        #                    base_model=self.base_model,
-        #                    task_configs=self.task_configs)
+    def get_results(self, cur_query: dict, formatting_function, num=3, **kwargs):
+
         query = self.get_meta_prompt(cur_query=cur_query,
-                                     num=num, embedding_key=embedding_key,
+                                     num=num,
                                      formatting_function=formatting_function)
         print(query)
         message = message_formatting(system_prompt='You are a helpful assistant', query=query)
-        res = call_llm_with_message(messages=message, model=self.base_model)
+        res = call_llm_with_message(messages=message, model=self.base_model, **kwargs)
         print(res)
         return res

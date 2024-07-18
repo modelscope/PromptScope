@@ -32,10 +32,10 @@ class AppMainFollowupBM25(BM25ICL):
     }
 }
         """
-        base_model = task_configs["base_model"]
-        BM25_index_pth = icl_configs["BM25_index_pth"]
-        examples_pth = icl_configs["examples_pth"]
-        retriever_key_list = icl_configs["retriever_key_list"]
+        base_model = task_configs.get("base_model")
+        BM25_index_pth = icl_configs.get("BM_25_index_dir")
+        examples_pth = icl_configs.get("examples_list_pth")
+        retriever_key_list = icl_configs.get("retriever_key_list")
 
         super().__init__(base_model=base_model,
                          BM25_index_pth=BM25_index_pth,
@@ -55,12 +55,15 @@ def get_BM25_followup_results(cur_query: dict,
         formatting_function = formatting_str_type_main_chat
     else:
         formatting_function = formatting_multimodal_type_main_chat
-    followup_generator = AppMainFollowupBM25(icl_configs=icl_configs,
+
+    BM25_retriever_configs = icl_configs.get("BM25_retriever_configs")
+    followup_generator = AppMainFollowupBM25(icl_configs=BM25_retriever_configs,
                                              task_configs=task_configs)
+    num_selection = BM25_retriever_configs.get("topk", 3)
     results = followup_generator.get_results(
         cur_query,
         formatting_function=formatting_function,
-        num=icl_configs["topk"], **kwargs
+        num=num_selection, **kwargs
     )
     print(results)
     results = formatting_answer_out(results)

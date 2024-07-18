@@ -45,14 +45,6 @@ def convert_model_name_to_model_config(model_name: str, add_random=False, **kwar
             model_config[key] = value
     return model_config
 
-
-
-
-
-
-
-
-
 def find_top_k_embeddings(query_embedding, list_embeddings, k):
     '''
 
