@@ -23,7 +23,17 @@ def timer(func):
         return result
 
     return wrapper
+def add_duration(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        duration = end_time - start_time
+        logger.info(f"Function {func.__name__!r} execute with {duration:.4f} s")
+        return result, duration
 
+    return wrapper
 
 def extract_from_markdown_json(text):
     """
