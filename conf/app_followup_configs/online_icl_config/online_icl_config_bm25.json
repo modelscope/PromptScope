@@ -1,0 +1,16 @@
+{
+    "icl_configs": {
+        "BM25_retriever_configs": {
+            "examples_list_pth": "data/data_build_stocks/mainchat_followup_demonstrations_str.json",
+            "BM_25_index_dir": "data/app_data/main_chat_followup_data/icl_data_bm25/app_main_chat_followup_demonstrations_2024-07-17 12:20:02",
+            "search_key": [
+                "chat_history",
+                "last_query"
+            ]
+        }
+    },
+    "task_configs": {
+        "base_model": "Qwen_14B",
+        "num_questions": 3
+    }
+}

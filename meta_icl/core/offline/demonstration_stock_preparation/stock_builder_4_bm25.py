@@ -69,7 +69,7 @@ class BM25StockBuilder(BaseStockBuilder):
         bm25_index_pth = self.build_bm25_stock()
         self._update_bm25_index_pth(bm25_index_pth)
         self.update_icl_config()
-def prepare_embedding_stock(stock_builder_config_pth: str):
+def prepare_BM25_stock(stock_builder_config_pth: str):
     stock_builder_configs = load_config(config_pth=stock_builder_config_pth, as_edict=False)
     embedding_stock_builder = BM25StockBuilder(stock_builder_configs)
     embedding_stock_builder.build_stock()
@@ -77,7 +77,7 @@ def prepare_embedding_stock(stock_builder_config_pth: str):
 
 if __name__ == '__main__':
     stock_builder_config_pth = "conf/agent_followup_configs/stock_builder_configs/bm25_demonstration_stock_config.yaml"
-    prepare_embedding_stock(stock_builder_config_pth)
+    prepare_BM25_stock(stock_builder_config_pth)
 #
 # if __name__ == '__main__':
 #     pth = "data/icl_app_mainchat_followup/main_chat_str_icl_examples_ver_2024-06-05 22:34:25.json"
