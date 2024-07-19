@@ -43,17 +43,29 @@ def get_results_with_duration(cur_query, conf, formatting_function):
 
 
 if __name__ == '__main__':
+    # config_pth = "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
+    # conf = load_config(config_pth)
+    #
+    # data_pth = ("data/app_data/agent_followup_data/real_conversation_data/智能体追问/session_role_conversation_ver_2024-07"
+    #             "-10 11:58:00.json")
+    # data = load_json_file(data_pth)
+    # results_data = copy.deepcopy(data)
+    # cur_time = get_current_date()
+    # sav_dir = "data/app_data/agent_followup_data/real_conversation_data/智能体追问/results"
+    # prefix = "role_followups"
+    # base_model = conf.get("task_configs").get("base_model")
+
     config_pth = "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
     conf = load_config(config_pth)
 
-    data_pth = ("data/app_data/agent_followup_data/real_conversation_data/智能体追问/session_role_conversation_ver_2024-07"
-                "-10 11:58:00.json")
+    data_pth = ("data/app_data/agent_followup_data/real_conversation_data/智能体追问/session_role_conversation_gf_ver_2024-07-18 19:57:54.json")
     data = load_json_file(data_pth)
     results_data = copy.deepcopy(data)
     cur_time = get_current_date()
     sav_dir = "data/app_data/agent_followup_data/real_conversation_data/智能体追问/results"
+    prefix = "role_followups_gf"
     base_model = conf.get("task_configs").get("base_model")
-    prefix = "role_followups"
+
     sav_pth = os.path.join(sav_dir, f"{prefix}_{base_model}_followups_{cur_time}.json")
     total = len(data)
     for session_idx in range(total):
