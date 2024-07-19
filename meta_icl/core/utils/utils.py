@@ -3,7 +3,8 @@ import random, json
 
 from datetime import datetime
 
-from meta_icl.core.utils.sys_prompt_utils import get_embedding, message_formatting, call_llm_with_message, sav_json
+from meta_icl.core.utils.sys_prompt_utils import (get_embedding, message_formatting, call_llm_with_message, sav_json,
+                                                  load_json_file)
 import time
 import re
 from functools import wraps
@@ -269,6 +270,13 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
         sessions.append(session_dict)
     sav_json(sessions, os.path.join(sav_dir, f"{prefix}_ver_{get_current_date()}.json"))
     return sessions
+
+def revert_combined_session_2_csv(json_file_path, csv_file_path):
+
+    data = load_json_file(json_file_path)
+    dict_key_name = ["session_id"]
+
+    dict_key_name.extend(data[0]['conversations'][0].keys())
 
 
 def convert_json_2_yaml(json_file_path, yaml_file_path):
