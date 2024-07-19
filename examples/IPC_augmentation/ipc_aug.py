@@ -7,6 +7,7 @@ import json
 from meta_icl.core.utils.ipc_config import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.utils.logger import Logger
+from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
 
 logger = Logger.get_logger(__name__)
 basic_config_path = 'ipc_aug_cn.yml'
@@ -14,12 +15,17 @@ basic_config_path = 'ipc_aug_cn.yml'
 config_params = load_yaml(basic_config_path)
 logger.info(config_params)
 
+CONFIG_REGISTRY.batch_register(config_params)
+
 if not hasattr(LanguageEnum, config_params.task_config.language.upper()):
     raise NotImplementedError("Only supports 'EN' and 'CN' for now!")
 
 # Initializing the pipeline
-pipeline = IPC_Generation(config_params)
-samples = pipeline.generate(config_params)
+pipeline = IPC_Generation()
+task_config = config_params.task_config
+prompt_input = {'task_description': task_config.task_description, 'instruction': task_config.instruction, 'batch_size': task_config.batch_size}
+generate_prompt = PROMPT_REGISTRY.module_dict['representative_sample'].format_map(prompt_input)
+samples = pipeline.generate(prompt=generate_prompt)
 
 res = []
 for sample in samples:

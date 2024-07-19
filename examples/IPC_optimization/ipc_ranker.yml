@@ -1,0 +1,67 @@
+# use_wandb: False
+
+task_config:
+    language: 'CN'
+    output_path: dump
+    workers: 5
+    max_usage: 10000
+    task_description: 助手是一个善于写代码的大模型。
+    instruction: 请帮我写一段python代码。
+    label_schema: ["1","2","3","4","5"]
+    num_steps: 3
+    samples_per_step: 10
+    batch_size: 10
+    max_samples: 50
+    warmup: 4
+    history_length: 4
+    num_errors_per_label: 5
+    num_extra_sample: 5
+    patience: 10
+    min_delta: 0.1
+    
+eval_config:
+    label_schema: ["1","2","3","4","5"]
+    func_name: accuracy
+    num_errors_per_label: 5
+    
+model_config:
+    generation:
+        module_name: 'dashscope_generation'
+        model_name: 'qwen2-57b-a14b-instruct'
+        clazz: 'models.llama_index_generation_model'
+        max_tokens: 2000
+        seed: 1234
+
+    annotator:
+        module_name: 'dashscope_generation'
+        model_name: 'qwen2-72b-instruct'
+        clazz: 'models.llama_index_generation_model'
+        max_tokens: 2000
+        seed: 1234
+
+    # annotator:
+#     method : 'argilla'
+#     config:
+#         api_url: ''
+#         api_key: 'admin.apikey'
+#         workspace: 'admin'
+#         time_interval: 5
+
+    predictor:
+        module_name: 'dashscope_generation'
+        model_name: 'qwen-max'
+        clazz: 'models.llama_index_generation_model'
+        max_tokens: 2000
+        seed: 1234
+
+    analyzer:
+        module_name: 'dashscope_generation'
+        model_name: 'qwen2-57b-a14b-instruct'
+        clazz: 'models.llama_index_generation_model'
+        max_tokens: 2000
+        seed: 1234
+
+# stop_criteria:
+#     max_usage: 2 #In $ in case of OpenAI models, otherwise number of tokens
+#     patience: 10 # Number of patience steps
+#     min_delta: 0.01 # Delta for the improvement definition

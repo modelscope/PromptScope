@@ -55,6 +55,7 @@ def main():
     # print("Generating ranking prompt")
     # ranking_prompt = ranker_pipeline.run_pipeline(opt.num_ranker_steps)['prompt']
     ranking_prompt = ranker_mod_prompt
+    print(ranking_prompt, ranker_mod_task_desc)
     print("Rewriting prompts")
     prompts = prompt_rewrite(initial_prompt)
     print("Rewrited prompts: ", prompts)
