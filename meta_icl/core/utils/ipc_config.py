@@ -133,7 +133,7 @@ def modify_input_for_ranker(config, task_description, initial_prompt):
     return mod_prompt, mod_task_desc
 
 
-def override_config(override_config_file, config_file='config/config_default.yml'):
+def override_config(config_file, override_config_file):
     """
     Override the default configuration file with the override configuration file
     :param config_file: The default configuration file
