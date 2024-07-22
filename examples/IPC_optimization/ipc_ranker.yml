@@ -3,14 +3,15 @@
 task_config:
     language: 'CN'
     output_path: dump
+    # input_path: dump
     workers: 5
     max_usage: 10000
-    task_description: 助手是一个善于写代码的大模型。
-    instruction: 请帮我写一段python代码。
+    task_description: 助手是一个善于撰写工作报告的工作人员。
+    instruction: 请撰写一份环保报告。
     label_schema: ["1","2","3","4","5"]
-    num_steps: 3
-    samples_per_step: 10
-    batch_size: 10
+    num_steps: 2
+    samples_per_step: 3
+    batch_size: 2
     max_samples: 50
     warmup: 4
     history_length: 4

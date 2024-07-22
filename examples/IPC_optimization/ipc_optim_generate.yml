@@ -3,14 +3,15 @@
 task_config:
     language: 'CN'
     output_path: dump
+    input_path: dump
     workers: 5
     max_usage: 10000
     task_description: 助手是一个善于撰写工作报告的工作人员。
     instruction: 请撰写一份环保报告。
-    samples_per_step: 10
-    batch_size: 10
+    samples_per_step: 3
+    batch_size: 2
     max_samples: 50
-    num_steps: 3
+    num_steps: 2
     warmup: 4
     history_length: 4
     label_schema: ["1","2","3","4","5"]
@@ -21,11 +22,14 @@ task_config:
     
 eval_config:
     label_schema: ["1","2","3","4","5"]
-    func_name: accuracy
+    func_name: ranking
     num_errors_per_label: 5
+    instruction: 
+    batch_size: 1
+    error_threshold: '4'
 
 ranker_config:
-    instruction: 请帮我写一段python代码。
+    instruction: 请帮我写一个环保报告。
     label_schema: ["1","2","3","4","5"]
     
 model_config:

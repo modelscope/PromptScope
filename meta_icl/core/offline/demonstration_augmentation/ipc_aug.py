@@ -22,14 +22,18 @@ class IPC_Generation:
         :param initial_prompt: Provide an initial prompt to solve the task
         :param output_path: The output dir to save dump, by default the dumps are not saved
         """
-        self.task_config = CONFIG_REGISTRY.module_dict['task_config']
-        self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-        # self.global_config = CONFIG_REGISTRY.module_dict['global_config']
+        self.init_config()
 
         self.generation_llm = LlamaIndexGenerationModel(**self.model_config.generation)
         self.logger = Logger.get_logger(__name__)
         self.prompt_register()
 
+    def init_config(self):
+        """
+        Initialize the configuration file
+        """
+        self.task_config = CONFIG_REGISTRY.module_dict['task_config']
+        self.model_config = CONFIG_REGISTRY.module_dict['model_config']
     def prompt_register(self):
         PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'{self.task_config.language.lower()}.yml')))
 
@@ -77,6 +81,7 @@ class IPC_Generation:
         """
         batch_input = prompt
         batch_inputs = self.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
+        print(batch_inputs)
         samples_batches = self.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
         samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]

@@ -30,12 +30,7 @@ class IPC_Optimization(IPC_Generation):
         :param output_path: The output dir to save dump, by default the dumps are not saved
         """
         super().__init__()
-        # self.task_config = CONFIG_REGISTRY.module_dict['task_config']
-        # self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-        # self.global_config = CONFIG_REGISTRY.module_dict['global_config']
-        self.ranker_config = CONFIG_REGISTRY.module_dict.get('ranker_config', None)
-        self.eval_config = CONFIG_REGISTRY.module_dict.get('eval_config', None)
-
+        
         self.generation_llm = LlamaIndexGenerationModel(**self.model_config.generation)
         self.predictor_llm = LlamaIndexGenerationModel(**self.model_config.predictor)
         self.annotator = LlamaIndexGenerationModel(**self.model_config.annotator)
@@ -47,7 +42,14 @@ class IPC_Optimization(IPC_Generation):
         self.cur_step = 0
         self.cur_prompt = self.task_config.instruction
         self.eval = Eval()
-
+    
+    def init_config(self):
+        self.task_config = CONFIG_REGISTRY.module_dict['task_config']
+        self.model_config = CONFIG_REGISTRY.module_dict['model_config']
+        self.ranker_config = CONFIG_REGISTRY.module_dict.get('ranker_config', None)
+        self.eval_config = CONFIG_REGISTRY.module_dict.get('eval_config', None)
+        if hasattr(self, 'eval'):
+            self.eval.init_config()
     def prompt_register(self):
         PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'{self.task_config.language.lower()}.yml')))
 
@@ -55,6 +57,9 @@ class IPC_Optimization(IPC_Generation):
         # Run the optimization pipeline for num_steps
         if kwargs.get('mode', '') == 'ranking':
             self.modify_input_for_ranker()
+        if 'ranking_prompt' in kwargs:
+            print('wocao?')
+            self.eval.eval_instruction = kwargs['ranking_prompt']
         for _ in range(self.task_config.num_steps):
             stop_criteria = self.step(**kwargs)
             if stop_criteria:
@@ -67,34 +72,45 @@ class IPC_Optimization(IPC_Generation):
         This is the main optimization process step.
         """
         self.logger.info(f'Starting step {self.cur_step}')
+        if kwargs.get('mode', '') == 'generation':
+            prompt_type = 'adv_sample_generation'
+        else:
+            prompt_type = 'adv_sample_classification'
+
+        mode = kwargs.get('mode', 'classification')
+
         if not hasattr(kwargs, 'data'):
             if not self.samples:
                 self.logger.info('Dataset is empty generating initial samples')
                 prompt_input = {'task_description': self.task_config.task_description, 'instruction': self.cur_prompt, 'batch_size': self.task_config.batch_size}
-                generate_prompt = PROMPT_REGISTRY.module_dict['adv_sample_classification'].format_map(prompt_input)
+                generate_prompt = PROMPT_REGISTRY.module_dict[prompt_type].format_map(prompt_input)
                 self.samples = self.generate(prompt=generate_prompt)
             else:
                 self.logger.info('Generating Adversarials')
                 self.step_generate()
 
-        samples = [sample.split('|')[-1] for sample in self.samples]
+        samples = [sample.split('|') for sample in self.samples]
+        eval_kwargs = {}
+        eval_kwargs['prompt'] = self.cur_prompt
 
-        self.logger.info('Running annotator')
-        annotations = self.annotate(samples)
-        self.logger.info('Running predictor')
-        predictions = self.predict(samples)
-        self.logger.info('Calculating Score and Error Analysis')
         if kwargs.get('mode', '') == 'generation':
-            self.mean_score, self.corrects, self.errors, self.conf_matrix
+            self.logger.info('Calculating Score and Error Analysis')
+            self.eval.init_config()
+            eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm([sample[-1] for sample in samples])
         else:
-            self.mean_score, self.corrects, self.errors, self.conf_matrix = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
-        self.eval.error_analysis(self.cur_prompt, annotations, predictions)
+            self.logger.info('Running annotator')
+            annotations = self.annotate([sample[1] for sample in samples])
+            self.logger.info('Running predictor')
+            predictions = self.predict([sample[1] for sample in samples])
+            self.logger.info('Calculating Score and Error Analysis')
+            eval_kwargs['score'], eval_kwargs['corrects'], eval_kwargs['errors'], eval_kwargs['conf_matrix'] = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
+        self.eval.error_analysis(**eval_kwargs)
         self.logger.info('Updating Prompt')
-        self.update_cur_prompt()
+        self.update_cur_prompt(mode)
         if self.stop_criteria():
             self.logger.info('Stop criteria reached')
             return True
-        self.save_state()       
+        self.save_state(mode)     
         self.cur_step += 1
         return False
 
@@ -141,7 +157,7 @@ class IPC_Optimization(IPC_Generation):
             reverse=False)
         return {'prompt': sorted_history[-1]['prompt'], 'score': sorted_history[-1]['score']}
 
-    def update_cur_prompt(self):
+    def update_cur_prompt(self, mode):
         """
         Run the meta-prompts and get new prompt suggestion, estimated prompt score and a set of challenging samples for the new prompts
         """
@@ -157,7 +173,10 @@ class IPC_Optimization(IPC_Generation):
                         'error_analysis': self.last_history[-1]['analysis']}
         if hasattr(self.task_config, 'label_schema'):
             prompt_input["labels"] = json.dumps(self.task_config.label_schema)
-        generate_prompt = PROMPT_REGISTRY.module_dict['prompt_generation'].format_map(prompt_input)
+        if mode == 'generation':
+            generate_prompt = PROMPT_REGISTRY.module_dict['prompt_generation_generation'].format_map(prompt_input)
+        else:
+            generate_prompt = PROMPT_REGISTRY.module_dict['prompt_generation'].format_map(prompt_input)
         prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).message.content
         self.logger.info(prompt_suggestion)
         self.logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
@@ -213,15 +232,16 @@ class IPC_Optimization(IPC_Generation):
             return True
         return False
 
-    def save_state(self):
+    def save_state(self, mode):
         """
         Save the process state
         """
+        if not mode:
+            return
         if not hasattr(self.task_config, 'output_path') or self.task_config.output_path is None:
             return
-            
         self.logger.info('Save state')
-        output_path = self.task_config.output_path
+        output_path = os.path.join(self.task_config.output_path, mode)
         if not os.path.isdir(output_path):
             os.makedirs(output_path)
         output_path = Path(output_path)
