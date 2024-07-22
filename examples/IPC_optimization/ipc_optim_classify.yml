@@ -6,7 +6,7 @@ task_config:
     workers: 5
     max_usage: 10000
     task_description: 助手是一个善于写宣传稿的大模型
-    instruction: 请判断以下宣传稿是否合格？
+    instruction: 请判断以下宣传稿是否合格？请回答是或否。
     samples_per_step: 10
     batch_size: 10
     max_samples: 50
