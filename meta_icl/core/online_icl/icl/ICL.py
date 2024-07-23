@@ -141,17 +141,18 @@ class EmbeddingICL(BaseICL):
         embedding_key = self.retriever_key_list
         try:
             test_to_query_embedding = organize_text_4_embedding(example_list=[cur_query],
-                                                                search_key=embedding_key)
+                                                                search_key=self.retriever_key_list)
             query_embedding = get_single_embedding(test_to_query_embedding, embedding_model=self.embedding_model)
             selection_results = self.example_selector.topk_selection(query_embedding=query_embedding, num=num)
-            print(f"selection_results: {selection_results}")
-        except:
+            logger.info(f"selection_results: {selection_results}")
+        except Exception as e:
             # If failed to select samples, return the default first three samples.
-            print("error in getting the query embedding. Use the default index")
+            logger.error(e)
+            logger.error("error in getting the query embedding. Use the default index")
             selection_results = {"selection_idx": [0, 1, 2]}
 
         selection_examples = self.example_selector.get_examples(selection_results["selection_idx"])
-        print(f"selection_examples: {selection_examples}")
+        logger.info(f"selection_examples: {selection_examples}")
         query = formatting_function(selection_examples, cur_query, configs=self.task_configs)
         return query
 

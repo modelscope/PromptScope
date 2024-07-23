@@ -13,7 +13,7 @@ class AgentFollowupEmbedding(EmbeddingICL):
         examples_pth = embedding_icl_configs.get("examples_pth")
         embedding_model = embedding_icl_configs.get("embedding_model")
         self.task_configs = task_configs
-        retriever_key_list = embedding_icl_configs.get("retriever_key_list")
+        retriever_key_list = embedding_icl_configs.get("search_key")
 
         super().__init__(base_model=base_model,
                          embedding_pth=embedding_pth,

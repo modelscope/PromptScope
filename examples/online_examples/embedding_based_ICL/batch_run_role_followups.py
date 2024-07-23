@@ -27,7 +27,7 @@ def from_cov_2_cur_data(cov_data: list, max_history: int = 5):
         }
 
         cur_query_list.append(cur_query)
-        if len(cur_query_list) > 5:
+        if len(cur_query_list) > max_history:
             cur_query_list = cur_query_list[-5:]
 
     return cur_query_list
@@ -43,9 +43,9 @@ def get_results_with_duration(cur_query, conf, formatting_function):
 
 
 if __name__ == '__main__':
-    # config_pth = "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
-    # conf = load_config(config_pth)
-    #
+    config_pth = "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
+    conf = load_config(config_pth)
+
     # data_pth = ("data/app_data/agent_followup_data/real_conversation_data/智能体追问/session_role_conversation_ver_2024-07"
     #             "-10 11:58:00.json")
     # data = load_json_file(data_pth)
@@ -54,9 +54,9 @@ if __name__ == '__main__':
     # sav_dir = "data/app_data/agent_followup_data/real_conversation_data/智能体追问/results"
     # prefix = "role_followups"
     # base_model = conf.get("task_configs").get("base_model")
-
-    config_pth = "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
-    conf = load_config(config_pth)
+    #
+    # config_pth = "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
+    # conf = load_config(config_pth)
 
     data_pth = ("data/app_data/agent_followup_data/real_conversation_data/智能体追问/session_role_conversation_gf_ver_2024-07-18 19:57:54.json")
     data = load_json_file(data_pth)
