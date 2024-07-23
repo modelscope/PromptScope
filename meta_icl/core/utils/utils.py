@@ -24,6 +24,8 @@ def timer(func):
         return result
 
     return wrapper
+
+
 def add_duration(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -35,6 +37,7 @@ def add_duration(func):
         return result, duration
 
     return wrapper
+
 
 def extract_from_markdown_json(text):
     """
@@ -98,6 +101,12 @@ def sav_dict_2_xlsx(data, pth):
 
     # Save to Excel file
     df.to_excel(pth, index=False)
+
+
+def sav_csv(data: dict, pth):
+    import pandas as pd
+    df = pd.DataFrame(data)
+    df.to_csv(pth, index=False)
 
 
 def convert_json_2_xlx(json_file_path, excel_file_path):
@@ -195,6 +204,8 @@ def organize_text_4_embedding(example_list, search_key):
     If len(search_key) > 1: reformatted as:  ", ".join(f"{search_key_name}: {example[search_key_name]}"
                             for search_key_name in search_key)
     """
+    logger.info(f"search_key: {search_key}")
+    logger.info(f"example_list: {example_list}")
 
     if search_key is not None:
         # if search_key is str or len(search_key) ==1, then directly use the value of that search_key.
@@ -206,13 +217,14 @@ def organize_text_4_embedding(example_list, search_key):
             else:
                 # len(search_key) > 1: concatenate the search_key_name into str.
                 text_list = [
-                    ", ".join(f"{search_key_name}: {example[search_key_name]}"
+                    ", ".join(f"{search_key_name}: {str(example[search_key_name])}"
                               for search_key_name in search_key)
                     for example in example_list]
         else:
             raise ValueError("search_key must be str or list type")
     else:
         text_list = example_list
+    logger.info(type(text_list[0]))
 
     return text_list
 
@@ -228,7 +240,8 @@ def get_single_embedding(query, embedding_model, search_key=None):
     print(f"rewrite search query for embedding as: {query}")
     try:
         return get_embedding(query, embedding_model=embedding_model).output['embeddings'][0]['embedding']
-    except:
+    except Exception as e:
+        print(e)
         return get_embedding(query, embedding_model=embedding_model)["output"]['embeddings'][0]['embedding']
 
 
@@ -271,12 +284,31 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
     sav_json(sessions, os.path.join(sav_dir, f"{prefix}_ver_{get_current_date()}.json"))
     return sessions
 
-def revert_combined_session_2_csv(json_file_path, csv_file_path):
 
+def revert_combined_session_2_csv(json_file_path, csv_file_path: str = None):
     data = load_json_file(json_file_path)
     dict_key_name = ["session_id"]
 
-    dict_key_name.extend(data[0]['conversations'][0].keys())
+    key_list_except_session_id = data[0]['conversations'][0].keys()
+    dict_key_name.extend(key_list_except_session_id)
+    csv_data = {key: [] for key in dict_key_name}
+    for idx in range(len(data)):
+
+        for cov_id in range(len(data[idx]['conversations'])):
+            csv_data['session_id'].append(data[idx]['session_id'])
+            for key in key_list_except_session_id:
+                if key in data[idx]['conversations'][cov_id]:
+                    pass
+                else:
+                    data[idx]['conversations'][cov_id][key] = ""
+                csv_data[key].append(data[idx]['conversations'][cov_id][key])
+    for key in dict_key_name:
+        print(f"key: {key}, length: {len(csv_data[key])}")
+    if csv_file_path is not None:
+        pass
+    else:
+        csv_file_path = json_file_path.replace(".json", ".csv")
+    sav_csv(csv_data, csv_file_path)
 
 
 def convert_json_2_yaml(json_file_path, yaml_file_path):
@@ -284,6 +316,7 @@ def convert_json_2_yaml(json_file_path, yaml_file_path):
         data = json.load(f)
         logger.info(f"load json file: {json_file_path}")
     sav_yaml(data=data, yaml_file_path=yaml_file_path)
+
 
 def load_yaml_file(yaml_file_path):
     try:
@@ -296,6 +329,7 @@ def load_yaml_file(yaml_file_path):
     except Exception as e:
         logger.error(f"Error loading YAML file: {e}")
 
+
 def sav_yaml(data, yaml_file_path):
     yaml_text = yaml.dump(data, allow_unicode=True, sort_keys=False)
     print(yaml_text)
@@ -306,32 +340,5 @@ def sav_yaml(data, yaml_file_path):
 
 # Example usage
 if __name__ == "__main__":
-    import numpy as np
-
-
-    # Define a toy problem.
-    def example_expand_fn(state):
-        # Produce some new states from the current state.
-        # In a real application, this would involve generating possible next steps.
-        import copy
-        expand = []
-        for _ in range(3):
-            state_copy = copy.deepcopy(state)
-            state_copy.append(np.random.choice(5))
-            expand.append(state_copy)
-        return expand
-
-
-    def example_score_fn(state):
-        # Score the state. In a real application, this score could be based on
-        # model predictions, heuristics, or other criteria.
-        # This toy example prefers states with more 'a's.
-        return np.sum(state)
-
-
-    initial_state = [1]
-    max_steps = 5
-    beam_width = 2
-    best_state = beam_search(initial_state, max_steps, beam_width, example_expand_fn, example_score_fn)
-
-    print(f"Best state found: {best_state}")
+    json_file_path = "data/app_data/agent_followup_data/real_conversation_data/智能体追问/results/qwen2-7b-instruct_followups_2024-07-18 19:32:23.json"
+    revert_combined_session_2_csv(json_file_path)

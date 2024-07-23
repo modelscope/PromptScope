@@ -8,8 +8,8 @@ import re
 import random
 from typing import Generator, List
 
-# KEY = ""
-KEY = "***REMOVED***"
+KEY = ""
+# KEY = "***REMOVED***"
 dashscope.api_key = KEY
 
 DASHSCOPE_MAX_BATCH_SIZE = 25
