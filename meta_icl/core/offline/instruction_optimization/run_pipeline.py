@@ -1,4 +1,4 @@
-from optimization_pipeline import IPC
+from meta_icl.core.offline.instruction_optimization.ipc_classifier import IPC
 from meta_icl.core.utils import load_yaml, override_config
 import argparse
 
