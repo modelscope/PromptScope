@@ -58,7 +58,6 @@ class IPC_Optimization(IPC_Generation):
         if kwargs.get('mode', '') == 'ranking':
             self.modify_input_for_ranker()
         if 'ranking_prompt' in kwargs:
-            print('wocao?')
             self.eval.eval_instruction = kwargs['ranking_prompt']
         for _ in range(self.task_config.num_steps):
             stop_criteria = self.step(**kwargs)
