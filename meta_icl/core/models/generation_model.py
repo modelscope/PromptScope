@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import os
 
 from llama_index.core.base.llms.types import ChatMessage, ChatResponse, CompletionResponse
@@ -19,7 +19,7 @@ class LlamaIndexGenerationModel(BaseModel):
 
     def before_call(self, **kwargs):
         prompt: str = kwargs.pop("prompt", "")
-        messages: List[Message] | List[dict] = kwargs.pop("messages", [])
+        messages: Union[List[Message], List[dict]] = kwargs.pop("messages", [])
 
         if prompt:
             self.data = {"prompt": prompt}
@@ -34,7 +34,7 @@ class LlamaIndexGenerationModel(BaseModel):
     def after_call(self,
                    model_response: ModelResponse,
                    stream: bool = False,
-                   **kwargs) -> ModelResponse | ModelResponseGen:
+                   **kwargs) -> Union[ModelResponse, ModelResponseGen]:
         model_response.message = Message(role=MessageRoleEnum.ASSISTANT, content="")
 
         call_result = model_response.raw
@@ -55,7 +55,7 @@ class LlamaIndexGenerationModel(BaseModel):
 
             return model_response
 
-    def _call(self, stream: bool = False, **kwargs) -> ModelResponse | ModelResponseGen:
+    def _call(self, stream: bool = False, **kwargs) -> Union[ModelResponse, ModelResponseGen]:
         assert "prompt" in self.data or "messages" in self.data
         results = ModelResponse(m_type=self.m_type)
 

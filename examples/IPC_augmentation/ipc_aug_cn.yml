@@ -2,12 +2,14 @@
 
 task_config:
     language: 'CN'
+    output_path: dump
+    max_usage: 6000
     task_description: 助手是一个数学家。
     instruction: 判断计算算式的结果是否正确，回答是或者否。
-    output_path: dump
-    num_samples: 10
+    samples_per_step: 10
     batch_size: 10
     workers: 5
+   
 # dataset:
 #     name: 'dataset'
 #     records_path: null

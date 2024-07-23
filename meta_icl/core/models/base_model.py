@@ -1,7 +1,7 @@
 import inspect
 import time
 from abc import abstractmethod, ABCMeta
-from typing import Any
+from typing import Any, Union
 
 from meta_icl.core.enumeration.model_enum import ModelEnum
 from meta_icl.core.utils.registry import Registry
@@ -13,7 +13,7 @@ MODEL_REGISTRY = Registry("models")
 
 
 class BaseModel(metaclass=ABCMeta):
-    m_type: ModelEnum | None = None
+    m_type: Union[ModelEnum, None] = None
 
     def __init__(self,
                  model_name: str,
@@ -62,8 +62,8 @@ class BaseModel(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def after_call(self, model_response: ModelResponse | ModelResponseGen,
-                   **kwargs) -> ModelResponse | ModelResponseGen:
+    def after_call(self, model_response: Union[ModelResponse, ModelResponseGen],
+                   **kwargs) -> Union[ModelResponse, ModelResponseGen]:
         """
         :param model_response:
         :param kwargs:
@@ -71,13 +71,13 @@ class BaseModel(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def _call(self, stream: bool = False, **kwargs) -> ModelResponse | ModelResponseGen:
+    def _call(self, stream: bool = False, **kwargs) -> Union[ModelResponse, ModelResponseGen]:
         """
         :param kwargs:
         :return:
         """
 
-    def call(self, stream: bool = False, **kwargs) -> ModelResponse | ModelResponseGen:
+    def call(self, stream: bool = False, **kwargs) -> Union[ModelResponse, ModelResponseGen]:
         """
         :param stream: only llm needs stream
         :param kwargs:
