@@ -1,9 +1,7 @@
 from meta_icl.core.online_icl.icl import EmbeddingICL
-from meta_icl.core.utils import get_single_embedding, organize_text_4_embedding, timer
-from meta_icl.core.utils import message_formatting, call_llm_with_message
-import json
-from meta_icl.contribs.app_main_followup.prompt.prompt_4_icl_followups import (formatting_str_type_main_chat,
-                                                                               formatting_answer_out)
+from meta_icl.core.utils import timer
+
+from meta_icl.contribs.agent_followup.prompt.prompt_4_agent_followups import formatting_answer_out
 
 
 class AgentFollowupEmbedding(EmbeddingICL):

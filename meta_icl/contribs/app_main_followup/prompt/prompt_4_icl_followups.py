@@ -64,6 +64,7 @@ $$当前回复$$: {cur_answer}
 $$用户可能继续问智能体的问题$$: 
 """
 
+from loguru import logger
 def formatting_followups_in_prompt(question_list):
     return question_list
     # return "\n"+ "\n".join(question for question in question_list)
@@ -72,7 +73,7 @@ def formatting_answer_out(text):
     if isinstance(question_list, list):
         return question_list
     else:
-        print(f"Failed to generate questions: {text}")
+        logger.info(f"Failed to generate questions: {text}")
     return question_list
 
 def formatting_str_type_main_chat(examples, query_data, configs):

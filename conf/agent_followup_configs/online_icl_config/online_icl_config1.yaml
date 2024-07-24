@@ -18,5 +18,5 @@ icl_configs:
     - chat_history
     - last_query
 task_configs:
-  base_model: qwen_14b
+  base_model: qwen2-57b-a14b-instruct
   num_questions: 3

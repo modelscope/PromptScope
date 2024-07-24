@@ -140,9 +140,11 @@ class EmbeddingICL(BaseICL):
         """
         embedding_key = self.retriever_key_list
         try:
-            test_to_query_embedding = organize_text_4_embedding(example_list=[cur_query],
-                                                                search_key=self.retriever_key_list)
-            query_embedding = get_single_embedding(test_to_query_embedding, embedding_model=self.embedding_model)
+            # test_to_query_embedding = organize_text_4_embedding(example_list=[cur_query],
+            #                                                     search_key=self.retriever_key_list)
+            # query_embedding = get_single_embedding(test_to_query_embedding, embedding_model=self.embedding_model)
+            query_embedding = get_single_embedding([cur_query], embedding_model=self.embedding_model,
+                                                   search_key=self.retriever_key_list)
             selection_results = self.example_selector.topk_selection(query_embedding=query_embedding, num=num)
             logger.info(f"selection_results: {selection_results}")
         except Exception as e:
@@ -161,8 +163,8 @@ class EmbeddingICL(BaseICL):
         query = self.get_meta_prompt(cur_query=cur_query,
                                      num=num,
                                      formatting_function=formatting_function)
-        print(query)
+        logger.info(f"query: {query}")
         message = message_formatting(system_prompt='You are a helpful assistant', query=query)
         res = call_llm_with_message(messages=message, model=self.base_model, **kwargs)
-        print(res)
+        logger.info(f"res: {res}")
         return res
