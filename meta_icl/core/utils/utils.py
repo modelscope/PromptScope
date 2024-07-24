@@ -237,11 +237,11 @@ def get_single_embedding(query, embedding_model, search_key=None):
     """
 
     query = organize_text_4_embedding(example_list=query, search_key=search_key)
-    print(f"rewrite search query for embedding as: {query}")
+    logger.info(f"rewrite search query for embedding as: {query}")
     try:
         return get_embedding(query, embedding_model=embedding_model).output['embeddings'][0]['embedding']
     except Exception as e:
-        print(e)
+        logger.error(e)
         return get_embedding(query, embedding_model=embedding_model)["output"]['embeddings'][0]['embedding']
 
 
@@ -250,7 +250,7 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
     import os
 
     data = pd.read_csv(csv_pth)
-    print(data.keys())
+    logger.info(data.keys())
     sav_dir = json_sav_dir
 
     grouped = data.groupby(group_by_filed)
@@ -259,7 +259,7 @@ def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None,
         tmp = group.to_dict(orient='records')
         conversations = []
         # print(tmp)
-        print(len(tmp))
+        logger.info(len(tmp))
 
         if selection_filed is not None:
             if mapping_filed is not None:
@@ -309,6 +309,7 @@ def revert_combined_session_2_csv(json_file_path, csv_file_path: str = None):
     else:
         csv_file_path = json_file_path.replace(".json", ".csv")
     sav_csv(csv_data, csv_file_path)
+    return csv_data, csv_file_path
 
 
 def convert_json_2_yaml(json_file_path, yaml_file_path):
@@ -332,7 +333,7 @@ def load_yaml_file(yaml_file_path):
 
 def sav_yaml(data, yaml_file_path):
     yaml_text = yaml.dump(data, allow_unicode=True, sort_keys=False)
-    print(yaml_text)
+    logger.info(yaml_text)
     with open(yaml_file_path, 'w') as f:
         f.write(yaml_text)
         logger.info(f"save yaml file to: {yaml_file_path}")

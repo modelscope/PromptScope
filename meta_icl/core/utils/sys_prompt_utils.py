@@ -7,6 +7,7 @@ import json
 import re
 import random
 from typing import Generator, List
+from loguru import logger
 
 KEY = ""
 # KEY = "***REMOVED***"
@@ -134,10 +135,10 @@ Attention: If both model and model_config are given, the model_config will be us
     # print("\n***** messages *****\n{}\n".format(messages))
     if is_stream and model.lower() != 'qwen_200b':
         raise ValueError("expect Qwen model, other model's stream output is not supported")
-    print(model_config)
+    logger.info(model_config)
     if model.lower() == 'gpt4':
         return call_gpt_with_message(messages, **kwargs)
-    elif model.lower() == 'qwen_200b':
+    elif model.lower() == 'qwen_200b' or model.lower() == 'qwen-max':
         if model_config is not None:
             pass
         else:
@@ -150,7 +151,7 @@ Attention: If both model and model_config are given, the model_config will be us
             return call_qwen_with_stream(messages, model_config=model_config, **kwargs)
         else:
             return call_qwen_with_message_with_retry(messages, model_config=model_config, **kwargs)
-    elif model.lower() == 'qwen_14b':
+    elif model.lower() == 'qwen_14b' or model.lower() == 'qwen-turbo':
         if model_config is not None:
             pass
         else:
@@ -162,7 +163,7 @@ Attention: If both model and model_config are given, the model_config will be us
 
         return call_qwen_with_message_with_retry(messages,
                                                  model_config=model_config, **kwargs)
-    elif model.lower() == 'qwen_70b':
+    elif model.lower() == 'qwen_70b'or model.lower() == 'qwen-plus':
         if model_config is not None:
             pass
         else:
@@ -297,11 +298,11 @@ def call_qwen_with_message_with_retry(messages,
         _, res = call_qwen_with_messages(messages,
                                          model_config=model_config,
                                          **kwargs)
-        print(res)
+        logger.info(res)
         return res['output']['choices'][0]['message']['content']
     except Exception as e:
         # print(traceback.format_exc())
-        print("\n\nmessages: {}".format(e))
+        logger.error("\n\nmessages: {}".format(e))
         # error_message = e
         # logger.query_error(
         #     request_id=request_id,
@@ -376,7 +377,7 @@ def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs)
     # logger.query_info(request_id=request_id,
     #                   message='X_DashScope_EUID: {}, dash return: {}'.format(X_DashScope_EUID, response))
     if response.status_code == HTTPStatus.OK:
-        print(response)
+        logger.info(response)
         return True, response
     else:
         return (False,

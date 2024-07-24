@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # retriever = BM25Retriever(bm25_index_pth=BM25_pth)
     # print(retriever.topk_selection("a cat", 3))
 
-    config_pth = "conf/app_followup_configs/online_icl_config/online_icl_config_bm25.json"
+    config_pth = "conf/app_followup_configs/online_icl_config/online_icl_config_bm25.yaml"
     conf = load_config(config_pth)
     cur_query = {
         "chat_history": [

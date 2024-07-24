@@ -93,9 +93,6 @@ Instruction_Followup_Question_Rec_Role = """你是user，正在与智能体agent
 具体步骤： 
 根据历史记录和当前最新一轮的对话，给出{num_question}条你继续发送给智能体的消息。
 
-
-
-
 以下是一些例子:
 {example_str}
 
@@ -108,13 +105,24 @@ Instruction_Followup_Question_Rec_Role = """你是user，正在与智能体agent
 4. 发送的消息不要与上文已经提问或者回答过的内容重复。
 5. 如果智能体agent最新一轮对话在问你问题，请必须给出你的可能的回复。
 $$智能体的性格描述$$：\n```markdown\n{agent_system_prompt}\n````\n
-$$历史对话s$$:\n{history_queries}\n 
+$$历史对话$$:\n{history_queries}\n 
 $$最新一轮对话$$: \n{last_query}\n
 $$你继续发送的消息$$: """
 
-
+from loguru import logger
+def formatting_answer_out(text):
+    question_list = eval(text)
+    if isinstance(question_list, list):
+        return question_list
+    else:
+        try:
+            question_list = text.split('\n')
+            question_list = [eval(item)[0] for item in question_list]
+        except:
+            logger.error(f"Failed to generate questions: {text}")
+    return question_list
 def formatting_app_role_prompt(examples, query_data, configs):
-# def formatting_app_role_prompt(examples, agent_system_prompt, history_queries, last_query, num_followup=3):
+    # def formatting_app_role_prompt(examples, agent_system_prompt, history_queries, last_query, num_followup=3):
     example_str = '\n\n'.join('$$智能体的性格描述$$：\n```markdown\n{agent_persona}\n````\n'
                               '$$历史对话$$:\n{history_queries}\n'
                               '$$最新一轮对话$$: \n{last_query}\n'
