@@ -1,4 +1,4 @@
-from optimization_pipeline import IPC
+from meta_icl.core.offline.instruction_optimization.ipc_classifier import IPC
 from meta_icl.core.utils import load_yaml, modify_input_for_ranker, validate_generation_config, override_config
 import argparse
 import os
