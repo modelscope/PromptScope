@@ -38,7 +38,7 @@ if __name__ == '__main__':
         import os
         file_list = os.listdir(data_dir)
         for file_name in file_list:
-            if data_pth.split('.')[-1] == "json":
+            if file_name.split('.')[-1] == "json":
                 convert_json_2_xlx(os.path.join(data_dir, file_name))
 
 
