@@ -36,17 +36,26 @@ def prompt_rewrite(query):
         result[name] = call_llm(prompt, "qwen2-57b-a14b-instruct")
     return result
 
-def prompt_evaluation(prompts, ranking_prompt):
-    eval_prompt = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), 'templates.yaml'), 'r'))['Evaluation']
+def prompt_evaluation(prompts, ranking_prompt, query):
+    prompt_templates = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), 'templates.yaml'), 'r'))
+    eval_prompt = prompt_templates['Evaluation']
     contents = []
     for name, prompt in prompts.items():
+        prompt = "|".join([prompt, query])
+        print("##############", prompt, "###################")
         content = call_llm(prompt, "qwen2-57b-a14b-instruct")
         contents.append(content)
     answers = "｜".join(contents)
+    print(answers)
     eval_prompt = eval_prompt.format(ranking_prompt=ranking_prompt, answers=answers)
-    # print(eval_prompt)
+    print(eval_prompt)
     # prompt_rewrite(prompt)
     response = call_llm(eval_prompt, "qwen2-57b-a14b-instruct", temperature=0.1)
     print(response)
     return response
-    
+
+def generate_query(prompt):
+    prompt_templates = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), 'templates.yaml'), 'r'))
+    query_generation = prompt_templates['Query_Generation'].format(prompt=prompt)
+    query = call_llm(query_generation, "qwen2-57b-a14b-instruct")
+    return query

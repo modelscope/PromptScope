@@ -10,8 +10,7 @@ import logging
 import os
 
 # config_file_path = os.environ.get('CONFIG_FILE_PATH')
-config_file_path = "conf/ipc_configs"
-LLM_ENV = yaml.safe_load(open(os.path.join(config_file_path, 'ipc_llm_env.yml'), 'r'))
+LLM_ENV = yaml.safe_load(open(os.path.join('/mnt1/yunze.gy/Meta-ICL/conf/ipc_configs', 'ipc_llm_env.yml'), 'r'))
 
 class Color:
     RED = '\033[91m'
@@ -134,7 +133,7 @@ def modify_input_for_ranker(config, task_description, initial_prompt):
     return mod_prompt, mod_task_desc
 
 
-def override_config(override_config_file, config_file='config/config_default.yml'):
+def override_config(config_file, override_config_file):
     """
     Override the default configuration file with the override configuration file
     :param config_file: The default configuration file
