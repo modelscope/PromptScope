@@ -109,11 +109,12 @@ if __name__ == '__main__':
             try:
                 results, duration = get_results_with_duration(cur_query, conf=conf,
                                                               formatting_function=formatting_app_role_prompt)
-                print(results)
+                logger.info(results)
                 results_data[session_idx]['conversations'][chat_id]["followups"] = results
                 results_data[session_idx]['conversations'][chat_id]["cost"] = duration
             except Exception as e:
-                print(e)
                 logger.error(e)
+                results_data[session_idx]['conversations'][chat_id]["followups"] = []
+                results_data[session_idx]['conversations'][chat_id]["cost"] = None
 
             sav_json(results_data, sav_pth)
