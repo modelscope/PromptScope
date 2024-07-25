@@ -5,51 +5,6 @@ from meta_icl.contribs.intension_extraction.prompt.prompt_4_intension_extraction
 import json
 
 
-# class IntentionAnalysis(BaseICL):
-#     def __init__(self, base_model,
-#                  embedding_pth,
-#                  examples_pth,
-#                  embedding_model=None
-#                  ):
-#         """
-#
-#         :param base_model: the base model to generate the intention analysis results.
-#         currently available choices: "Qwen_200B", "Qwen_70B", and "Qwen_14B"
-#         :param embedding_pth: the path storing the embedding vectors of the examples
-#         :param examples_pth: the path of the examples
-#         :param embedding_model: the model to get the embedding.
-#         currently only dashscope embedding model is available: "text_embedding_v1"
-#         """
-#         super().__init__(opt_model=base_model,
-#                          embedding_pth=embedding_pth,
-#                          examples_pth=examples_pth)
-#         if embedding_model is not None:
-#             self.embedding_model = embedding_model
-#         else:
-#             self.embedding_model = "text_embedding_v1"
-#
-#     def get_meta_prompt(self, cur_query: dict, embedding_key: list, num=3):
-#         try:
-#             test_to_query_embedding = organize_text_4_embedding(example_list=[cur_query],
-#                                                                 search_key=embedding_key)
-#             query_embedding = get_single_embedding(test_to_query_embedding, embedding_model=self.embedding_model)
-#             selection_results = self.example_selector.topk_selection(query_embedding=query_embedding, num=num)
-#         except:
-#             print("error in getting the query embedding. Use the default index")
-#             selection_results = {"selection_idx": [0, 1, 2]}
-#
-#         selection_examples = self.example_selector.get_examples(selection_results["selection_idx"])
-#         query = formatting_intention_classification(examples=selection_examples, cur_query=cur_query)
-#         return query
-#
-#     def get_results(self, cur_query: dict, embedding_key: list, num=3):
-#         query = self.get_meta_prompt(cur_query=cur_query,
-#                                      num=num, embedding_key=embedding_key)
-#         print(query)
-#         message = message_formatting(system_prompt='You are a helpful assistant', query=query)
-#         res = call_llm_with_message(messages=message, model=self.opt_model)
-#         print(res)
-#         return res
 
 class IntentionAnalysis(EmbeddingICL):
     def __init__(self, base_model,

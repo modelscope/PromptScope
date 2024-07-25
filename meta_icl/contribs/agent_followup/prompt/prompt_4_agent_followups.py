@@ -111,15 +111,22 @@ $$你继续发送的消息$$: """
 
 from loguru import logger
 def formatting_answer_out(text):
-    question_list = eval(text)
-    if isinstance(question_list, list):
-        return question_list
-    else:
+    try:
+        question_list = eval(text)
+        if isinstance(question_list, list):
+            return question_list
+        else:
+            logger.info(question_list)
+            return None
+    except:
         try:
             question_list = text.split('\n')
+            print(question_list)
             question_list = [eval(item)[0] for item in question_list]
         except:
             logger.error(f"Failed to generate questions: {text}")
+
+
     return question_list
 def formatting_app_role_prompt(examples, query_data, configs):
     # def formatting_app_role_prompt(examples, agent_system_prompt, history_queries, last_query, num_followup=3):
@@ -142,3 +149,7 @@ def formatting_app_role_prompt(examples, query_data, configs):
         history_queries=query_data["chat_history"],
         last_query=query_data["last_query"])
     return prompt
+
+if __name__ == '__main__':
+    text = "['确实如此，我们应该如何做到相互尊重呢？']\n['艺术作品也需要时间欣赏，人与人之间是否也需要更多耐心？']\n['每个人的心灵都是独一无二的，我们应该怎样去理解和接纳？']"
+    print(formatting_answer_out(text))
