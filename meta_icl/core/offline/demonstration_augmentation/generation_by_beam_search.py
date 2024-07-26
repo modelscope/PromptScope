@@ -4,7 +4,6 @@ import json, os
 from typing import List
 
 from loguru import logger
-logger.add("logs/app.log", backtrace=True, diagnose=True)
 
 class GenerationByBeamSearch:
     def __init__(self,
