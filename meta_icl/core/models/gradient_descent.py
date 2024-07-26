@@ -129,7 +129,7 @@ class GradientDescent():
                                                                 example_string=example_string)
         gradient_message = [{'role': 'system', 'content': 'You are a helpful assistant.'},
                     {'role': 'user', 'content': gradient_prompt}]
-        gradient = self.optim_model.call(message=gradient_message)
+        gradient = self.optim_model.call(messages=gradient_message).message.content
         
         if self.print_log:
             log_str = gradient_log_tempelate.format(gradient_prompt=gradient_prompt,
@@ -156,8 +156,7 @@ class GradientDescent():
             steps_per_gradient=steps_per_gradient)
         optimize_messages = [{'role': 'system', 'content': 'You are a helpful assistant.'},
                     {'role': 'user', 'content': optimize_prompt}]
-        response = self.optim_model.call(optimize_messages)
-        
+        response = self.optim_model.call(messages=optimize_messages).message.content
         optimized_prompt = self._clean_optim_response(response)
         if self.print_log:
             log_str = optimize_log_tempelate.format(optimize_prompt=optimize_prompt,
