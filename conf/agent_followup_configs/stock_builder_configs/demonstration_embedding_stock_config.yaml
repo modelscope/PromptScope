@@ -1,4 +1,5 @@
 embedding_model: "text_embedding_v2"
+embedding_shape: 1536
 examples_list_pth: "data/app_data/agent_followup_data/demonstrations/role_followups_full_reformat.json"
 icl_config_pth:  "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
 search_key: ["system_prompt", "chat_history", "last_query"]
@@ -6,3 +7,4 @@ sav_dir: "data/app_data/agent_followup_data/icl_data"
 eval_key_list: "chat_history"
 prefix:  "agent_role_followup"
 others:  {}
+sav_type: idx

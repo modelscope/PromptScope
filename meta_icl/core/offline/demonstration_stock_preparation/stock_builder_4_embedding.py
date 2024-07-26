@@ -10,12 +10,12 @@ import os
 import numpy as np
 from meta_icl.core.utils.retrieve_utils import demonstration_backup
 
-
 class EmbeddingStockBuilder(BaseStockBuilder):
     def __init__(self, stock_build_configs, sav_type='npy', **kwargs):
-        self.sav_type = sav_type
+        self.sav_type = stock_build_configs.get('sav_type') or sav_type
         self.examples_list = load_json_file(stock_build_configs.get('examples_list_pth'))
         self.embedding_model = stock_build_configs.get('embedding_model')
+        self.embedding_shape = stock_build_configs.get('embedding_shape')
         self.demonstration_list, self.demonstration_json_pth = \
             demonstration_backup(
                 demonstration_pth=stock_build_configs.get('examples_list_pth'),
@@ -57,14 +57,28 @@ class EmbeddingStockBuilder(BaseStockBuilder):
         else:
             cur_time = get_current_date()
 
-        embedding_array = np.vstack(query_embedding_list)
+        
+        if self.sav_type == 'npy':
+            embedding_array = np.vstack(query_embedding_list)
+            embedding_sav_pth = os.path.join(self.demo_stock_sav_dir,
+                                            f'{self.demo_stock_name_prefix}_emb_model:'
+                                            f'<{self.embedding_model}>_search_key:'
+                                            f'{self.search_key}_examples_ver_{cur_time}.npy')
+            np.save(embedding_sav_pth, embedding_array)
 
-        embedding_sav_pth = os.path.join(self.demo_stock_sav_dir,
-                                         f'{self.demo_stock_name_prefix}_emb_model:'
-                                         f'<{self.embedding_model}>_search_key:'
-                                         f'{self.search_key}_examples_ver_{cur_time}.npy')
+        elif self.sav_type == 'idx':
+            import faiss
+            from faiss import write_index
+            embedding_sav_pth = os.path.join(self.demo_stock_sav_dir,
+                                            f'{self.demo_stock_name_prefix}_emb_model:'
+                                            f'<{self.embedding_model}>_search_key:'
+                                            f'{self.search_key}_examples_ver_{cur_time}.index')
+            index = faiss.IndexFlatL2(self.embedding_shape)
+            embedding_array = np.array(query_embedding_list).reshape(-1, self.embedding_shape)
+            print(embedding_array.shape)
+            index.add(embedding_array)
+            write_index(index, embedding_sav_pth)
 
-        np.save(embedding_sav_pth, embedding_array)
         return embedding_sav_pth
 
     def _update_embedding_sav_pth(self, embedding_sav_pth: str):
