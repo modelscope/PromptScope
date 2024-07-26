@@ -80,12 +80,12 @@ def judge_results(csv_pth, query_col_name, ans_col_name_list, model_name):
     data = load_file(csv_pth)
     results = copy.deepcopy(data)
     print(data.keys())
-    sav_pth = csv_pth.replace(".csv", "_with_rating.csv")
+    sav_pth = csv_pth.replace(".csv", f"_with_{model_name}_rating.csv")
     total_data = len(data["en_example"])
     for res_key_name in ans_col_name_list:
         results[f"{res_key_name}_rating"] = [1]*total_data
         results[f"{res_key_name}_rating_score"]= [1]*total_data
-    for idx in range(total_data):
+    for idx in range(80, total_data):
         query = data[query_col_name][idx]
         for res_key_name in ans_col_name_list:
             ans = data[res_key_name][idx]
@@ -101,12 +101,21 @@ def judge_results(csv_pth, query_col_name, ans_col_name_list, model_name):
                 rating_score = ''
             results[f"{res_key_name}_rating_score"][idx] = rating_score
             logger.info(f"idx: {idx}, res_key_name: {res_key_name}, rating_score: {rating_score}")
+
+        if idx % 20 == 0:
+            sav_csv(results, sav_pth)
+
+            import pandas as pd
+            results_pd = pd.DataFrame(results)
+            xlsx_pth = sav_pth.replace(".csv", ".xlsx")
+            results_pd.to_excel(xlsx_pth)
     sav_csv(results, sav_pth)
 
     import pandas as pd
     results_pd = pd.DataFrame(results)
     xlsx_pth = sav_pth.replace(".csv", ".xlsx")
     results_pd.to_excel(xlsx_pth)
+
 
 
 
@@ -137,12 +146,13 @@ if __name__ == '__main__':
     # #             results[f"{model_name}_results"].append("")
     # #     sav_csv(results, sav_pth)
     csv_pth = "data/prompt_data/百炼国际站模版 - 副本_en-US_v1_run_date_2024-07-25 16:27:26.csv"
-    data = load_csv("data/prompt_data/百炼国际站模版 - 副本_en-US_v1_run_date_2024-07-25 16:27:26.csv")
+    data = load_csv(csv_pth)
     print(data.keys())
 
     query_col_name = 'en_example'
     ans_col_name_list = ['Qwen-plus_results', 'Qwen-turbo_results', 'Qwen-max_results']
     model_name = "gpt4"
+    # model_name = "Qwen-max"
     judge_results(csv_pth, query_col_name, ans_col_name_list, model_name)
 
 
