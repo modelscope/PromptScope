@@ -31,13 +31,14 @@ def get_agent_embedding_followup_results(cur_query: dict,
     """
     # formatting_function = kwargs.get("formatting_function")
     embedding_retriever_configs = icl_configs.get("embedding_retriever_configs")
+    num_selection = embedding_retriever_configs.get("topk", 3)
+    # if embedding_path.endswith("npy"):
     followup_generator = AgentFollowupEmbedding(embedding_icl_configs=embedding_retriever_configs,
                                                 task_configs=task_configs)
-    num_selection = embedding_retriever_configs.get("topk", 3)
     results = followup_generator.get_results(
-        cur_query,
-        formatting_function=formatting_function,
-        num=num_selection, **kwargs
+    cur_query,
+    formatting_function=formatting_function,
+    num=num_selection, **kwargs
     )
     print(results)
     results = formatting_answer_out(results)

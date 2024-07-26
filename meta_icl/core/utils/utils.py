@@ -189,6 +189,9 @@ def load_file(file_pth):
     elif file_type == 'csv':
         from meta_icl.core.utils.sys_prompt_utils import load_csv
         return load_csv(file_pth)
+    elif file_type == 'index':
+        from faiss import read_index
+        return read_index(file_pth)
     else:
         ValueError(f'cannot support file type: {file_type}!')
 
