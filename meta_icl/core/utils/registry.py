@@ -2,7 +2,7 @@
 Registry for different modules.
 Init class according to the class name and verify the input parameters.
 """
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 
 
 class Registry(object):
@@ -19,7 +19,7 @@ class Registry(object):
             raise KeyError(f'{module_name} is already registered in {self.name}')
         self.module_dict[module_name] = module
 
-    def batch_register(self, modules: List[Any] | Dict[str, Any]):
+    def batch_register(self, modules: Union[List[Any] | Dict[str, Any]]):
         if isinstance(modules, list):
             module_name_dict = {m.__name__: m for m in modules}
         elif isinstance(modules, dict):
