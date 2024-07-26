@@ -1,20 +1,17 @@
 import argparse
-from prompt_optim_agent import *
-import yaml
+from meta_icl.core.algorithm.PromptAgent.agent import PromptAgent
+from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.logger import Logger
 
-def load_config(config_path):
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    return config
-
+from meta_icl import CONFIG_REGISTRY
 def config():
     parser = argparse.ArgumentParser(description='Process prompt search agent arguments')
 
-    parser.add_argument('--config_dir', type=str, default='./defualt_config.yaml')
+    parser.add_argument('--config_dir', type=str, default='prompt_agent.yml')
    
     args = parser.parse_args()
 
-    args = load_config(args.config_dir)
+    args = load_yaml(args.config_dir)
     return args
 
 def validate_config(config):
@@ -63,13 +60,15 @@ def validate_config(config):
     assert isinstance(config['world_model_setting']['num_new_prompts'], int), "world_model.num_new_prompts must be an integer"
     assert isinstance(config['world_model_setting']['train_batch_size'], int), "world_model.train_batch_size must be an integer"
 
-def main(args):
-    agent = BaseAgent(**args)
+def main():
+    agent = PromptAgent()
     agent.run()
     return
 
 if __name__ == '__main__':
+    logger = Logger.get_logger(__name__)
     args = config()
-    validate_config(args)
-    print(args)
-    main(args)
+    logger.info(args)
+    CONFIG_REGISTRY.batch_register(args)
+    print(CONFIG_REGISTRY.module_dict)
+    main()

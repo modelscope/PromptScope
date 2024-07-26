@@ -10,7 +10,7 @@ import logging
 import os
 
 # config_file_path = os.environ.get('CONFIG_FILE_PATH')
-LLM_ENV = yaml.safe_load(open(os.path.join('conf/ipc_configs', 'ipc_llm_env.yml'), 'r'))
+# LLM_ENV = yaml.safe_load(open(os.path.join('conf/ipc_configs', 'ipc_llm_env.yml'), 'r'))
 
 class Color:
     RED = '\033[91m'

@@ -1,11 +1,11 @@
 # The code is modified based on Automatic Prompt Optimization with "Gradient Descent" and Beam Search
 # https://arxiv.org/abs/2305.03495
 
-from .prompts.log_prompt_templates import *
-from .prompts.gradient_descent_prompts import example_template, optimize_prompt_tempelate_single, \
+from meta_icl.core.algorithm.PromptAgent.world_model.prompts.log_prompt_templates import *
+from meta_icl.core.algorithm.PromptAgent.world_model.prompts.gradient_descent_prompts import example_template, optimize_prompt_tempelate_single, \
     optimize_prompt_tempelate, gradient_prompt_tempelate,\
     ascend_gradient_prompt_tempelate, ascend_optimize_prompt_tempelate, ascend_optimize_prompt_tempelate_single
-from ..utils import *
+from meta_icl.core.algorithm.PromptAgent.utils import *
 import re
 import numpy as np
 
@@ -36,13 +36,13 @@ class GradientDescent():
         self.example_template    = example_template
         
         self._build_forward_prompts_func = task.build_forward_prompts_completion
-        self._batch_forward_func = self.base_model.batch_forward_func
+        self.call_func = self.base_model.call
         
 
     def forward(self, batch, cur_prompt):
         batch_size = len(batch['question'])
         batch_prompts =self._build_forward_prompts_func(batch['question'], cur_prompt)
-        responses = self._batch_forward_func(batch_prompts)
+        responses = [self.call_func(prompt=prompt).message.content for prompt in batch_prompts]
         
         for p, r in zip(batch_prompts, responses):
             self.logger.info(f"Input:\n{p}")
@@ -127,7 +127,9 @@ class GradientDescent():
     def cal_gradient(self, cur_prompt, example_string, gradient_prompt_tempelate):
         gradient_prompt = gradient_prompt_tempelate.format(cur_prompt=cur_prompt, 
                                                                 example_string=example_string)
-        gradient = self.optim_model.generate(gradient_prompt)
+        gradient_message = [{'role': 'system', 'content': 'You are a helpful assistant.'},
+                    {'role': 'user', 'content': gradient_prompt}]
+        gradient = self.optim_model.call(message=gradient_message)
         
         if self.print_log:
             log_str = gradient_log_tempelate.format(gradient_prompt=gradient_prompt,
@@ -152,8 +154,9 @@ class GradientDescent():
             gradient=gradient, 
             trajectory_prompts=trajectory_prompts,
             steps_per_gradient=steps_per_gradient)
-        
-        response = self.optim_model.generate(optimize_prompt)
+        optimize_messages = [{'role': 'system', 'content': 'You are a helpful assistant.'},
+                    {'role': 'user', 'content': optimize_prompt}]
+        response = self.optim_model.call(optimize_messages)
         
         optimized_prompt = self._clean_optim_response(response)
         if self.print_log:
