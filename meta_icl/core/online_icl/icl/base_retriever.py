@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 from abc import ABC, abstractmethod
 
 from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_method
@@ -89,6 +89,35 @@ class CosineSimilarityRetriever(BaseRetriever):
         return {"selection_idx": selection_idx,
                 "selection_score": selection_score}
 
+    def get_examples(self, selection_ids: List) -> List:
+        """
+
+        :param selection_ids: list of idx
+        :return: the examples selected
+        """
+        if self.example_list is not None:
+            return [self.example_list[idx] for idx in selection_ids]
+        else:
+            ValueError("example_list is None, please provide the example list!")
+
+class FaissRetriever(BaseRetriever):
+    def __init__(self, index: Any, example_list=None):
+        self.index = index
+        self.example_list = example_list
+        super().__init__()
+
+    def topk_selection(self, query_embedding: List, num: int):
+        """
+
+        :param query_embedding: embedding vector
+        :param num: int, the number of selection
+        :return: {"selection_idx": list, "selection_score": list}
+        """
+        import numpy as np
+        D, I = self.index.search(np.array(query_embedding).reshape(1, -1), num)
+        return {"selection_idx": I[0],
+                "selection_score": [1/x for x in D]}
+    
     def get_examples(self, selection_ids: List) -> List:
         """
 
