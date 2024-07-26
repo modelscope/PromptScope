@@ -5,7 +5,7 @@ from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_
 from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings, message_formatting,
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
-from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever
+from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
 from loguru import logger
 
 
@@ -116,12 +116,16 @@ class EmbeddingICL(BaseICL):
         self.base_model = base_model
         self._get_example_embeddings(embedding_pth)
         self._get_example_list(examples_pth)
-        self._load_demonstration_selector()
+        self._load_demonstration_selector(sav_type=embedding_pth.split('.')[-1])
         self.retriever_key_list = retriever_key_list
 
-    def _load_demonstration_selector(self):
-        self.example_selector = CosineSimilarityRetriever(example_list=self.examples,
-                                                          embeddings=self.embeddings)
+    def _load_demonstration_selector(self, sav_type='npy'):
+        if sav_type == 'npy':
+            self.example_selector = CosineSimilarityRetriever(example_list=self.examples,
+                                                            embeddings=self.embeddings)
+        elif sav_type == 'index':
+            self.example_selector = FaissRetriever(example_list=self.examples,
+                                                            index=self.embeddings)
 
     def _get_example_embeddings(self, embedding_pth):
         self.embeddings = load_file(embedding_pth)
