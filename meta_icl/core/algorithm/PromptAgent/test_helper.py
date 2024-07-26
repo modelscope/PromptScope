@@ -2,11 +2,10 @@ import os
 from tqdm import tqdm
 import time
 from datetime import  timedelta
-from .world_model.prompts import *
-from tasks import *
-from .utils import *
-from .language_model import get_language_model
-import glob
+from meta_icl.core.algorithm.PromptAgent.world_model.prompts import *
+from meta_icl.core.algorithm.PromptAgent.tasks import *
+from meta_icl.core.algorithm.PromptAgent.utils import *
+from meta_icl.core.algorithm.PromptAgent.language_model import get_language_model
 
 
 

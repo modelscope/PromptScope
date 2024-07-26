@@ -1,8 +1,8 @@
-from .gradient_descent import *
-from ..test_helper import eval_instruction_with_loader
+from meta_icl.core.models.gradient_descent import *
+from meta_icl.core.algorithm.PromptAgent.test_helper import eval_instruction_with_loader
 from typing import Generic
-from ..search_algo.base_algo import State, Action
-from ..search_algo.beam_search import BeamNode
+from meta_icl.core.algorithm.PromptAgent.search_algo.base_algo import State, Action
+from meta_icl.core.algorithm.PromptAgent.search_algo.beam_search import BeamNode
 
 class BeamSearchWorldModel(Generic[State, Action]):
     def __init__(
@@ -125,4 +125,3 @@ class BeamSearchWorldModel(Generic[State, Action]):
         )
         
         return evaludate_output
-

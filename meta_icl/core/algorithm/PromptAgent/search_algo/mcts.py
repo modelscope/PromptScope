@@ -8,6 +8,7 @@ import numpy as np
 from copy import deepcopy
 from typing import Generic, Optional
 from .base_algo import SearchAlgo, State, Action
+from pathlib import Path
 
 class MCTSNode(Generic[State, Action]):
     id_iter = itertools.count()
@@ -470,6 +471,11 @@ class MCTS(SearchAlgo, Generic[State, Action]):
         for key in mcts_output:
             if key != "all_paths":
                 data_to_save[key] = [node.to_dict() for node in mcts_output[key]]
+
+        if not os.path.isdir(self.log_dir):
+            os.makedirs(self.log_dir)
+        output_path = Path(output_path)
+        
         with open(os.path.join(self.log_dir, 'data.json'), 'w') as f:
             json.dump(data_to_save, f, indent=4)
             
