@@ -113,10 +113,10 @@ class FaissRetriever(BaseRetriever):
         :param num: int, the number of selection
         :return: {"selection_idx": list, "selection_score": list}
         """
-        D, I = self.index.search(query_embedding, num)
-
-        return {"selection_idx": I,
-                "selection_score": D}
+        import numpy as np
+        D, I = self.index.search(np.array(query_embedding).reshape(1, -1), num)
+        return {"selection_idx": I[0],
+                "selection_score": [1/x for x in D]}
     
     def get_examples(self, selection_ids: List) -> List:
         """
