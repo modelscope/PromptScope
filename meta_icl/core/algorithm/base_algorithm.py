@@ -60,4 +60,13 @@ class DemonstrationAugmentation(ABC):
     def run(self):
         pass
 
+    @abstractmethod
+    def step(self):
+        pass
+
+    @abstractmethod
+    def update_with_error(self):
+        pass
+
+    
     

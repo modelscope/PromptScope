@@ -95,7 +95,9 @@ class MCTS(SearchAlgo, Generic[State, Action]):
         # log
         log = True,
         logger=None, 
-        log_dir = None,
+
+        # output path
+        output_path = None,
         **kwargs) -> None:
         
         """
@@ -126,7 +128,7 @@ class MCTS(SearchAlgo, Generic[State, Action]):
         # output
         self.log = log
         self.logger = logger
-        self.log_dir = log_dir
+        self.output_path = output_path
         self.k = 1 # top-k reward nodes
         self.trace_in_each_iter: list[list[MCTSNode]] = None
         self.root: Optional[MCTSNode] = None
@@ -278,22 +280,10 @@ class MCTS(SearchAlgo, Generic[State, Action]):
                 new cum_reward: {node.cum_rewards[-1]:.4f}')
             
         cum_rewards = cum_rewards[::-1]
-        return cum_rewards
-    
-    def iterate(self, node: MCTSNode) -> list[MCTSNode]:
-        """
-        MCTS iteration: Selection, Expansion, Simulation, Back-Propagation
-        """
-        path = self._select(node)
-        if not self._is_terminal_with_depth_limit(path[-1]):
-            self._expand(path[-1])
-            self._simulate(path)
-        cum_rewards = self._back_propagate(path)
-                    
-        return path, cum_rewards
+        return cum_rewards   
 
-    def search(self, init_state: str):
-
+    def before_search(self, init_state: str):
+        self.nodes = []
         self.root = self.world_model.build_root(init_state)
         self.root.reward = self.root.cal_reward()
         self.nodes.append(self.root)
@@ -303,13 +293,19 @@ class MCTS(SearchAlgo, Generic[State, Action]):
             self.increase_threshold(self.root.reward)
 
         self.trace_in_each_iter = []
-        for i in range(self.iteration_num):
-            if self.log: self.logger.info(
-                f'---------------------  iteration {i} ------------------------')
-            
-            path, cum_rewards = self.iterate(self.root)
-            self.trace_in_each_iter.append(deepcopy(path))
+    def search(self):
+        path = self._select(self.root)
+        return path
+
+    def update_nodes(self, path):
+        if not self._is_terminal_with_depth_limit(path[-1]):
+            self._expand(path[-1])
+            self._simulate(path)
+        cum_rewards = self._back_propagate(path)
+        self.trace_in_each_iter.append(deepcopy(path))
+        return path, cum_rewards
         
+    def after_search(self):
         mcts_output = self.prepare_output()
         self.output_to_json(mcts_output=mcts_output)
         return self.trace_in_each_iter, mcts_output
@@ -353,7 +349,7 @@ class MCTS(SearchAlgo, Generic[State, Action]):
     
     def log_vars(self):
         self.logger.info('-------------------- MCTS -----------------------')
-        ignored_print_vars = ['task', 'log_dir', 'logger', 'trace_in_each_iter', 'root', 'nodes']
+        ignored_print_vars = ['task', 'output_path', 'logger', 'trace_in_each_iter', 'root', 'nodes']
         vars_dict = vars(self)
         for var_name in vars_dict:
             if var_name in ignored_print_vars: continue
@@ -472,10 +468,9 @@ class MCTS(SearchAlgo, Generic[State, Action]):
             if key != "all_paths":
                 data_to_save[key] = [node.to_dict() for node in mcts_output[key]]
 
-        if not os.path.isdir(self.log_dir):
-            os.makedirs(self.log_dir)
-        output_path = Path(output_path)
+        if not os.path.isdir(self.output_path):
+            os.makedirs(self.output_path)
         
-        with open(os.path.join(self.log_dir, 'data.json'), 'w') as f:
+        with open(os.path.join(self.output_path, 'data.json'), 'w') as f:
             json.dump(data_to_save, f, indent=4)
             
