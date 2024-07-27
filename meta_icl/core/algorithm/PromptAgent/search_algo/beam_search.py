@@ -97,7 +97,7 @@ class BeamSearch(SearchAlgo):
             self.logger.info(f'{var_name} : {var_value}')
         self.logger.info('-------------------------------------------')
         
-    def expand(self, node:BeamNode):
+    def _expand(self, node:BeamNode):
         self.logger.info(f'------------------  expand node {node.id} ---------------------')
         while True:
             new_nodes = []
@@ -117,29 +117,31 @@ class BeamSearch(SearchAlgo):
             return metric[0]
         else:
             return metric
-        
-    def search(self, init_state: str, **kwargs):
-        
+    
+    def before_search(self, init_state: str):
         self.root = self.world_model.build_root(init_state)
         self.all_nodes.append(self.root)
         nodes = []
         for i in range(self.expand_width):
-            new_nodes = self.expand(self.root)
+            new_nodes = self._expand(self.root)
             nodes.extend(new_nodes)
         
         nodes = sorted(nodes, key=lambda node: self._sort_helper(node.eval_metric), reverse=True)[:self.beam_width]
         self.nodes = nodes
-        
-        for i in range(self.depth_limit):
-            self.logger.info(f'----------------  iteration {i} ----------------')
-            nodes = []
-            for node in self.nodes:
-                new_nodes = self.expand(node)
-                nodes.extend(new_nodes)
-            nodes = sorted(nodes, key=lambda node: self._sort_helper(node.eval_metric), reverse=True)[:self.beam_width]
-            self.all_nodes.extend(nodes)
-            self.nodes = nodes
-        
+    def search(self, i):
+        if self.log: self.logger.info(
+            f'----------------  iteration {i} ----------------')
+        return
+    def update_nodes(self):
+        nodes = []
+        for node in self.nodes:
+            new_nodes = self._expand(node)
+            nodes.extend(new_nodes)
+        nodes = sorted(nodes, key=lambda node: self._sort_helper(node.eval_metric), reverse=True)[:self.beam_width]
+        self.all_nodes.extend(nodes)
+        self.nodes = nodes
+
+    def after_search(self):
         output = self.prepare_output()
         self.output_to_json(output=output)
         
