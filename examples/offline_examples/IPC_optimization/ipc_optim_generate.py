@@ -39,7 +39,7 @@ pipeline = IPC_Optimization()
 
 if not best_prompt:
     kwargs['mode'] = 'ranking'
-    best_prompt = pipeline.run_pipeline(**kwargs)
+    best_prompt = pipeline.run(**kwargs)
 
 kwargs['mode'] = 'generation'
 pipeline.samples = None
@@ -50,4 +50,4 @@ CONFIG_REGISTRY.batch_register(generate_config_params)
 # CONFIG_REGISTRY.module_dict['eval_config'].instruction = best_prompt
 pipeline = IPC_Optimization()
 pipeline.init_config()
-best_prompt = pipeline.run_pipeline(**kwargs)
+best_prompt = pipeline.run(**kwargs)
