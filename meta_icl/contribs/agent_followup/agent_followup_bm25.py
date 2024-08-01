@@ -7,6 +7,7 @@ from meta_icl.contribs.app_main_followup.prompt.prompt_4_icl_followups import (f
                                                                                formatting_answer_out,
                                                                                formatting_multimodal_type_main_chat)
 import json
+from meta_icl import CONFIG_REGISTRY
 
 
 
@@ -46,8 +47,8 @@ class AppMainFollowupBM25(BM25ICL):
 
 @timer
 def get_BM25_followup_results(cur_query: dict,
-                              task_configs: dict,
-                              icl_configs: dict,
+                              task_configs: dict = None,
+                              icl_configs: dict = None,
                               file_type="no", **kwargs):
     """
     """
@@ -56,6 +57,11 @@ def get_BM25_followup_results(cur_query: dict,
     else:
         formatting_function = formatting_multimodal_type_main_chat
 
+
+    if task_configs is None:
+        task_configs = CONFIG_REGISTRY.module_dict['task_configs']
+    if icl_configs is None:
+        icl_configs = CONFIG_REGISTRY.module_dict['icl_configs']
     BM25_retriever_configs = icl_configs.get("BM25_retriever_configs")
     followup_generator = AppMainFollowupBM25(icl_configs=BM25_retriever_configs,
                                              task_configs=task_configs)

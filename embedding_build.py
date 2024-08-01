@@ -1,10 +1,73 @@
 import json
-from meta_icl.core.utils import get_embedding, sav_json, load_json_file
+from meta_icl.core.utils import (
+    # get_embedding,
+    sav_json,
+    load_json_file)
 from meta_icl.core.utils import load_jsonl, get_current_date, load_file, organize_text_4_embedding
 
 import re, os, time
 import numpy as np
+import dashscope
+from http import HTTPStatus
 
+from typing import Generator, List
+from loguru import logger
+import requests
+
+# KEY = ""
+# KEY = "***REMOVED***"
+# inl_key = ""
+# dashscope.api_key = inl_key
+DASHSCOPE_MAX_BATCH_SIZE = 25
+def batched(inputs: List,
+            batch_size: int = DASHSCOPE_MAX_BATCH_SIZE) -> Generator[List, None, None]:
+    for i in range(0, len(inputs), batch_size):
+        yield inputs[i:i + batch_size]
+
+def get_embedding(inputs: list,
+                  embedding_model='text_embedding_v2'):
+    # inl_key = ""
+    # dashscope.api_key = inl_key
+
+    # dashscope.base_http_api_url = 'https://dashscope-intl.aliyuncs.com/api/v1'
+    # url = 'http://pre-dashscope-intl.aliyuncs.com/api/v1'
+    #
+    # headers = {'X-Request-Id': "request_id",
+    #            'Content-Type': 'application/json',
+    #            # 'X-DashScope-Service': 'SYS_SFT_ENHANCE_SYS_APP',
+    #            'X-DashScope-Uid': "test"}
+    #
+    # data = {'model': embedding_model, 'input': inputs, }
+    # resp = requests.post(url=url, headers=headers, data=json.dumps(data))
+    # print(resp.status_code)
+    # # return_dict = json.loads(resp.keys())
+    # print(resp)
+
+    if embedding_model == 'text_embedding_v1' or embedding_model == 'text_embedding_v2':
+        print(dashscope.api_key)
+        print(f"dashscope.base_http_api_url: {dashscope.base_http_api_url}")
+        if embedding_model == 'text_embedding_v1':
+            embedding_model = dashscope.TextEmbedding.Models.text_embedding_v1
+        else:
+            embedding_model = dashscope.TextEmbedding.Models.text_embedding_v2
+        result = None  # merge the results.
+        batch_counter = 0
+        for batch in batched(inputs):
+            resp = dashscope.TextEmbedding.call(
+                model=embedding_model,
+                input=batch)
+            if resp.status_code == HTTPStatus.OK:
+                if result is None:
+                    result = resp
+                else:
+                    for emb in resp.output['embeddings']:
+                        emb['text_index'] += batch_counter
+                        result.output['embeddings'].append(emb)
+                    result.usage['total_tokens'] += resp.usage['total_tokens']
+            else:
+                print(resp)
+            batch_counter += len(batch)
+    return result
 
 def get_intention_list(example_pth, intention_key, intention_config=None):
     if intention_config is not None:
@@ -143,8 +206,8 @@ def build_example_stock(example_list,
 
     embedding_array = np.vstack(query_embedding_list)
 
-    embedding_sav_pth = os.path.join(sav_dir,
-                                     f'{prefix}_emb_model:<{embedding_model}>_search_key:{search_key}_examples_ver_{cur_time}.npy')
+    embedding_sav_pth = os.path.join(sav_dir, "model_opt_v2_emb_model_text_embedding_v2_examples_ver_2024_05_15_22_41_44.npy")
+                                     # f'{prefix}_emb_model:<{embedding_model}>_search_key:{search_key}_examples_ver_{cur_time}.npy')
 
     np.save(embedding_sav_pth, embedding_array)
     return embedding_sav_pth
@@ -242,19 +305,33 @@ def update_icl_configs(config_pth, embedding_pth, embedding_model, examples_list
 save the examples embeddings as json file: {"embeddings": List of vector, "examples": List of dict, "search_key": str}
 '''
 if __name__ == '__main__':
-    build_embedding_config_pth = "conf/stock_embedding_build_configs/app_emb_configs_str.json"
-    # build_embedding_config_pth = "conf/stock_embedding_build_configs/app_emb_configs_multimodal.json"
-    emb_build_configs = load_json_file(build_embedding_config_pth)
-    embedding_model = emb_build_configs["embedding_model"]
-    examples_list_pth = emb_build_configs["examples_list_pth"]
-    icl_config_pth = emb_build_configs["icl_config_pth"]
-    search_key = emb_build_configs["search_key"]
-    sav_dir = emb_build_configs["sav_dir"]
-    eval_key_list = emb_build_configs["eval_key_list"]
-    prefix = emb_build_configs["prefix"]
+    # build_embedding_config_pth = "conf/stock_embedding_build_configs/app_emb_configs_str.json"
+    # # build_embedding_config_pth = "conf/stock_embedding_build_configs/app_emb_configs_multimodal.json"
+    # emb_build_configs = load_json_file(build_embedding_config_pth)
+    # embedding_model = emb_build_configs["embedding_model"]
+    # examples_list_pth = emb_build_configs["examples_list_pth"]
+    # icl_config_pth = emb_build_configs["icl_config_pth"]
+    # search_key = emb_build_configs["search_key"]
+    # sav_dir = emb_build_configs["sav_dir"]
+    # eval_key_list = emb_build_configs["eval_key_list"]
+    # prefix = emb_build_configs["prefix"]
+    #
+    # update_example(example_pth=examples_list_pth, search_key=search_key, prefix=prefix,
+    #                sav_dir=sav_dir, icl_config_pth=icl_config_pth,
+    #                embedding_model=embedding_model,
+    #                eval_key_list=eval_key_list
+    #                )
+    # input_list = ["你好呀"]
+    # print(get_example_embeddings(input_list, embedding_model="text_embedding_v2"))
 
-    update_example(example_pth=examples_list_pth, search_key=search_key, prefix=prefix,
-                   sav_dir=sav_dir, icl_config_pth=icl_config_pth,
-                   embedding_model=embedding_model,
-                   eval_key_list=eval_key_list
-                   )
+    example_list = load_json_file(json_file_path="log/prompt_opt_examples_ver_2.json")
+    search_key = "query"
+    sav_dir = './'
+
+    build_example_stock(example_list,
+                        search_key,
+                        sav_dir,
+                        sav_type='npy',
+                        prefix='',
+                        embedding_model="text_embedding_v2",
+                        cur_time=None)

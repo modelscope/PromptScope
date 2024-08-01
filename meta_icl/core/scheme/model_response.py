@@ -1,5 +1,5 @@
 import json
-from typing import Generator, List, Dict, Any
+from typing import Generator, List, Dict, Any, Union
 
 from pydantic import BaseModel, Field
 
@@ -8,7 +8,7 @@ from meta_icl.core.scheme.message import Message
 
 
 class ModelResponse(BaseModel):
-    message: Message | None = Field(None, description="generation model result")
+    message: Union[Message, None] = Field(None, description="generation model result")
 
     delta: str = Field("", description="New text that just streamed in (only used when streaming)")
 
@@ -29,7 +29,7 @@ class ModelResponse(BaseModel):
 
             if isinstance(value, str):
                 result[key] = value
-            elif isinstance(value, list | dict):
+            elif isinstance(value, (list, dict)):
                 result[key] = f"{str(value)[:max_size]}... size={len(value)}"
             elif isinstance(value, ModelEnum):
                 result[key] = value.value

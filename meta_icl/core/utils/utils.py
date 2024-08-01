@@ -292,7 +292,7 @@ def revert_combined_session_2_csv(json_file_path, csv_file_path: str = None):
     data = load_json_file(json_file_path)
     dict_key_name = ["session_id"]
 
-    key_list_except_session_id = data[0]['conversations'][0].keys()
+    key_list_except_session_id = data[1]['conversations'][0].keys()
     dict_key_name.extend(key_list_except_session_id)
     csv_data = {key: [] for key in dict_key_name}
     for idx in range(len(data)):
