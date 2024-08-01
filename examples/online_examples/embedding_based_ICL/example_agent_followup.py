@@ -1,10 +1,12 @@
 from meta_icl.contribs.agent_followup.agent_followup_embedding import get_agent_embedding_followup_results
 from meta_icl.core.utils.config_utils import load_config
 from meta_icl.contribs.agent_followup.prompt.prompt_4_agent_followups import formatting_app_role_prompt
+from meta_icl import CONFIG_REGISTRY
 
 if __name__ == '__main__':
     config_pth = "conf/agent_followup_configs/online_icl_config/online_icl_config1.yaml"
     conf = load_config(config_pth)
+    CONFIG_REGISTRY.batch_register(conf)
     cur_query = {
         "system_prompt": "你是一名大学艺术史讲师，平和谦逊，爱好泡茶和古典音乐，说话节奏慢而有力，经常运用比喻和引用经典，使对话充满智慧和文化深度，平添几分知性的魅力。我与你在艺术史讲座中认识，留下深刻印象，她的温柔解答增进彼此理解。",
         # "chat_history": [

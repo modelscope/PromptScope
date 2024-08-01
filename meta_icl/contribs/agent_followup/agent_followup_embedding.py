@@ -1,5 +1,5 @@
 from meta_icl.core.online_icl.icl import EmbeddingICL
-from meta_icl.core.utils import timer
+from meta_icl.core.utils.utils import timer
 
 from meta_icl.contribs.agent_followup.prompt.prompt_4_agent_followups import formatting_answer_out
 
@@ -36,9 +36,9 @@ def get_agent_embedding_followup_results(cur_query: dict,
     followup_generator = AgentFollowupEmbedding(embedding_icl_configs=embedding_retriever_configs,
                                                 task_configs=task_configs)
     results = followup_generator.get_results(
-    cur_query,
-    formatting_function=formatting_function,
-    num=num_selection, **kwargs
+        cur_query,
+        formatting_function=formatting_function,
+        num=num_selection, **kwargs
     )
     print(results)
     results = formatting_answer_out(results)

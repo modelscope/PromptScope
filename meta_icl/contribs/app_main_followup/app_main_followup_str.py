@@ -35,11 +35,10 @@ class AppMainFollowup(EmbeddingICL):
 
 def get_followup_results(cur_query: dict,
                          embedding_key: list,
-                         base_model: str,
-                         embedding_pth,
-                         examples_pth,
+                         base_model: str = None,
+                         embedding_pth: str = None,
+                         examples_pth: str = None,
                          embedding_model=None,
-                         model_config=None,
                          task_config=None,
                          num=3,
                          file_type="no"):

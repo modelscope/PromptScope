@@ -6,18 +6,10 @@ from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embe
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
 from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
+from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from loguru import logger
-
-
-# def get_results(icl_instance, cur_query: dict, search_key_list: list, formatting_function, num=3, **kwargs):
-#     query = icl_instance.get_meta_prompt(cur_query=cur_query,
-#                                          num=num, search_key_list=search_key_list,
-#                                          formatting_function=formatting_function)
-#     print(query)
-#     message = message_formatting(system_prompt='You are a helpful assistant', query=query)
-#     res = call_llm_with_message(messages=message, model=icl_instance.base_model, **kwargs)
-#     print(res)
-#     return res
+import time
+from meta_icl import CONFIG_REGISTRY
 
 
 class BaseICL(ABC):
@@ -45,12 +37,18 @@ class BM25ICL(BaseICL):
                  examples_pth,
                  retriever_key_list,
                  task_configs=None):
-        self.base_model = base_model
         self.BM25_index_pth = BM25_index_pth
         self._load_demonstration_list(examples_pth)
         self._load_demonstration_selector()
         self.retriever_key_list = retriever_key_list
-        self.task_configs = task_configs
+        if task_configs is not None:
+            self.task_configs = task_configs
+        else:
+            self.task_configs = CONFIG_REGISTRY.module_dict['task_configs']
+        if base_model is not None:
+            self.base_model = base_model
+        else:
+            self.base_model = LlamaIndexGenerationModel(**self.task_configs["model_config"]["generation"])
 
     def _load_demonstration_selector(self):
         self.example_selector = BM25Retriever(example_list=self.example_list,
@@ -89,9 +87,9 @@ class BM25ICL(BaseICL):
 
 
 class EmbeddingICL(BaseICL):
-    def __init__(self, base_model,
-                 embedding_pth,
-                 examples_pth,
+    def __init__(self, base_model=None,
+                 embedding_pth=None,
+                 examples_pth=None,
                  embedding_model=None,
                  task_configs=None,
                  retriever_key_list: List = None
@@ -110,10 +108,14 @@ class EmbeddingICL(BaseICL):
             self.embedding_model = embedding_model
         else:
             self.embedding_model = "text_embedding_v1"
-
-        self.task_configs = task_configs
-
-        self.base_model = base_model
+        if task_configs is not None:
+            self.task_configs = task_configs
+        else:
+            self.task_configs = CONFIG_REGISTRY.module_dict['task_configs']
+        if base_model is not None:
+            self.base_model = base_model
+        else:
+            self.base_model = LlamaIndexGenerationModel(**self.task_configs["model_config"]["generation"])
         self._get_example_embeddings(embedding_pth)
         self._get_example_list(examples_pth)
         self._load_demonstration_selector(sav_type=embedding_pth.split('.')[-1])
@@ -122,10 +124,10 @@ class EmbeddingICL(BaseICL):
     def _load_demonstration_selector(self, sav_type='npy'):
         if sav_type == 'npy':
             self.example_selector = CosineSimilarityRetriever(example_list=self.examples,
-                                                            embeddings=self.embeddings)
+                                                              embeddings=self.embeddings)
         elif sav_type == 'index':
             self.example_selector = FaissRetriever(example_list=self.examples,
-                                                            index=self.embeddings)
+                                                   index=self.embeddings)
 
     def _get_example_embeddings(self, embedding_pth):
         self.embeddings = load_file(embedding_pth)
@@ -142,11 +144,8 @@ class EmbeddingICL(BaseICL):
 
         :return: the meta prompt
         """
-        embedding_key = self.retriever_key_list
+
         try:
-            # test_to_query_embedding = organize_text_4_embedding(example_list=[cur_query],
-            #                                                     search_key=self.retriever_key_list)
-            # query_embedding = get_single_embedding(test_to_query_embedding, embedding_model=self.embedding_model)
             query_embedding = get_single_embedding([cur_query], embedding_model=self.embedding_model,
                                                    search_key=self.retriever_key_list)
             selection_results = self.example_selector.topk_selection(query_embedding=query_embedding, num=num)
@@ -169,6 +168,10 @@ class EmbeddingICL(BaseICL):
                                      formatting_function=formatting_function)
         logger.info(f"query: {query}")
         message = message_formatting(system_prompt='You are a helpful assistant', query=query)
+        start_time = time.time()
         res = call_llm_with_message(messages=message, model=self.base_model, **kwargs)
+        # res = self.base_model.call(messages=message).message.content
+        end_time = time.time()
+        logger.info(f"total: {end_time-start_time}")
         logger.info(f"res: {res}")
         return res

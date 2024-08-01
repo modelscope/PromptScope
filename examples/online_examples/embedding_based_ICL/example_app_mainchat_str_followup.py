@@ -17,7 +17,6 @@ if __name__ == '__main__':
                                    embedding_pth=conf["icl_configs"]["embedding_retriever_configs"]["embedding_pth"],
                                    examples_pth=conf["icl_configs"]["embedding_retriever_configs"]["examples_pth"],
                                    embedding_model=conf["icl_configs"]["embedding_retriever_configs"]["embedding_model"],
-                                   model_config=None,
                                    task_config=conf["task_configs"],
                                    num=conf["icl_configs"]["topk"])
     print(results)
