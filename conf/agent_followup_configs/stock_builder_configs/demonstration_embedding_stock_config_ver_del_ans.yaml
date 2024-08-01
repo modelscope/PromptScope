@@ -1,5 +1,5 @@
 embedding_model: "text_embedding_v2"
-examples_list_pth: "data/app_data/agent_followup_data/demonstrations/role_followups_full_reformat.json"
+examples_list_pth: "data/app_data/agent_followup_data/demonstrations/role_followups_full_reformat_del_last_ans.json"
 icl_config_pth:  "conf/agent_followup_configs/online_icl_config/online_icl_config_ver_del_ans.yaml"
 search_key: ["system_prompt", "chat_history", "last_query"]
 sav_dir: "data/app_data/agent_followup_data/icl_data"

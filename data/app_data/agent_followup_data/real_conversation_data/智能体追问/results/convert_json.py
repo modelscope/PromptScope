@@ -30,10 +30,6 @@ if __name__ == '__main__':
 
     if data_pth is not None:
         convert_json_2_xlx(data_pth)
-
-
-
-
     if data_dir is not None:
         import os
         file_list = os.listdir(data_dir)
