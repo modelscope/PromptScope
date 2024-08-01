@@ -1,13 +1,12 @@
-from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
-import argparse
 import os
 from pathlib import Path
 import json
 
-from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.utils.logger import Logger
 from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
+from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
 
 logger = Logger.get_logger(__name__)
 basic_config_path = 'ipc_aug_cn.yml'
