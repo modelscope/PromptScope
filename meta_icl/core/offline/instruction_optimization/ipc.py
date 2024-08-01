@@ -8,7 +8,7 @@ import random
 from meta_icl.core.evaluation.evaluator import Eval
 from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
 from meta_icl.core.utils.logger import Logger
-from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
 from meta_icl.core.algorithm.base_algorithm import PromptOptimizationWithFeedback
@@ -56,7 +56,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         if hasattr(self, 'eval'):
             self.eval.init_config()
     def init_prompt(self):
-        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'{self.task_config.language.lower()}.yml')))
+        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'ipc_{self.task_config.language.lower()}.yml')))
 
     def run(self, **kwargs):
         # Run the optimization pipeline for num_steps
