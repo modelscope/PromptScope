@@ -35,7 +35,7 @@ def get_embedding(inputs: list,
     # headers = {'X-Request-Id': "request_id",
     #            'Content-Type': 'application/json',
     #            # 'X-DashScope-Service': 'SYS_SFT_ENHANCE_SYS_APP',
-    #            'X-DashScope-Uid': "test"}
+    #            'X-DashScope-Uid': "tests"}
     #
     # data = {'model': embedding_model, 'input': inputs, }
     # resp = requests.post(url=url, headers=headers, data=json.dumps(data))

@@ -10,7 +10,7 @@ parser.add_argument("--stock_builder_config_pth", type=str,
 if __name__ == '__main__':
     args = parser.parse_args()
     stock_builder_config_pth = args.stock_builder_config_pth
-    stock_builder_config_pth = "conf/agent_followup_configs/stock_builder_configs/demonstration_embedding_stock_config.yaml"
+    # stock_builder_config_pth = "conf/agent_followup_configs/stock_builder_configs/demonstration_embedding_stock_config.yaml"
     prepare_embedding_stock(stock_builder_config_pth)
 
     #
