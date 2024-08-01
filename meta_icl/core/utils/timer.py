@@ -1,8 +1,5 @@
 import time
 
-# from memory_scope.utils.logger import Logger
-
-
 class Timer(object):
 
     def __init__(self, name: str, log_time: bool = True, use_ms: bool = True, **kwargs):
@@ -10,8 +7,6 @@ class Timer(object):
         self.log_time: bool = log_time
         self.use_ms: bool = use_ms
         self.kwargs: dict = kwargs
-
-        # self.logger = Logger.get_logger()
 
         # time record
         self.t_start = 0
@@ -52,8 +47,6 @@ class Timer(object):
 
             if self.kwargs:
                 line = f"{line} {self.kwargs_to_str(**self.kwargs)}"
-
-            # self.logger.info(line, stacklevel=3)
 
     @property
     def cost_str(self):
