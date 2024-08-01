@@ -5,13 +5,15 @@ from datetime import datetime
 
 from meta_icl.core.utils.sys_prompt_utils import (get_embedding, message_formatting, call_llm_with_message, sav_json,
                                                   load_json_file)
+from easydict import EasyDict as edict
+
 import time
 import re
 from functools import wraps
 from loguru import logger
 
 import yaml
-
+import sys
 
 def timer(func):
     @wraps(func)
@@ -321,6 +323,19 @@ def convert_json_2_yaml(json_file_path, yaml_file_path):
         logger.info(f"load json file: {json_file_path}")
     sav_yaml(data=data, yaml_file_path=yaml_file_path)
 
+def load_yaml(yaml_path: str, as_edict: bool = True) -> edict:
+    """
+    Reads the yaml file and enrich it with more vales.
+    :param yaml_path: The path to the yaml file
+    :param as_edict: If True, returns an EasyDict configuration
+    :return: An EasyDict configuration
+    """
+    print(sys.path)
+    with open(yaml_path, 'r') as file:
+        yaml_data = yaml.safe_load(file)
+    if as_edict:
+        yaml_data = edict(yaml_data)
+    return yaml_data
 
 def load_yaml_file(yaml_file_path):
     try:

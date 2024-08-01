@@ -45,7 +45,7 @@ import sys
 import argparse
 import datetime
 
-from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.utils.logger import Logger
 from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from meta_icl import CONFIG_REGISTRY

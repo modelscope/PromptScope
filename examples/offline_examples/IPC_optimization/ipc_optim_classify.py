@@ -1,13 +1,13 @@
-from meta_icl.core.offline.instruction_optimization.ipc_classifier import IPC_Optimization
-import argparse
 import os
 from pathlib import Path
 import json
 
-from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.utils.logger import Logger
 from meta_icl import CONFIG_REGISTRY
+from meta_icl.core.offline.instruction_optimization.ipc import IPC_Optimization
+
 
 logger = Logger.get_logger(__name__)
 basic_config_path = 'ipc_optim_classify.yml'
@@ -30,7 +30,7 @@ if hasattr(config_params.task_config, 'input_path'):
 
 # Initializing the pipeline
 pipeline = IPC_Optimization()
-best_prompt = pipeline.run_pipeline(**kwargs)
+best_prompt = pipeline.run(**kwargs)
 
 # res = []
 # for sample in samples:

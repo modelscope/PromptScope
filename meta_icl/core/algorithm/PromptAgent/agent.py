@@ -1,8 +1,9 @@
 import os
 import time
 from datetime import timedelta
+import sys
 
-from meta_icl.core.algorithm.PromptAgent.utils import get_pacific_time, create_logger
+from meta_icl.core.algorithm.PromptAgent.utils import get_pacific_time
 from meta_icl.core.algorithm.PromptAgent.tasks import get_task
 from meta_icl.core.algorithm.PromptAgent.search_algo import get_search_algo
 from meta_icl.core.algorithm.base_algorithm import PromptOptimizationWithFeedback
@@ -10,8 +11,17 @@ from meta_icl.core.utils.logger import Logger
 from meta_icl.core.models.base_model import MODEL_REGISTRY
 from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from meta_icl import CONFIG_REGISTRY
+from meta_icl.core.utils.utils import load_yaml
+from meta_icl import PROMPT_REGISTRY
 
-class PromptAgent():
+
+CORE_PATH = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+)
+sys.path.insert(0, CORE_PATH)
+
+PROMPT_PATH = os.path.join(CORE_PATH, 'prompt')
+class PromptAgent(PromptOptimizationWithFeedback):
     def __init__(self) -> None:
         """
         PromptAgent: set up task, logger, search algorithm, world model
@@ -28,8 +38,13 @@ class PromptAgent():
         self.logger = Logger.get_logger(__name__)
         self.logger.info(exp_name)
 
+        self.init_prompt()
+
         self.init_model()
-    
+
+    def init_prompt(self):
+        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(PROMPT_PATH, f'prompt_agent_{self.task_config.language.lower()}.yml')))
+
     def init_config(self):
         self.basic_config = CONFIG_REGISTRY.module_dict["basic_config"]
         self.task_config = CONFIG_REGISTRY.module_dict["task_config"]
@@ -74,13 +89,13 @@ class PromptAgent():
             self.logger.info(
             f'---------------------  iteration {i} ------------------------')
             self.step()
-        states, result_dict = self.search_algo.after_search()
 
+        states, result_dict = self.extract_best_prompt()
         end_time = time.time()
         exe_time = str(timedelta(seconds=end_time-start_time)).split('.')[0]
         self.logger.info(f'\nDone!Excution time: {exe_time}')
         return states, result_dict
-    
+
     def step(self):
         self.logger.info('Searching Path')
         path = self.search_algo.search()
@@ -88,6 +103,9 @@ class PromptAgent():
         path, cum_rewards = self.update_with_error(path)
     def update_with_error(self, path):
         return self.search_algo.update_nodes(path)
+    
+    def extract_best_prompt(self):
+        return self.search_algo.after_search()
 
 
     
