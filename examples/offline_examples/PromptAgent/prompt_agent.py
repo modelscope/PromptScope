@@ -1,6 +1,6 @@
 import argparse
 from meta_icl.core.algorithm.PromptAgent.agent import PromptAgent
-from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.utils.logger import Logger
 
 from meta_icl import CONFIG_REGISTRY

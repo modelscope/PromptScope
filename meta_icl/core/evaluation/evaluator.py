@@ -3,7 +3,6 @@ import os
 
 from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from meta_icl.core.utils.logger import Logger
-from meta_icl.core.utils.ipc_config import load_yaml
 from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
 import random
 

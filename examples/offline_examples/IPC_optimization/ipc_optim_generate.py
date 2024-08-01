@@ -1,13 +1,14 @@
-from meta_icl.core.offline.instruction_optimization.ipc_classifier import IPC_Optimization
 import os
 from pathlib import Path
 import json
 import pickle as pkl
 
-from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.utils.logger import Logger
 from meta_icl import CONFIG_REGISTRY
+from meta_icl.core.offline.instruction_optimization.ipc import IPC_Optimization
+
 
 logger = Logger.get_logger(__name__)
 rank_config_path = 'ipc_ranker.yml'
