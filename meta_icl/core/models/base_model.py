@@ -1,8 +1,10 @@
 import inspect
 import time
 from abc import abstractmethod, ABCMeta
-from typing import Any, Union
+from typing import Any, Union, List
+import asyncio
 
+from meta_icl.core.scheme.message import Message
 from meta_icl.core.enumeration.model_enum import ModelEnum
 from meta_icl.core.utils.registry import Registry
 from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
@@ -83,7 +85,7 @@ class BaseModel(metaclass=ABCMeta):
         :param kwargs:
         :return:
         """
-        with Timer(self.__class__.__name__, log_time=False) as t:
+        with Timer(self.__class__.__name__, log_time=False, use_ms=False) as t:
             self.before_call(stream=stream, **kwargs)
             for i in range(self.max_retries):
                 if self.raise_exception:
@@ -94,12 +96,13 @@ class BaseModel(metaclass=ABCMeta):
                     except Exception as e:
                         model_response = ModelResponse(m_type=self.m_type, status=False, details=e.args)
 
-                if isinstance(model_response, ModelResponse) and not model_response.status:
-                    self.logger.warning(f"call model={self.model_name} failed! cost={t.cost_str} retry_cnt={i} "
-                                        f"details={model_response.details}", stacklevel=2)
-                    time.sleep(i * self.retry_interval)
-                else:
-                    return self.after_call(stream=stream, model_response=model_response, **kwargs)
+
+        if isinstance(model_response, ModelResponse) and not model_response.status:
+            self.logger.warning(f"call model={self.model_name} failed! cost={t.cost_str} retry_cnt={i} "
+                                f"details={model_response.details}", stacklevel=2)
+            time.sleep(i * self.retry_interval)
+        else:
+            return self.after_call(stream=stream, model_response=model_response, **kwargs), t.t_end-t.t_start
 
     @abstractmethod
     async def _async_call(self, **kwargs) -> ModelResponse:
@@ -107,26 +110,50 @@ class BaseModel(metaclass=ABCMeta):
         :param kwargs:
         :return:
         """
-
     async def async_call(self, **kwargs) -> ModelResponse:
-        """ 异步不需要stream
-        :param kwargs:
-        :return:
-        """
-        with Timer(self.__class__.__name__, log_time=False) as t:
-            self.before_call(**kwargs)
-            for i in range(self.max_retries):
-                if self.raise_exception:
-                    model_response = self._async_call(**kwargs)
+        semaphore = asyncio.Semaphore(kwargs.get("semaphore", 20))
+        
+        async def task(index, prompt="", messages=None):
+            print(f"Sending question: {prompt or messages}")
+            async with semaphore:
+                for _ in range(self.max_retries):
+                    if self.raise_exception:
+                        if prompt:
+                            response = await self._async_call(prompt=prompt)
+                            print(response)
+                            break
+                        if messages:
+                            response = await self._async_call(messages=messages)
+                            print(response)
+                            break
+                    else:
+                        try:
+                            if prompt:
+                                response = await self._async_call(prompt=prompt)
+                                print(response)
+                                break
+                            if messages:
+                                response = await self._async_call(messages=messages)
+                                print(response)
+                                break
+                            break
+                        except Exception as e:
+                            response = ModelResponse(m_type=self.m_type, status=False, details=e.args)
+                            await asyncio.sleep(1)
+                if response.status_code != 200:
+                    self.logger.warning(f"async_call model={self.model_name} failed! index={index} "
+                                        f"details={response.details}", stacklevel=2)
                 else:
-                    try:
-                        model_response = self._async_call(**kwargs)
-                    except Exception as e:
-                        model_response = ModelResponse(m_type=self.m_type, status=False, details=e.args)
+                    return {"response": response, "index": index}
+        
+        self.before_call(**kwargs)
 
-                if not model_response.status:
-                    self.logger.warning(f"async_call model={self.model_name} failed! cost={t.cost_str} retry_cnt={i} "
-                                        f"details={model_response.details}", stacklevel=2)
-                    time.sleep(i * self.retry_interval)
-                else:
-                    return self.after_call(model_response=model_response, **kwargs)
+        if self.prompts:
+            tasks = [task(i, prompt=self.prompts[i]) for i in range(len(self.prompts))]
+        elif self.messages:
+            tasks = [task(i, messages=self.messages[i]) for i in range(len(self.messages))]
+        responses = await asyncio.gather(*tasks)
+        responses = sorted(responses, key=lambda x: x["index"])
+
+        # print(t.cost_str)
+        return [response["response"] for response in responses]
