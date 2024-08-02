@@ -4,6 +4,7 @@ from meta_icl.core.utils.sys_prompt_utils import (call_llm_with_message, message
 import re, json, os, copy
 import numpy as np
 from meta_icl.core.utils.utils import extract_from_markdown_json
+from loguru import logger
 
 # demonstration = { "uer_prompt": "你是一个智能小助手", "agent_config": { "description": "智能小助手", "instruction": "#
 # 设定\\n作为智能小助手，你具备广泛的知识和高效的信息处理能力。\\n\\n## 技能\\n### 技能1：信息咨询与解答\\n- " "准确回答日常生活、科技、文化等领域的问题，简化复杂概念。\\n\\n###
@@ -32,14 +33,12 @@ ${demonstration}
 other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户问智能体的问题\n2. \"tools\"可选的范围是[\"text-to-image\", \"open-search\", \"code_interpreter\"]"
 
 
-
-def generate_similar_demonstration(
+def demo_augmentation_by_llm_prompt_org(
         demonstration_text,
         demonstration_generation_instruction,
-        model_name,
         num_generated_examples=1,
-        demonstration_requirements=None,
-        model_config=None):
+        demonstration_requirements=None
+):
     """
     generate demonstration based on the reference demonstration (demonstration_text)
     :param demonstration_text:
@@ -68,9 +67,53 @@ def generate_similar_demonstration(
     prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
     print("prompt: \n{}\n".format(prompt))
     prompt = message_formatting(system_prompt=None, query=prompt)
+    return prompt
+
+
+def generate_similar_demonstration(
+        demonstration_text,
+        demonstration_generation_instruction,
+        model_name,
+        num_generated_examples=1,
+        demonstration_requirements=None,
+        model_config=None):
+    """
+    generate demonstration based on the reference demonstration (demonstration_text)
+    :param demonstration_text:
+    :param demonstration_requirements:
+    :param model_name:
+    :param demonstration_generation_instruction:
+    :param num_generated_examples: the number of generated examples
+    :param model_config:
+    """
+    # if demonstration_generation_instruction is not None:
+    #     pass
+    # else:
+    #     demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
+    # # extract demonstration text
+    # if isinstance(demonstration_text, dict):
+    #     demonstration_text = json.dumps(demonstration_text, ensure_ascii=False)
+    #
+    # # replace the variables in demonstration_generation_instruction, including:
+    # # ${demonstration} the reference demonstration
+    # # ${num_generated_examples},
+    # # ${other_requirements}
+    # demonstration_generation_instruction = demonstration_generation_instruction.replace("${demonstration}",
+    #                                                                                     demonstration_text)
+    # demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",
+    #                                                                                     str(num_generated_examples))
+    # prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
+    # print("prompt: \n{}\n".format(prompt))
+    # prompt = message_formatting(system_prompt=None, query=prompt)
+    prompt = demo_augmentation_by_llm_prompt_org(
+        demonstration_text=demonstration_text,
+        demonstration_generation_instruction=demonstration_generation_instruction,
+        num_generated_examples=num_generated_examples,
+        demonstration_requirements=demonstration_requirements
+    )
     model_config = convert_model_name_to_model_config(model_name, add_random=True)
     results = call_llm_with_message(prompt, model=model_name, model_config=model_config)
-    print("[generate_similar_demonstration]-generated results: {}".format(results))
+    logger.info("[generate_similar_demonstration]-generated results: {}".format(results))
     return extract_from_markdown_json(results)
 
 

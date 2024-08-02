@@ -8,5 +8,12 @@ icl_configs:
     - last_query
     topk: 3
 task_configs:
-  base_model: Qwen_14B
+#  base_model: Qwen_14B
   num_questions: 3
+  model_config:
+    generation:
+      module_name: 'dashscope_generation'
+      model_name: 'qwen2-57b-a14b-instruct'
+      clazz: 'models.llama_index_generation_model'
+      max_tokens: 2000
+      seed: 1234

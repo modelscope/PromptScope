@@ -2,18 +2,18 @@
     "icl_configs": {
         "topk": 3,
         "embedding_retriever_configs": {
-            "embedding_pth": "data/app_data/agent_followup_data/icl_data/agent_role_followup_del_ans_emb_model:<text_embedding_v2>_search_key:['system_prompt', 'chat_history', 'last_query']_examples_ver_2024-07-24 11:11:17.npy",
+            "embedding_pth": "data/app_data/agent_followup_data/icl_data/agent_role_followup_del_ans_emb_model:<text_embedding_v2>_search_key:['system_prompt', 'chat_history', 'last_query']_examples_ver_2024-08-01 15:54:14.npy",
             "embedding_model": "text_embedding_v2",
             "search_key": [
                 "system_prompt",
                 "chat_history",
                 "last_query"
             ],
-            "examples_pth": "data/app_data/agent_followup_data/icl_data/agent_role_followup_del_ans_icl_examples_ver_2024-07-24 11:11:17.json"
+            "examples_pth": "data/app_data/agent_followup_data/icl_data/agent_role_followup_del_ans_icl_examples_ver_2024-08-01 15:54:14.json"
         }
     },
     "task_configs": {
-        "base_model": "qwen_14b",
+        "base_model": "qwen2-57b-a14b-instruct",
         "num_questions": 3
     }
 }
