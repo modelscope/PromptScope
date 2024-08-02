@@ -2,8 +2,9 @@
 Registry for different modules.
 Init class according to the class name and verify the input parameters.
 """
+from typing import Dict, Any, List, Union
 
-from typing import Dict, List, Any, Union
+
 
 
 

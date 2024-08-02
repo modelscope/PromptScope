@@ -11,8 +11,9 @@ from meta_icl.core.utils.logger import Logger
 from meta_icl.core.utils.ipc_config import load_yaml
 from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
+from meta_icl.core.algorithm.base_algorithm import PromptOptimizationWithFeedback
 
-class IPC_Optimization(IPC_Generation):
+class IPC_Optimization(PromptOptimizationWithFeedback):
     """
     The main pipeline for intent-based prompt calibration (IPC). The pipeline is composed of 4 main components:
     1. dataset - The dataset handle the data including the annotation and the prediction
@@ -30,11 +31,10 @@ class IPC_Optimization(IPC_Generation):
         :param output_path: The output dir to save dump, by default the dumps are not saved
         """
         super().__init__()
-        
-        self.generation_llm = LlamaIndexGenerationModel(**self.model_config.generation)
-        self.predictor_llm = LlamaIndexGenerationModel(**self.model_config.predictor)
-        self.annotator = LlamaIndexGenerationModel(**self.model_config.annotator)
-        self.prompt_register()
+
+        self.init_config()
+        self.init_model()
+        self.init_prompt()
 
         self.patient = 0
         self.samples = None
@@ -43,6 +43,11 @@ class IPC_Optimization(IPC_Generation):
         self.cur_prompt = self.task_config.instruction
         self.eval = Eval()
     
+    def init_model(self):
+        self.generation_llm = LlamaIndexGenerationModel(**self.model_config.generation)
+        self.predictor_llm = LlamaIndexGenerationModel(**self.model_config.predictor)
+        self.annotator = LlamaIndexGenerationModel(**self.model_config.annotator)
+
     def init_config(self):
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
@@ -50,10 +55,10 @@ class IPC_Optimization(IPC_Generation):
         self.eval_config = CONFIG_REGISTRY.module_dict.get('eval_config', None)
         if hasattr(self, 'eval'):
             self.eval.init_config()
-    def prompt_register(self):
+    def init_prompt(self):
         PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'{self.task_config.language.lower()}.yml')))
 
-    def run_pipeline(self, **kwargs):
+    def run(self, **kwargs):
         # Run the optimization pipeline for num_steps
         if kwargs.get('mode', '') == 'ranking':
             self.modify_input_for_ranker()
@@ -181,6 +186,18 @@ class IPC_Optimization(IPC_Generation):
         self.logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
         self.logger.info(f'Get new prompt:\n{prompt_suggestion}')
         self.cur_prompt = prompt_suggestion
+    
+    def generate(self, prompt: str):
+        """
+        generate samples
+        """
+        batch_input = prompt
+        batch_inputs = IPC_Generation.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
+        samples_batches = IPC_Generation.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
+        samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
+        samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
+        self.logger.info(samples_list)
+        return samples_list
     
     def step_generate(self):
         """

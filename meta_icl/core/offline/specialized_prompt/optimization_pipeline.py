@@ -195,7 +195,7 @@ class IPC:
                        "instruction": self.cur_prompt}
         batch_inputs = self.generate_samples_batch(batch_input, self.config.meta_prompts.num_initialize_samples,
                                                    self.config.meta_prompts.samples_generation_batch)
-        # print("batch_inputs:", batch_inputs)
+        print("batch_inputs:", batch_inputs)
         samples_batches = self.meta_chain.initial_chain.batch_invoke(batch_inputs, self.config.meta_prompts.num_workers)
         # samples_batches = self.meta_chain.initial_chinese_chain.batch_invoke(batch_inputs, self.config.meta_prompts.num_workers)
         # print("samples_batches:", samples_batches)
