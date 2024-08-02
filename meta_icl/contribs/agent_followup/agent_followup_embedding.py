@@ -36,9 +36,9 @@ def get_agent_embedding_followup_results(cur_query: dict,
     followup_generator = AgentFollowupEmbedding(embedding_icl_configs=embedding_retriever_configs,
                                                 task_configs=task_configs)
     results = followup_generator.get_results(
-        cur_query,
-        formatting_function=formatting_function,
-        num=num_selection, **kwargs
+    cur_query,
+    formatting_function=formatting_function,
+    num=num_selection, **kwargs
     )
     print(results)
     results = formatting_answer_out(results)

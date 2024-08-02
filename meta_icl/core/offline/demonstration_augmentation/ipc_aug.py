@@ -3,13 +3,13 @@ from tqdm import tqdm
 import concurrent.futures
 from easydict import EasyDict as edict
 
-
+from meta_icl.core.algorithm.base_algorithm import DemonstrationAugmentation
 from meta_icl.core.utils.logger import Logger
 from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from meta_icl.core.utils.ipc_config import load_yaml
 from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
 
-class IPC_Generation:
+class IPC_Generation(DemonstrationAugmentation):
     """
     The main pipeline for IPC-based demonstration augmentation.
     """
@@ -23,18 +23,20 @@ class IPC_Generation:
         :param output_path: The output dir to save dump, by default the dumps are not saved
         """
         self.init_config()
+        self.init_model()
+        self.init_prompt()
 
-        self.generation_llm = LlamaIndexGenerationModel(**self.model_config.generation)
         self.logger = Logger.get_logger(__name__)
-        self.prompt_register()
 
+    def init_model(self):
+        self.generation_llm = LlamaIndexGenerationModel(**self.model_config.generation)
     def init_config(self):
         """
         Initialize the configuration file
         """
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-    def prompt_register(self):
+    def init_prompt(self):
         PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'{self.task_config.language.lower()}.yml')))
 
 
@@ -75,13 +77,12 @@ class IPC_Generation:
 
         return all_results
     
-    def generate(self, prompt: str):
+    def run(self, prompt: str):
         """
         generate samples
         """
         batch_input = prompt
         batch_inputs = self.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
-        print(batch_inputs)
         samples_batches = self.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
         samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
