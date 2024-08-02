@@ -1,4 +1,5 @@
 import time
+import asyncio
 
 class Timer(object):
 
