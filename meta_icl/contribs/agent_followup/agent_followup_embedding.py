@@ -1,5 +1,5 @@
 from meta_icl.core.online_icl.icl import EmbeddingICL
-from meta_icl.core.utils import timer
+from meta_icl.core.utils.utils import timer
 
 from meta_icl.contribs.agent_followup.prompt.prompt_4_agent_followups import formatting_answer_out
 

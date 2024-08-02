@@ -2,7 +2,8 @@ import os.path
 
 from meta_icl.contribs.agent_followup.agent_followup_embedding import get_agent_embedding_followup_results
 from meta_icl.core.utils.config_utils import load_config
-from meta_icl.contribs.agent_followup.prompt.prompt_4_agent_followups import formatting_app_role_prompt
+from meta_icl.contribs.agent_followup.prompt.prompt_4_agent_followups import (formatting_app_role_prompt,
+                                                                              formatting_app_role_prompt_del_ans_ver)
 from meta_icl.core.utils.sys_prompt_utils import load_json_file
 import copy
 from meta_icl.core.utils import add_duration, get_current_date, sav_json
@@ -40,8 +41,9 @@ def from_cov_2_cur_data(cov_data: list, max_history: int = 5, query_only=False):
         }
 
         cur_query_list.append(cur_query)
-        if len(cur_query_list) > max_history:
-            cur_query_list = cur_query_list[-5:]
+        chat_history.append(last_query)
+        if len(chat_history) > max_history:
+            chat_history = chat_history[-5:]
 
     return cur_query_list
 
@@ -108,7 +110,9 @@ if __name__ == '__main__':
             cur_query = cur_data_list[chat_id]
             try:
                 results, duration = get_results_with_duration(cur_query, conf=conf,
-                                                              formatting_function=formatting_app_role_prompt)
+                                                              formatting_function=formatting_app_role_prompt
+                                                              if query_only != 1 else
+                                                              formatting_app_role_prompt_del_ans_ver)
                 logger.info(results)
                 results_data[session_idx]['conversations'][chat_id]["followups"] = results
                 results_data[session_idx]['conversations'][chat_id]["cost"] = duration
