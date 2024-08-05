@@ -31,10 +31,6 @@ class PromptOptimizationWithFeedback(ABC):
     @abstractmethod
     def extract_best_prompt(self):
         pass
-    
-    @abstractmethod
-    def stop_criteria(self):
-        pass
 
 class DemonstrationAugmentation(ABC):
     """
@@ -58,14 +54,6 @@ class DemonstrationAugmentation(ABC):
 
     @abstractmethod
     def run(self):
-        pass
-
-    @abstractmethod
-    def step(self):
-        pass
-
-    @abstractmethod
-    def update_with_error(self):
         pass
 
     

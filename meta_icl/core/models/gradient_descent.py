@@ -1,13 +1,11 @@
 # The code is modified based on Automatic Prompt Optimization with "Gradient Descent" and Beam Search
 # https://arxiv.org/abs/2305.03495
 
-from meta_icl.core.algorithm.PromptAgent.world_model.prompts.log_prompt_templates import *
-from meta_icl.core.algorithm.PromptAgent.world_model.prompts.gradient_descent_prompts import example_template, optimize_prompt_tempelate_single, \
-    optimize_prompt_tempelate, gradient_prompt_tempelate,\
-    ascend_gradient_prompt_tempelate, ascend_optimize_prompt_tempelate, ascend_optimize_prompt_tempelate_single
-from meta_icl.core.algorithm.PromptAgent.utils import *
 import re
 import numpy as np
+
+from meta_icl.core.algorithm.PromptAgent.utils import *
+from meta_icl import PROMPT_REGISTRY
 
 class GradientDescent():
     def __init__(self, 
@@ -27,14 +25,20 @@ class GradientDescent():
         
         self.use_correct_examples = False
         
-        self.optimize_prompt_tempelate = optimize_prompt_tempelate_single \
-            if num_new_prompts == 1 else optimize_prompt_tempelate
-        self.ascend_optimize_prompt_tempelate = ascend_optimize_prompt_tempelate_single \
-            if num_new_prompts == 1 else ascend_optimize_prompt_tempelate
-        self.gradient_prompt_tempelate = gradient_prompt_tempelate
-        self.ascend_gradient_prompt_template = ascend_gradient_prompt_tempelate
-        self.example_template    = example_template
-        
+        prompt_templates = PROMPT_REGISTRY.module_dict
+        print(prompt_templates)
+        self.optimize_prompt_template = prompt_templates['optimize_prompt_template_single'] \
+            if num_new_prompts == 1 else prompt_templates['optimize_prompt_template']
+        self.ascend_optimize_prompt_template = prompt_templates['ascend_optimize_prompt_template_single'] \
+            if num_new_prompts == 1 else prompt_templates['ascend_optimize_prompt_template']
+        self.gradient_prompt_template = prompt_templates['gradient_prompt_template']
+        self.ascend_gradient_prompt_template = prompt_templates['ascend_gradient_prompt_template']
+        self.example_template = prompt_templates['example_template']
+
+        self.forward_log_template = prompt_templates['forward_log_template']
+        self.gradient_log_template = prompt_templates['gradient_log_template']
+        self.optimize_log_template = prompt_templates['optimize_log_template']
+
         self._build_forward_prompts_func = task.build_forward_prompts_completion
         self.call_func = self.base_model.call
         
@@ -73,7 +77,7 @@ class GradientDescent():
             }
         
         if self.print_log:
-            log_str = forward_log_tempelate.format(
+            log_str = self.forward_log_template.format(
                 cur_prompt=cur_prompt,
                 batch_prompts=batch_prompts,
                 responses=responses,
@@ -119,20 +123,20 @@ class GradientDescent():
 
     def _build_prompt_trajectory_str(self, prompts):
         prompt_path_str = ""
-        prompt_path_str_tempelate = "({index}) {prompt}\n"
+        prompt_path_str_template = "({index}) {prompt}\n"
         for i, prompt in enumerate(prompts):
-            prompt_path_str += prompt_path_str_tempelate.format(index=i,prompt=prompt)
+            prompt_path_str += prompt_path_str_template.format(index=i,prompt=prompt)
         return prompt_path_str
         
-    def cal_gradient(self, cur_prompt, example_string, gradient_prompt_tempelate):
-        gradient_prompt = gradient_prompt_tempelate.format(cur_prompt=cur_prompt, 
+    def cal_gradient(self, cur_prompt, example_string, gradient_prompt_template):
+        gradient_prompt = gradient_prompt_template.format(cur_prompt=cur_prompt, 
                                                                 example_string=example_string)
         gradient_message = [{'role': 'system', 'content': 'You are a helpful assistant.'},
                     {'role': 'user', 'content': gradient_prompt}]
         gradient = self.optim_model.call(messages=gradient_message).message.content
         
         if self.print_log:
-            log_str = gradient_log_tempelate.format(gradient_prompt=gradient_prompt,
+            log_str = self.gradient_log_template.format(gradient_prompt=gradient_prompt,
                                                     gradient=gradient)
 
             self.logger.info(log_str)
@@ -147,8 +151,8 @@ class GradientDescent():
         return matches
 
     def optimize(self, cur_prompt, example_string, gradient, trajectory_prompts, 
-                 steps_per_gradient, optimize_prompt_tempelate):
-        optimize_prompt = optimize_prompt_tempelate.format(
+                 steps_per_gradient, optimize_prompt_template):
+        optimize_prompt = optimize_prompt_template.format(
             cur_prompt=cur_prompt, 
             example_string=example_string, 
             gradient=gradient, 
@@ -159,7 +163,7 @@ class GradientDescent():
         response = self.optim_model.call(messages=optimize_messages).message.content
         optimized_prompt = self._clean_optim_response(response)
         if self.print_log:
-            log_str = optimize_log_tempelate.format(optimize_prompt=optimize_prompt,
+            log_str = self.optimize_log_template.format(optimize_prompt=optimize_prompt,
                                                     response=response,
                                                     optimized_prompt=optimized_prompt)
             self.logger.info(log_str)
@@ -171,7 +175,7 @@ class GradientDescent():
         gradient = self.cal_gradient(
             cur_prompt=cur_prompt, 
             example_string=correct_string,
-            gradient_prompt_tempelate=self.ascend_gradient_prompt_template)
+            gradient_prompt_template=self.ascend_gradient_prompt_template)
         
         trajectory_prompts = helper_data['trajectory_prompts']
         trajectory_prompts = self._build_prompt_trajectory_str(trajectory_prompts)
@@ -183,7 +187,7 @@ class GradientDescent():
             gradient=gradient, 
             trajectory_prompts=trajectory_prompts,
             steps_per_gradient=self.num_new_prompts,
-            optimize_prompt_tempelate=self.ascend_optimize_prompt_tempelate)
+            optimize_prompt_template=self.ascend_optimize_prompt_template)
         
         gradient_descent_output['example_string'] = correct_string
         gradient_descent_output['gradient'] = gradient
@@ -209,7 +213,7 @@ class GradientDescent():
         gradient = self.cal_gradient(
             cur_prompt=cur_prompt, 
             example_string=error_string,
-            gradient_prompt_tempelate=self.gradient_prompt_tempelate)
+            gradient_prompt_template=self.gradient_prompt_template)
         
         trajectory_prompts = helper_data['trajectory_prompts']
         trajectory_prompts = self._build_prompt_trajectory_str(trajectory_prompts)
@@ -220,7 +224,7 @@ class GradientDescent():
             gradient=gradient, 
             trajectory_prompts=trajectory_prompts,
             steps_per_gradient=self.num_new_prompts,
-            optimize_prompt_tempelate=self.optimize_prompt_tempelate)
+            optimize_prompt_template=self.optimize_prompt_template)
         
         gradient_descent_output = forward_output
         gradient_descent_output['example_string'] = error_string
