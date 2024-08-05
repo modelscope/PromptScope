@@ -74,7 +74,7 @@ class BaseModel(metaclass=ABCMeta):
             for i in range(self.max_retries):
                 if self.raise_exception:
                     model_response = self._call(stream=stream, prompt=prompt, messages=messages, **kwargs)
-                    if model_response != 200:
+                    if model_response.status_code != 200:
                         time.sleep(i * self.retry_interval)
                     else:
                         break
