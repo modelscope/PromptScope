@@ -1,12 +1,11 @@
 import os
 from tqdm import tqdm
 import concurrent.futures
-from easydict import EasyDict as edict
 
 from meta_icl.core.algorithm.base_algorithm import DemonstrationAugmentation
 from meta_icl.core.utils.logger import Logger
 from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
-from meta_icl.core.utils.ipc_config import load_yaml
+from meta_icl.core.utils.utils import load_yaml
 from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
 
 class IPC_Generation(DemonstrationAugmentation):
@@ -37,7 +36,7 @@ class IPC_Generation(DemonstrationAugmentation):
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
     def init_prompt(self):
-        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'{self.task_config.language.lower()}.yml')))
+        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'ipc_{self.task_config.language.lower()}.yml')))
 
 
     # @staticmethod

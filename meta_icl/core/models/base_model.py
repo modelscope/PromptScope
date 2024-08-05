@@ -1,17 +1,17 @@
 import inspect
 import time
 from abc import abstractmethod, ABCMeta
-from typing import Any, Union
+from typing import Any, Union, List
+import asyncio
 
+from meta_icl.core.scheme.message import QwenMessage
 from meta_icl.core.enumeration.model_enum import ModelEnum
 from meta_icl.core.utils.registry import Registry
-from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
+from meta_icl.core.scheme.model_response import QwenResponse
 from meta_icl.core.utils.timer import Timer
 from meta_icl.core.utils.logger import Logger
 
 MODEL_REGISTRY = Registry("models")
-
-
 class BaseModel(metaclass=ABCMeta):
     m_type: Union[ModelEnum, None] = None
 
@@ -35,13 +35,13 @@ class BaseModel(metaclass=ABCMeta):
         self.kwargs: dict = kwargs
 
         self.data = {}
-        self._model: Any = None
+        self._call_module: Any = None
         
         self.logger = Logger.get_logger()
         
     @property
-    def model(self):
-        if self._model is None:
+    def call_module(self):
+        if self._call_module is None:
             if self.module_name not in MODEL_REGISTRY.module_dict:
                 raise RuntimeError(f"method_type={self.module_name} is not supported!")
             obj_cls = MODEL_REGISTRY[self.module_name]
@@ -51,82 +51,133 @@ class BaseModel(metaclass=ABCMeta):
                 kwargs = {key: value for key, value in self.kwargs.items() if key in allowed_kwargs}
             else:
                 kwargs = self.kwargs
-            self._model = obj_cls(**kwargs)
-        return self._model
+            self._call_module = obj_cls(**kwargs)
+        return self._call_module
 
     @abstractmethod
-    def before_call(self, **kwargs) -> None:
-        """prepare data before call
-        :param kwargs:
-        :return:
-        """
-
-    @abstractmethod
-    def after_call(self, model_response: Union[ModelResponse, ModelResponseGen],
-                   **kwargs) -> Union[ModelResponse, ModelResponseGen]:
-        """
-        :param model_response:
-        :param kwargs:
-        :return:
-        """
-
-    @abstractmethod
-    def _call(self, stream: bool = False, **kwargs) -> Union[ModelResponse, ModelResponseGen]:
+    def _call(self, stream: bool = False, **kwargs) -> QwenResponse:
         """
         :param kwargs:
         :return:
         """
 
-    def call(self, stream: bool = False, **kwargs) -> Union[ModelResponse, ModelResponseGen]:
+    def call(self, stream: bool = False, prompt: str = "", messages: List[QwenMessage] = [], **kwargs) -> QwenResponse:
         """
         :param stream: only llm needs stream
         :param kwargs:
         :return:
         """
-        with Timer(self.__class__.__name__, log_time=False) as t:
-            self.before_call(stream=stream, **kwargs)
+        if prompt and messages:
+            raise ValueError("prompt and messages cannot be both specified")
+        
+        with Timer(self.__class__.__name__, log_time=False, use_ms=False) as t:
             for i in range(self.max_retries):
                 if self.raise_exception:
-                    model_response = self._call(stream=stream, **kwargs)
+                    model_response = self._call(stream=stream, prompt=prompt, messages=messages, **kwargs)
+                    if model_response.status_code != 200:
+                        time.sleep(i * self.retry_interval)
+                    else:
+                        break
                 else:
                     try:
-                        model_response = self._call(stream=stream, **kwargs)
+                        model_response = self._call(stream=stream, prompt=prompt, messages=messages, **kwargs)
+                        if model_response != 200:
+                            time.sleep(i * self.retry_interval)
+                        else:
+                            break
                     except Exception as e:
-                        model_response = ModelResponse(m_type=self.m_type, status=False, details=e.args)
+                        self.logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i+1}")
 
-                if isinstance(model_response, ModelResponse) and not model_response.status:
-                    self.logger.warning(f"call model={self.model_name} failed! cost={t.cost_str} retry_cnt={i} "
-                                        f"details={model_response.details}", stacklevel=2)
-                    time.sleep(i * self.retry_interval)
-                else:
-                    return self.after_call(stream=stream, model_response=model_response, **kwargs)
+            if model_response.status_code != 200:
+                self.logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
+
+            return model_response
+    
+class BaseAsyncModel(metaclass=ABCMeta):
+    m_type: Union[ModelEnum, None] = None
+
+    def __init__(self,
+                 model_name: str,
+                 module_name: str,
+                 timeout: int = None,
+                 max_retries: int = 3,
+                 retry_interval: float = 1.0,
+                 kwargs_filter: bool = True,
+                 raise_exception: bool = True,
+                 **kwargs):
+
+        self.model_name: str = model_name
+        self.module_name: str = module_name
+        self.timeout: int = timeout
+        self.max_retries: int = max_retries
+        self.retry_interval: float = retry_interval
+        self.kwargs_filter: bool = kwargs_filter
+        self.raise_exception: bool = raise_exception
+        self.kwargs: dict = kwargs
+
+        self.data = {}
+        self._call_module: Any = None
+        
+        self.logger = Logger.get_logger()
+        
+    @property
+    def call_module(self):
+        if self._call_module is None:
+            if self.module_name not in MODEL_REGISTRY.module_dict:
+                raise RuntimeError(f"method_type={self.module_name} is not supported!")
+            obj_cls = MODEL_REGISTRY[self.module_name]
+
+            if self.kwargs_filter:
+                allowed_kwargs = list(inspect.signature(obj_cls.__init__).parameters.keys())
+                kwargs = {key: value for key, value in self.kwargs.items() if key in allowed_kwargs}
+            else:
+                kwargs = self.kwargs
+            self._call_module = obj_cls(**kwargs)
+        return self._call_module
 
     @abstractmethod
-    async def _async_call(self, **kwargs) -> ModelResponse:
+    async def _async_call(self, **kwargs) -> Any:
         """
         :param kwargs:
         :return:
         """
+    async def async_call(self, prompts: List[str] = [], list_of_messages: List[List[QwenMessage]] = [], semaphore: int = 20, **kwargs) -> dict:
+        semaphore = asyncio.Semaphore(semaphore)
+        if prompts and list_of_messages:
+            raise ValueError("prompt and messages cannot be both specified")
+        async def task(index, prompt: str = "", messages: List[QwenMessage] = [], **kwargs):
+            print(f"Sending question: {prompt or messages}")
+            async with semaphore:
+                for i in range(self.max_retries):
+                    if self.raise_exception:
+                        model_response = await self._async_call(prompt=prompt, messages = messages, **kwargs)
+                        if model_response.status_code == 200:
+                            break
+                        else:
+                            self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                            asyncio.sleep(self.retry_interval)
+                    else:
+                        try:
+                            model_response = await self._async_call(prompt=prompt, messages = messages, **kwargs)
+                            if model_response.status_code == 200:
+                                break
+                            else:
+                                asyncio.sleep(self.retry_interval)
+                        except Exception as e:
+                            self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                            await asyncio.sleep(self.retry_interval)
 
-    async def async_call(self, **kwargs) -> ModelResponse:
-        """ 异步不需要stream
-        :param kwargs:
-        :return:
-        """
-        with Timer(self.__class__.__name__, log_time=False) as t:
-            self.before_call(**kwargs)
-            for i in range(self.max_retries):
-                if self.raise_exception:
-                    model_response = self._async_call(**kwargs)
-                else:
-                    try:
-                        model_response = self._async_call(**kwargs)
-                    except Exception as e:
-                        model_response = ModelResponse(m_type=self.m_type, status=False, details=e.args)
+                if model_response.status_code != 200:
+                    self.logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
 
-                if not model_response.status:
-                    self.logger.warning(f"async_call model={self.model_name} failed! cost={t.cost_str} retry_cnt={i} "
-                                        f"details={model_response.details}", stacklevel=2)
-                    time.sleep(i * self.retry_interval)
-                else:
-                    return self.after_call(model_response=model_response, **kwargs)
+                return {"response": model_response, "index": index}
+
+        if prompts:
+            tasks = [task(i, prompt=prompts[i], **kwargs) for i in range(len(prompts))]
+        elif list_of_messages:
+            tasks = [task(i, messages=list_of_messages[i], **kwargs) for i in range(len(list_of_messages))]
+        model_responses = await asyncio.gather(*tasks)
+        model_responses = sorted(model_responses, key=lambda x: x["index"])
+
+        # print(t.cost_str)
+        return [model_response["response"] for model_response in model_responses]
