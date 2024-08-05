@@ -1,6 +1,6 @@
-import ctranslate2
-import transformers
-import torch
+# import ctranslate2
+# import transformers
+# import torch
 
 class CTranslateModel():
     def __init__(

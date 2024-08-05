@@ -5,6 +5,7 @@ import re, json, os, copy
 import numpy as np
 from meta_icl.core.utils.utils import extract_from_markdown_json
 from loguru import logger
+from typing import Union, Dict
 
 # demonstration = { "uer_prompt": "你是一个智能小助手", "agent_config": { "description": "智能小助手", "instruction": "#
 # 设定\\n作为智能小助手，你具备广泛的知识和高效的信息处理能力。\\n\\n## 技能\\n### 技能1：信息咨询与解答\\n- " "准确回答日常生活、科技、文化等领域的问题，简化复杂概念。\\n\\n###
@@ -34,8 +35,8 @@ other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户
 
 
 def demo_augmentation_by_llm_prompt_org(
-        demonstration_text,
-        demonstration_generation_instruction,
+        demonstration_text: Union[str, dict],
+        demonstration_generation_instruction: str,
         num_generated_examples=1,
         demonstration_requirements=None
 ):
