@@ -47,7 +47,7 @@ import datetime
 
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.utils.logger import Logger
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
+from meta_icl.core.models.generation_model import AioGenerationModel, GenerationModel
 from meta_icl import CONFIG_REGISTRY
 
 OPRO_ROOT_PATH = os.path.dirname(
@@ -56,18 +56,20 @@ OPRO_ROOT_PATH = os.path.dirname(
 sys.path.insert(0, OPRO_ROOT_PATH)
 
 import numpy as np
-from meta_icl.core.algorithm.opro.optimization import opt_utils
+from meta_icl.algorithm.opro.optimization import opt_utils
 import pandas as pd
 
 ROOT_DATA_FOLDER_PATH = os.path.join(OPRO_ROOT_PATH, "data")
+QWEN_MODELS = {"qwen-turbo",
+			   "qwen2-57b-a14b-instruct",
+			   "qwen2-72b-instruct",
+			   "qwen-max",
+			   "qwen-max-0107",
+			   }
 
 def config():
-	parser = argparse.ArgumentParser(description='Process opro arguments')
-
-	parser.add_argument('--config_dir', type=str, default='opro.yml')   
-	args = parser.parse_args()
-
-	args = load_yaml(args.config_dir)
+	config_dir = os.path.join(os.path.dirname(__file__), "opro.yml")
+	args = load_yaml(config_dir)
 	return args
 
 def main():
@@ -77,9 +79,13 @@ def main():
 	task_name = CONFIG_REGISTRY.module_dict['basic_config'].task_name
 	meta_prompt_type = CONFIG_REGISTRY.module_dict['basic_config'].meta_prompt_type
 	instruction_pos = CONFIG_REGISTRY.module_dict['basic_config'].instruction_pos
-	scorer_llm = LlamaIndexGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].scorer)
-	optim_llm = LlamaIndexGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].optim)
-   
+	
+	if CONFIG_REGISTRY.module_dict["evolution_config"].evaluate_in_parallel:
+		scorer_llm = AioGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].scorer)
+		optim_llm = AioGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].optim)
+	else:
+		scorer_llm = GenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].scorer)
+		optim_llm = GenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].optim)
 	assert dataset_name in {
 		"mmlu",
 		"bbh",
@@ -126,12 +132,9 @@ def main():
 		assert dataset_name == "gsm8k"
 		assert task_name in {"train", "test"}
 
-	assert scorer_llm_name in {
-		"qwen2-57b-a14b-instruct",
-	}
-	assert optimizer_llm_name in {
-		"qwen2-57b-a14b-instruct",
-	}
+	assert scorer_llm_name in QWEN_MODELS
+	assert optimizer_llm_name in QWEN_MODELS
+
 	assert meta_prompt_type in {
 		"both_instructions_and_exemplars",
 		"instructions_only",
@@ -606,7 +609,7 @@ def main():
 		train_ratio = 0.8
 		eval_ratio = 0.2
 	elif dataset_name == "gsm8k":
-		train_ratio = 0.1
+		train_ratio = 0.0035
 		eval_ratio = 0
 	else:
 		assert dataset_name == "bbh"

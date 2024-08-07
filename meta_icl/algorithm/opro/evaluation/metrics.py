@@ -207,9 +207,7 @@ def get_normalized_prediction(prediction: str,
     A normalized answer string that can be directly compared with the normalized
     golden answer in order to determine the `number_included_accuracy`.
   """
-
   prediction_parsed = prediction.lower().strip()
-
   FINAL_ANSWER_BEHIND_PATTERNS = (  # pylint: disable=invalid-name
       FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY  # pylint: disable=g-long-ternary
       if any(
