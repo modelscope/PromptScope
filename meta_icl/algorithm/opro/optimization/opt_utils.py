@@ -19,6 +19,8 @@ import os
 import pickle
 import re
 import sys
+import requests
+import time
 
 OPRO_ROOT_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -28,8 +30,14 @@ sys.path.insert(0, OPRO_ROOT_PATH)
 import numpy as np
 from opro.evaluation import eval_utils
 import pandas as pd
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
+from meta_icl.core.models.generation_model import AioGenerationModel
 
+QWEN_MODELS = {"qwen-turbo",
+			   "qwen2-57b-a14b-instruct",
+			   "qwen2-72b-instruct",
+			   "qwen-max",
+			   "qwen-max-0107",
+			   }
 
 def extract_string_in_square_brackets(input_string):
 	print(input_string)
@@ -177,7 +185,7 @@ def gen_meta_prompt(
 					" The score ranges from 0 to 100.\n"
 				)
 		else:
-			assert optimizer_llm_name.lower() == "qwen2-57b-a14b-instruct"
+			assert optimizer_llm_name.lower() in QWEN_MODELS
 			meta_prompt_old_instruction_part = (
 				"I have some texts along with their corresponding scores."
 				" The texts are arranged in ascending order based on their scores,"
@@ -198,7 +206,7 @@ def gen_meta_prompt(
 			if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
 				meta_prompt_exemplar_part += "Below are some problems.\n"
 			else:
-				assert optimizer_llm_name.lower() == "qwen2-57b-a14b-instruct"
+				assert optimizer_llm_name.lower() in QWEN_MODELS
 				meta_prompt_exemplar_part += (
 					"The following exemplars show how to apply your text: you replace"
 					" <INS> in each input with your text, then read the input and give"
@@ -231,7 +239,7 @@ def gen_meta_prompt(
 						if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
 							meta_prompt_exemplar_part += f"\nQ: {question}\nA: <Start>"
 						else:
-							assert optimizer_llm_name.lower() == "qwen2-57b-a14b-instruct"
+							assert optimizer_llm_name.lower() in QWEN_MODELS
 							meta_prompt_exemplar_part += f"\ninput:\nQ: {question}\nA: <INS>"
 				else:  # when there're no "Q:" and "A:" in the prompt
 					assert instruction_pos in {"Q_begin", "Q_end"}
@@ -241,7 +249,7 @@ def gen_meta_prompt(
 						elif instruction_pos == "Q_end":
 							meta_prompt_exemplar_part += f"\nProblem:\n{question}\n<INS>\n"
 					else:
-						assert optimizer_llm_name.lower() == "qwen2-57b-a14b-instruct"
+						assert optimizer_llm_name.lower() in QWEN_MODELS
 						if instruction_pos == "Q_begin":
 							meta_prompt_exemplar_part += f"\ninput:\n<INS>\n{question}\n"
 						elif instruction_pos == "Q_end":
@@ -252,7 +260,7 @@ def gen_meta_prompt(
 						f"\nGround truth answer:\n{true_answer}\n"
 					)
 				else:
-					assert optimizer_llm_name.lower() == "qwen2-57b-a14b-instruct"
+					assert optimizer_llm_name.lower() in QWEN_MODELS
 					meta_prompt_exemplar_part += f"\noutput:\n{true_answer}\n"
 
 		if few_shot_qa_pairs:
@@ -291,10 +299,10 @@ def gen_meta_prompt(
 					" and generally applicable to all problems above."
 				)
 		else:
-			assert optimizer_llm_name.lower() == "qwen2-57b-a14b-instruct"
+			assert optimizer_llm_name.lower() in QWEN_MODELS
 			meta_prompt += (
 				"\n\nWrite your new text that is different from the old ones and"
-				" has a score as high as possible. Write the text in square brackets."
+				" has a score as high as possible, especially focus on instruction following. Write the text in square brackets."
 			)
 	else:
 		# when using a pre-trained model as optimizer
@@ -562,9 +570,9 @@ def run_evolution(**kwargs):
 
 	# evolution
 	for i_step in range(num_search_steps):
-	# 	print(f"\n================== Step {i_step} =====================")
-	# 	if not i_step % 10:
-	# 		print(f"old_instructions_and_scores: {old_instructions_and_scores}")
+		print(f"\n================== Step {i_step} =====================")
+		if not i_step % 10:
+			print(f"old_instructions_and_scores: {old_instructions_and_scores}")
 
 	# 	if optimizer_llm_temperature_schedule == "linear_increase":
 	# 		optimizer_llm_temperature_curr = (
@@ -724,63 +732,71 @@ def run_evolution(**kwargs):
 			num_generated_instructions_in_each_step
 		)
 		generated_instructions_raw = []
-		while remaining_num_instructions_to_generate > 0:
-			optimizer_llm_input_text = meta_prompt
-			# generate instructions
-			# print(f"current temperature: {optimizer_llm_temperature_curr}")
-			raw_outputs = optim_llm.call(prompt=optimizer_llm_input_text).message.content
-			# print(raw_outputs)
-			# import pdb; pdb.set_trace()
-		# Extract the generated instructions from the optimizer LLM output. Only
-		# keep some samples if the desired number of remaining instructions
-		# is smaller than the total number of decodes in this step.
-			if meta_prompt_type == "both_instructions_and_exemplars":
-				if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
-					raw_outputs = raw_outputs[:remaining_num_instructions_to_generate]
-					if instruction_pos == "A_begin":
-						start_string = "<Start>"
-						end_string = "</Start>"
+
+		from meta_icl.core.models.generation_model import GenerationModel, AioGenerationModel
+		if isinstance(optim_llm, GenerationModel):
+			while remaining_num_instructions_to_generate > 0:
+				optimizer_llm_input_text = meta_prompt
+				# generate instructions
+				# print(f"current temperature: {optimizer_llm_temperature_curr}")
+				raw_outputs = optim_llm.call(prompt=optimizer_llm_input_text).output.text
+				# print(raw_outputs)
+			# Extract the generated instructions from the optimizer LLM output. Only
+			# keep some samples if the desired number of remaining instructions
+			# is smaller than the total number of decodes in this step.
+				if meta_prompt_type == "both_instructions_and_exemplars":
+					if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+						raw_outputs = raw_outputs[:remaining_num_instructions_to_generate]
+						if instruction_pos == "A_begin":
+							start_string = "<Start>"
+							end_string = "</Start>"
+						else:
+							start_string = "<INS>"
+							end_string = "</INS>"
+						for raw_output in raw_outputs:
+							if start_string not in raw_output:
+								start_index = 0
+							else:
+								start_index = raw_output.index(start_string) + len(start_string)
+							if end_string not in raw_output:
+								end_index = len(raw_output)
+							else:
+								end_index = raw_output.index(end_string)
+							new_inst = raw_output[start_index:end_index].strip()
+							generated_instructions_raw.append(new_inst)
 					else:
-						start_string = "<INS>"
-						end_string = "</INS>"
-					for raw_output in raw_outputs:
-						if start_string not in raw_output:
-							start_index = 0
-						else:
-							start_index = raw_output.index(start_string) + len(start_string)
-						if end_string not in raw_output:
-							end_index = len(raw_output)
-						else:
-							end_index = raw_output.index(end_string)
-						new_inst = raw_output[start_index:end_index].strip()
-						generated_instructions_raw.append(new_inst)
+						assert optimizer_llm_name.lower() in QWEN_MODELS
+						generated_instructions_raw += [
+							extract_string_in_square_brackets(string)
+							for string in raw_outputs
+						]
+						generated_instructions_raw.append(raw_outputs[1:-1])
+
+					# remaining_num_instructions_to_generate -= len(raw_outputs)
+					remaining_num_instructions_to_generate -= 1
 				else:
-					assert optimizer_llm_name.lower() == "qwen2-57b-a14b-instruct"
-					# generated_instructions_raw += [
-					# 	extract_string_in_square_brackets(string)
-					# 	for string in raw_outputs
-					# ]
-					generated_instructions_raw.append(raw_outputs[1:-1])
-
-				# remaining_num_instructions_to_generate -= len(raw_outputs)
-				remaining_num_instructions_to_generate -= 1
-			else:
-				assert meta_prompt_type == "instructions_only"
-				max_num_instructions_to_keep_in_each_output = 1
-				for string in raw_outputs:
-					generated_instructions_raw += parse_tag_content(string)[
-						:max_num_instructions_to_keep_in_each_output
-					]
-				remaining_num_instructions_to_generate -= (
-					len(raw_outputs)
-					* max_num_instructions_to_keep_in_each_output
-			)
-
+					assert meta_prompt_type == "instructions_only"
+					max_num_instructions_to_keep_in_each_output = 1
+					for string in raw_outputs:
+						generated_instructions_raw += parse_tag_content(string)[
+							:max_num_instructions_to_keep_in_each_output
+						]
+					remaining_num_instructions_to_generate -= (
+						len(raw_outputs)
+						* max_num_instructions_to_keep_in_each_output
+				)
+		elif isinstance(optim_llm, AioGenerationModel):
+			import asyncio
+			optimizer_llm_input_text = [meta_prompt for _ in range(num_generated_instructions_in_each_step)]
+			raw_outputs = [x.output.text for x in asyncio.run(optim_llm.async_call(prompts=optimizer_llm_input_text, temperature=optimizer_temperature))]
+			generated_instructions_raw = [
+							extract_string_in_square_brackets(string)[1:-1]
+							for string in raw_outputs
+						]
 		generated_instructions_raw = list(
 			map(eval_utils.polish_sentence, generated_instructions_raw)
 		)
 		print(f"\ninitially generated instructions: {generated_instructions_raw}\n")
-
 		# do not evaluate old instructions again
 		generated_instructions = []  # the new instructions generated in this step
 		for ins in generated_instructions_raw:
@@ -905,10 +921,7 @@ def run_evolution(**kwargs):
 					instruction=instruction,
 					eval_index_all=train_index,
 					scorer_llm=scorer_llm,
-					# batch_size=batch_size,
-					# call_server_func=call_scorer_server_func,
 					dataset_name=dataset_name,
-					# num_servers=num_servers,
 					extract_final_answer_by_prompting_again=extract_final_answer_by_prompting_again,
 					include_qa=include_qa,
 					evaluate_in_parallel=evaluate_in_parallel,
@@ -970,7 +983,7 @@ def run_evolution(**kwargs):
 		# =============================== eval ====================================
 		# every eval_interval steps, evaluate the instructions that were generated
 		# in the current step and were not skipped
-		if not i_step % eval_interval:
+		if not i_step % eval_interval and eval_ratio > 0:
 			for instruction in generated_instructions_raw:
 			# if the instruction wasn't skipped in any step
 				if instruction in instruction_score_dict:
