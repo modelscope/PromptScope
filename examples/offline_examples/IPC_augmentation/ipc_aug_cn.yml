@@ -30,7 +30,6 @@ model_config:
     generation:
         module_name: 'dashscope_generation'
         model_name: 'qwen2-57b-a14b-instruct'
-        clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
 

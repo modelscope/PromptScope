@@ -1,17 +1,14 @@
-import argparse
-from meta_icl.core.algorithm.PromptAgent.agent import PromptAgent
+import os
+from pathlib import Path
+
+from meta_icl.core.offline.instruction_optimization.agent import PromptAgent
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.utils.logger import Logger
 
 from meta_icl import CONFIG_REGISTRY
 def config():
-    parser = argparse.ArgumentParser(description='Process prompt search agent arguments')
-
-    parser.add_argument('--config_dir', type=str, default='prompt_agent.yml')
-   
-    args = parser.parse_args()
-
-    args = load_yaml(args.config_dir)
+    config_dir = os.path.join(os.path.dirname(__file__), "prompt_agent.yml")
+    args = load_yaml(config_dir)
     return args
 
 def validate_config(config):
@@ -61,7 +58,8 @@ def validate_config(config):
     assert isinstance(config['world_model_setting']['train_batch_size'], int), "world_model.train_batch_size must be an integer"
 
 def main():
-    agent = PromptAgent()
+    cur_path = os.path.dirname(os.path.abspath(__file__))
+    agent = PromptAgent(os.path.join(cur_path, CONFIG_REGISTRY.module_dict['task_config'].data_dir))
     agent.run()
     return
 

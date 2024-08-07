@@ -9,9 +9,9 @@ from meta_icl.core.evaluation.evaluator import Eval
 from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
 from meta_icl.core.utils.logger import Logger
 from meta_icl.core.utils.utils import load_yaml
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
+from meta_icl.core.models.generation_model import GenerationModel
 from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
-from meta_icl.core.algorithm.base_algorithm import PromptOptimizationWithFeedback
+from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 
 class IPC_Optimization(PromptOptimizationWithFeedback):
     """
@@ -44,9 +44,9 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         self.eval = Eval()
     
     def init_model(self):
-        self.generation_llm = LlamaIndexGenerationModel(**self.model_config.generation)
-        self.predictor_llm = LlamaIndexGenerationModel(**self.model_config.predictor)
-        self.annotator = LlamaIndexGenerationModel(**self.model_config.annotator)
+        self.generation_llm = GenerationModel(**self.model_config.generation)
+        self.predictor_llm = GenerationModel(**self.model_config.predictor)
+        self.annotator = GenerationModel(**self.model_config.annotator)
 
     def init_config(self):
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
@@ -129,7 +129,10 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             annotate_prompt = PROMPT_REGISTRY.module_dict['annotate'].format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
             # print('#############\n', annotate_prompt, '################\n')
             response = self.annotator.call(prompt=annotate_prompt)
-            response_list = [item for item in response.message.content.split("||") if item]
+            try:
+                response_list = [item for item in response.message.content.split("||") if item]
+            except:
+                response_list = [item for item in response.output.text.split("||") if item]
             # print('#############\n', response_list, '################\n')
             annotations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "标注": lines[-1]} for lines in (sample.split('|') for sample in response_list if sample)])
             batch += 1
@@ -147,7 +150,10 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             prediction_prompt = PROMPT_REGISTRY.module_dict['predict'].format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
             # print('#############\n', prediction_prompt, '################\n')
             response = self.annotator.call(prompt=prediction_prompt)
-            response_list = [item for item in response.message.content.split("||") if item]
+            try:
+                response_list = [item for item in response.message.content.split("||") if item]
+            except:
+                response_list = [item for item in response.output.text.split("||") if item]
             # print('#############\n', response_list, '################\n')
             predictions.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "预测": lines[-1]} for lines in (sample.split('|') for sample in response_list if sample)])
             batch += 1
@@ -181,7 +187,10 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             generate_prompt = PROMPT_REGISTRY.module_dict['prompt_generation_generation'].format_map(prompt_input)
         else:
             generate_prompt = PROMPT_REGISTRY.module_dict['prompt_generation'].format_map(prompt_input)
-        prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).message.content
+        try:
+            prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).message.content
+        except:
+            prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).output.text
         self.logger.info(prompt_suggestion)
         self.logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
         self.logger.info(f'Get new prompt:\n{prompt_suggestion}')
@@ -194,7 +203,10 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         batch_input = prompt
         batch_inputs = IPC_Generation.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
         samples_batches = IPC_Generation.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
-        samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
+        try:
+            samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
+        except:
+            samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
         self.logger.info(samples_list)
         return samples_list
@@ -287,8 +299,12 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         prompt_input = {'task_description': self.task_config.task_description}
         description_mod_prompt = PROMPT_REGISTRY.module_dict['ranker_description_mod'].format_map(prompt_input)
 
-        mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).message.content
-        mod_description = self.generation_llm.call(prompt=description_mod_prompt).message.content
+        try:
+            mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).message.content
+            mod_description = self.generation_llm.call(prompt=description_mod_prompt).message.content
+        except:
+            mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).output.text
+            mod_description = self.generation_llm.call(prompt=description_mod_prompt).output.text
         self.logger.info(f"Task description modified for ranking to: \n{mod_description}")
 
         self.logger.info(f"Initial prompt modified for ranking to: \n{mod_prompt}")
