@@ -9,6 +9,8 @@ import random
 from typing import Generator, List
 from loguru import logger
 
+from meta_icl.core.models.generation_model import GenerationModel
+
 KEY = ""
 # # KEY = "***REMOVED***"
 dashscope.api_key = KEY
@@ -24,8 +26,6 @@ DefaultModelConfig = {
 import numpy as np
 from scipy.spatial.distance import cdist
 from typing import Union
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
-
 
 
 def convert_model_name_to_model_config(model_name: str, add_random=False, **kwargs) -> dict:
@@ -120,7 +120,7 @@ def load_csv(pth):
     return csv_columns
 
 
-def call_llm_with_message(messages, model: Union[str, LlamaIndexGenerationModel], model_config=None, is_stream=False, **kwargs):
+def call_llm_with_message(messages, model: Union[str, GenerationModel], model_config=None, is_stream=False, **kwargs):
     """
     :param messages: the messages to call the model;
     :param model: the model to call; Default: False;
@@ -136,7 +136,7 @@ Attention: If both model and model_config are given, the model_config will be us
     :param kwargs: other keyword arguments
     """
     # print("\n***** messages *****\n{}\n".format(messages))
-    if isinstance(model, LlamaIndexGenerationModel):
+    if isinstance(model, GenerationModel):
         res = model.call(messages=messages, stream=is_stream, **kwargs)
         return res.message.content
 
