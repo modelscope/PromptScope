@@ -1,7 +1,7 @@
 from .beam_world_model import BeamSearchWorldModel
 from .world_model import WorldModel
 from .base_model import MODEL_REGISTRY
-from .generation_model import GenerationModel, AioGenerationModel
+# from .generation_model import GenerationModel, AioGenerationModel
 
 world_models = {
     "mcts": WorldModel,
@@ -9,10 +9,10 @@ world_models = {
 }
 MODEL_REGISTRY.batch_register(world_models)
 
-__all__ = [
-    "WorldModel",
-    "BeamSearchWorldModel",
-    "GenerationModel",
-    "AioGenerationModel",
-    "MODEL_REGISTRY",
-]
+# __all__ = [
+#     "WorldModel",
+#     "BeamSearchWorldModel",
+#     "GenerationModel",
+#     "AioGenerationModel",
+#     "MODEL_REGISTRY",
+# ]
