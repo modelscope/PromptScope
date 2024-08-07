@@ -57,14 +57,14 @@ model_config:
 
     predictor:
         module_name: 'dashscope_generation'
-        model_name: 'qwen-max'
+        model_name: 'qwen2-72b-instruct'
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
 
     analyzer:
         module_name: 'dashscope_generation'
-        model_name: 'qwen2-57b-a14b-instruct'
+        model_name: 'qwen2-72b-instruct'
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234

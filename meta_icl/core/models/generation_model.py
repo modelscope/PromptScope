@@ -12,6 +12,7 @@ from meta_icl.core.scheme.model_response import QwenResponse
 # import dashscope
 import asyncio
 
+# os.environ['DASHSCOPE_API_KEY'] = ''
 os.environ['DASHSCOPE_API_KEY'] = ''
 class GenerationModel(BaseModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL

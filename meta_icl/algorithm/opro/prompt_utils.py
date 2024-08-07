@@ -14,8 +14,6 @@
 """The utility functions for prompting GPT and Google Cloud models."""
 
 import time
-import google.generativeai as palm
-import openai
 
 
 def call_openai_server_single_prompt(

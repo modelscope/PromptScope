@@ -3,6 +3,7 @@ import time
 from abc import abstractmethod, ABCMeta
 from typing import Any, Union, List
 import asyncio
+from tqdm.asyncio import tqdm
 
 from meta_icl.core.scheme.message import QwenMessage
 from meta_icl.core.enumeration.model_enum import ModelEnum
@@ -61,7 +62,7 @@ class BaseModel(metaclass=ABCMeta):
         :return:
         """
 
-    def call(self, stream: bool = False, prompt: str = "", messages: List[QwenMessage] = []) -> QwenResponse:
+    def call(self, stream: bool = False, prompt: str = "", messages: List[QwenMessage] = [], **kwargs) -> QwenResponse:
         """
         :param stream: only llm needs stream
         :param kwargs:
@@ -70,6 +71,7 @@ class BaseModel(metaclass=ABCMeta):
         if prompt and messages:
             raise ValueError("prompt and messages cannot be both specified")
         
+        self.kwargs.update(**kwargs)
         with Timer(self.__class__.__name__, log_time=False, use_ms=False) as t:
             for i in range(self.max_retries):
                 if self.raise_exception:
@@ -103,7 +105,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
                  max_retries: int = 3,
                  retry_interval: float = 1.0,
                  kwargs_filter: bool = True,
-                 raise_exception: bool = True,
+                 raise_exception: bool = False,
                  **kwargs):
 
         self.model_name: str = model_name
@@ -141,16 +143,18 @@ class BaseAsyncModel(metaclass=ABCMeta):
         :param kwargs:
         :return:
         """
-    async def async_call(self, prompts: List[str] = [], list_of_messages: List[List[QwenMessage]] = [], semaphore: int = 20, **kwargs) -> dict:
+    async def async_call(self, prompts: List[str] = [], list_of_messages: List[List[QwenMessage]] = [], semaphore: int = 10, **kwargs) -> dict:
         semaphore = asyncio.Semaphore(semaphore)
+        self.kwargs.update(**kwargs)
+        # print(self.kwargs)
         if prompts and list_of_messages:
             raise ValueError("prompt and messages cannot be both specified")
         async def task(index, prompt: str = "", messages: List[QwenMessage] = [], **kwargs):
-            print(f"Sending question: {prompt or messages}")
             async with semaphore:
+            # async with self.limiter:
                 for i in range(self.max_retries):
                     if self.raise_exception:
-                        model_response = await self._async_call(prompt=prompt, messages = messages, **kwargs)
+                        model_response = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
                         if model_response.status_code == 200:
                             break
                         else:
@@ -158,7 +162,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
                             asyncio.sleep(self.retry_interval)
                     else:
                         try:
-                            model_response = await self._async_call(prompt=prompt, messages = messages, **kwargs)
+                            model_response = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
                             if model_response.status_code == 200:
                                 break
                             else:
@@ -167,8 +171,8 @@ class BaseAsyncModel(metaclass=ABCMeta):
                             self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                             await asyncio.sleep(self.retry_interval)
 
-                if model_response.status_code != 200:
-                    self.logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
+                # if not model_response or model_response.status_code != 200:
+                #     self.logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
 
                 return {"response": model_response, "index": index}
 
@@ -176,7 +180,19 @@ class BaseAsyncModel(metaclass=ABCMeta):
             tasks = [task(i, prompt=prompts[i], **kwargs) for i in range(len(prompts))]
         elif list_of_messages:
             tasks = [task(i, messages=list_of_messages[i], **kwargs) for i in range(len(list_of_messages))]
-        model_responses = await asyncio.gather(*tasks)
+        else:
+            return
+
+        
+        # for _ in model_responses:
+        #     pbar.update(1)
+        model_responses = []
+        for result in tqdm.as_completed(tasks):
+            # As each task completes, the progress bar will be updated
+            value = await result
+            model_responses.append(value)
+    # return await asyncio.gather(*responses)
+        # pbar.close()
         model_responses = sorted(model_responses, key=lambda x: x["index"])
 
         # print(t.cost_str)

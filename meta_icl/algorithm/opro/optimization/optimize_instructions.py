@@ -53,7 +53,6 @@ sys.path.insert(0, OPRO_ROOT_PATH)
 
 from absl import app
 from absl import flags
-import google.generativeai as palm
 import numpy as np
 import openai
 from opro import prompt_utils
