@@ -36,14 +36,15 @@ model_config:
         seed: 1234
 
 search_config:
-    iteration_num: 10
-    expand_width: 3 # num of branches of each node
-    depth_limit: 5 # the max depth of mcts
+    iteration_num: 2
+    expand_width: 2 # num of branches of each node
+    depth_limit: 2 # the max depth of mcts
     # mcts setting
     min_depth: 2 # min depth of mcts for early stop
     w_exp: 2.5 # balance exploration and exploitation
     # beam search setting
-    beam_width: 3
+    beam_width: 2
+    output_path: dump
 
 world_model_config:
     # mcts world model setting

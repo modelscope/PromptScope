@@ -11,8 +11,9 @@ from meta_icl.core.offline.instruction_optimization.ipc import IPC_Optimization
 
 
 logger = Logger.get_logger(__name__)
-rank_config_path = 'ipc_ranker.yml'
-generate_config_path = 'ipc_optim_generate.yml'
+rank_config_path = os.path.join(os.path.dirname(__file__), 'ipc_ranker.yml')
+generate_config_path = os.path.join(os.path.dirname(__file__), 'ipc_optim_generate.yml')
+
 
 rank_config_params = load_yaml(rank_config_path)
 generate_config_params = load_yaml(generate_config_path)
