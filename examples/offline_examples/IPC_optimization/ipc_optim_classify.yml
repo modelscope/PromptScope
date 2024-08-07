@@ -5,8 +5,8 @@ task_config:
     output_path: dump
     workers: 5
     max_usage: 10000
-    task_description: 助手是一个善于写宣传稿的大模型
-    instruction: 请判断以下宣传稿是否合格？请回答是或否。
+    task_description: 你是一个专业的分类器，将对宣传稿的内容进行分类，并告知用户该内容是否是一个合格的宣传稿。
+    instruction: 这个宣传稿的内容合格吗？请回答是或者否。
     samples_per_step: 10
     batch_size: 10
     max_samples: 50
@@ -31,6 +31,7 @@ model_config:
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
+        temperature: 0.1
 
     annotator:
         module_name: 'dashscope_generation'

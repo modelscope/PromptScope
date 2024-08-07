@@ -61,7 +61,7 @@ class BaseModel(metaclass=ABCMeta):
         :return:
         """
 
-    def call(self, stream: bool = False, prompt: str = "", messages: List[QwenMessage] = [], **kwargs) -> QwenResponse:
+    def call(self, stream: bool = False, prompt: str = "", messages: List[QwenMessage] = []) -> QwenResponse:
         """
         :param stream: only llm needs stream
         :param kwargs:
@@ -73,14 +73,14 @@ class BaseModel(metaclass=ABCMeta):
         with Timer(self.__class__.__name__, log_time=False, use_ms=False) as t:
             for i in range(self.max_retries):
                 if self.raise_exception:
-                    model_response = self._call(stream=stream, prompt=prompt, messages=messages, **kwargs)
+                    model_response = self._call(stream=stream, prompt=prompt, messages=messages, **self.kwargs)
                     if model_response.status_code != 200:
                         time.sleep(i * self.retry_interval)
                     else:
                         break
                 else:
                     try:
-                        model_response = self._call(stream=stream, prompt=prompt, messages=messages, **kwargs)
+                        model_response = self._call(stream=stream, prompt=prompt, messages=messages, **self.kwargs)
                         if model_response != 200:
                             time.sleep(i * self.retry_interval)
                         else:

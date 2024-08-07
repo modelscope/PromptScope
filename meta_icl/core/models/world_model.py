@@ -1,7 +1,7 @@
 from .gradient_descent import *
 from typing import Generic
-from meta_icl.core.algorithm.PromptAgent.search_algo.base_algo import State, Action
-from meta_icl.core.algorithm.PromptAgent.search_algo.mcts import MCTSNode
+from meta_icl.algorithm.PromptAgent.search_algo.base_algo import State, Action
+from meta_icl.algorithm.PromptAgent.search_algo.mcts import MCTSNode
 from tqdm import tqdm
 
 class WorldModel(Generic[State, Action]):
@@ -186,7 +186,10 @@ class WorldModel(Generic[State, Action]):
         pbar = tqdm(dataloader, leave=False)
         for batch in pbar:
             batch_prompts = build_forward_prompts_func(batch['question'], eval_prompt)
-            responses = [call_func(prompt=prompt).message.content for prompt in batch_prompts]
+            try:
+                responses = [call_func(prompt=prompt).message.content for prompt in batch_prompts]
+            except:
+                responses = [call_func(prompt=prompt).output.text for prompt in batch_prompts]
             preds = task.batch_clean_responses(responses)
             labels = task.clean_labels(batch['answer'])
             all_preds.extend(preds)

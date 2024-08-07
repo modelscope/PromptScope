@@ -9,7 +9,7 @@ from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
 from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
 
 logger = Logger.get_logger(__name__)
-basic_config_path = 'ipc_aug_cn.yml'
+basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_aug_cn.yml')
 
 config_params = load_yaml(basic_config_path)
 logger.info(config_params)
