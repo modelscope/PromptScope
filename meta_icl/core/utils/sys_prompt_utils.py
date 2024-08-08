@@ -11,9 +11,10 @@ from loguru import logger
 
 from meta_icl.core.models.generation_model import GenerationModel
 
-KEY = ""
+# KEY = ""
+
 # # KEY = "***REMOVED***"
-dashscope.api_key = KEY
+# dashscope.api_key = KEY
 
 DASHSCOPE_MAX_BATCH_SIZE = 25
 DefaultModelConfig = {

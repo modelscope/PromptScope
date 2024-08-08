@@ -1,6 +1,7 @@
 from typing import List, Union, Optional, Any
 import os
 
+import dashscope
 from dashscope.aigc.generation import AioGeneration
 from dashscope import Generation
 
@@ -12,8 +13,6 @@ from meta_icl.core.scheme.model_response import QwenResponse
 # import dashscope
 import asyncio
 
-# os.environ['DASHSCOPE_API_KEY'] = ''
-os.environ['DASHSCOPE_API_KEY'] = ''
 class GenerationModel(BaseModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL
     MODEL_REGISTRY.register("dashscope_generation", Generation)
