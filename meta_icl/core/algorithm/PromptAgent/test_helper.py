@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from meta_icl.core.algorithm.PromptAgent.tasks import *
 from meta_icl.core.algorithm.PromptAgent.utils import *
-# from meta_icl import PROMPT_REGISTRY
+from meta_icl import PROMPT_REGISTRY
 
 def eval_instruction_with_loader(task, eval_prompt, base_model, dataloader,  temperature=0, record_outputs=True):
     '''
