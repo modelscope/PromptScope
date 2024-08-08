@@ -25,8 +25,7 @@ if __name__ == '__main__':
     # print("best_state: \n{}\n\n\n".format(best_state))
     # sav_json(data=all_expands, json_file_path=os.path.join(demonstration_dir, sav_file_name))
 
-    generation_config_pth = ("examples/example_demonstration_aug_by_beamsearch"
-                             "/agent_role_followup_beam_search_examples_expansion.json")
+    generation_config_pth = ("examples/offline_examples/example_demonstration_aug_by_beamsearch/agent_role_followup_beam_search_examples_expansion.json")
     demonstration_dir = "logs/agent_role_beam_search_results/"
     check_dir(demonstration_dir)
 
