@@ -6,7 +6,7 @@ import csv
 import json
 import re
 import random
-from typing import Generator, List
+from typing import Generator, List, Any
 from loguru import logger
 
 KEY = ""
@@ -24,7 +24,7 @@ DefaultModelConfig = {
 import numpy as np
 from scipy.spatial.distance import cdist
 from typing import Union
-# from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
+from meta_icl.core.models.generation_model import AioGenerationModel, BaseModel
 
 
 
@@ -120,7 +120,9 @@ def load_csv(pth):
     return csv_columns
 
 
-def call_llm_with_message(messages, model: Union[str], model_config=None, is_stream=False, **kwargs):
+def call_llm_with_message(messages,
+                          model: Union[str, BaseModel, AioGenerationModel],
+                          model_config=None, is_stream=False, **kwargs):
     """
     :param messages: the messages to call the model;
     :param model: the model to call; Default: False;
