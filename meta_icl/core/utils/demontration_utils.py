@@ -5,6 +5,7 @@ import re, json, os, copy
 import numpy as np
 from meta_icl.core.utils.utils import extract_from_markdown_json
 from loguru import logger
+from typing import Union, Dict, List
 
 # demonstration = { "uer_prompt": "你是一个智能小助手", "agent_config": { "description": "智能小助手", "instruction": "#
 # 设定\\n作为智能小助手，你具备广泛的知识和高效的信息处理能力。\\n\\n## 技能\\n### 技能1：信息咨询与解答\\n- " "准确回答日常生活、科技、文化等领域的问题，简化复杂概念。\\n\\n###
@@ -34,8 +35,8 @@ other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户
 
 
 def demo_augmentation_by_llm_prompt_org(
-        demonstration_text,
-        demonstration_generation_instruction,
+        demonstration_text: Union[str, Dict, List[Dict]],
+        demonstration_generation_instruction: str,
         num_generated_examples=1,
         demonstration_requirements=None
 ):
@@ -43,10 +44,8 @@ def demo_augmentation_by_llm_prompt_org(
     generate demonstration based on the reference demonstration (demonstration_text)
     :param demonstration_text:
     :param demonstration_requirements:
-    :param model_name:
     :param demonstration_generation_instruction:
     :param num_generated_examples: the number of generated examples
-    :param model_config:
     """
     if demonstration_generation_instruction is not None:
         pass
@@ -55,6 +54,11 @@ def demo_augmentation_by_llm_prompt_org(
     # extract demonstration text
     if isinstance(demonstration_text, dict):
         demonstration_text = json.dumps(demonstration_text, ensure_ascii=False)
+    if isinstance(demonstration_text, List):
+        if isinstance(demonstration_text[0], str):
+            demonstration_text = "\n".join(demonstration_text)
+        elif isinstance(demonstration_text[0], dict):
+            demonstration_text = "\n```\n```json\n".join([json.dumps(d, ensure_ascii=False) for d in demonstration_text])
 
     # replace the variables in demonstration_generation_instruction, including:
     # ${demonstration} the reference demonstration
@@ -65,7 +69,7 @@ def demo_augmentation_by_llm_prompt_org(
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",
                                                                                         str(num_generated_examples))
     prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
-    print("prompt: \n{}\n".format(prompt))
+    logger.info("prompt: \n{}\n".format(prompt))
     prompt = message_formatting(system_prompt=None, query=prompt)
     return prompt
 

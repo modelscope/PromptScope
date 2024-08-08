@@ -6,7 +6,7 @@ from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embe
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
 from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
+from meta_icl.core.models.generation_model import AioGenerationModel
 from loguru import logger
 import time
 from meta_icl import CONFIG_REGISTRY
@@ -48,7 +48,7 @@ class BM25ICL(BaseICL):
         if base_model is not None:
             self.base_model = base_model
         else:
-            self.base_model = LlamaIndexGenerationModel(**self.task_configs["model_config"]["generation"])
+            self.base_model = AioGenerationModel(**self.task_configs["model_config"]["generation"])
 
     def _load_demonstration_selector(self):
         self.example_selector = BM25Retriever(example_list=self.example_list,
@@ -115,7 +115,7 @@ class EmbeddingICL(BaseICL):
         if base_model is not None:
             self.base_model = base_model
         else:
-            self.base_model = LlamaIndexGenerationModel(**self.task_configs["model_config"]["generation"])
+            self.base_model = AioGenerationModel(**self.task_configs["model_config"]["generation"])
         self._get_example_embeddings(embedding_pth)
         self._get_example_list(examples_pth)
         self._load_demonstration_selector(sav_type=embedding_pth.split('.')[-1])
@@ -168,10 +168,7 @@ class EmbeddingICL(BaseICL):
                                      formatting_function=formatting_function)
         logger.info(f"query: {query}")
         message = message_formatting(system_prompt='You are a helpful assistant', query=query)
-        start_time = time.time()
         res = call_llm_with_message(messages=message, model=self.base_model, **kwargs)
         # res = self.base_model.call(messages=message).message.content
-        end_time = time.time()
-        logger.info(f"total: {end_time-start_time}")
         logger.info(f"res: {res}")
         return res

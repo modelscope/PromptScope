@@ -2,7 +2,8 @@ from typing import List, Dict, Any
 from abc import ABC, abstractmethod
 
 from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_method
-from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings, message_formatting,
+from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings,
+                                                  message_formatting,
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file
 
