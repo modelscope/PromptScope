@@ -32,10 +32,6 @@ python evaluate_instructions.py \
 ```
 
 The outputs will then be written to `outputs/scorer-outputs/` in the opro folder.
-
-Notes to Step 4: 
-- When using a Google-Cloud-served model as scorer (like text-bison at https://developers.generativeai.google/tutorials/text_quickstart), add `--palm_api_key="<your_key>"`
-- When using an OpenAI model as scorer, add `--openai_api_key="<your_key>"`
 """
 
 import datetime
@@ -220,8 +216,7 @@ def main():
   }
   from meta_icl.core.models.generation_model import AioGenerationModel, GenerationModel
   import asyncio
-  import dashscope
-  dashscope.api_key = ''
+  
   scorer_llm = AioGenerationModel(**aio_scorer_config)
   # ===================== try calling the scorer servers ======================
   print("\n======== testing the scorer server ===========")
