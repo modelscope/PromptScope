@@ -166,7 +166,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
                             if model_response.status_code == 200:
                                 break
                             else:
-                                asyncio.sleep(self.retry_interval)
+                                await asyncio.sleep(self.retry_interval)
                         except Exception as e:
                             self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                             await asyncio.sleep(self.retry_interval)
