@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 from meta_icl.core.algorithm.PromptAgent.utils import *
-from meta_icl import PROMPT_REGISTRY
+# from meta_icl import PROMPT_REGISTRY
 
 
 class GradientDescent():
@@ -25,6 +25,8 @@ class GradientDescent():
         self.num_new_prompts = num_new_prompts
 
         self.use_correct_examples = False
+
+        from meta_icl import PROMPT_REGISTRY
 
         prompt_templates = PROMPT_REGISTRY.module_dict
         print(prompt_templates)
