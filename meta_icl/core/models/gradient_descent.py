@@ -5,7 +5,7 @@ import re
 import numpy as np
 
 from meta_icl.core.algorithm.PromptAgent.utils import *
-# from meta_icl import PROMPT_REGISTRY
+from meta_icl import PROMPT_REGISTRY
 
 
 class GradientDescent():
