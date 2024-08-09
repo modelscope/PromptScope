@@ -4,6 +4,7 @@ from abc import abstractmethod, ABCMeta
 from typing import Any, Union, List
 import asyncio
 from tqdm.asyncio import tqdm
+import openai
 
 from meta_icl.core.scheme.message import QwenMessage
 from meta_icl.core.enumeration.model_enum import ModelEnum
@@ -76,24 +77,24 @@ class BaseModel(metaclass=ABCMeta):
             for i in range(self.max_retries):
                 if self.raise_exception:
                     model_response = self._call(stream=stream, prompt=prompt, messages=messages, **self.kwargs)
-                    if model_response.status_code != 200:
+                    if hasattr(model_response, 'status_code') and model_response.status_code != 200:
                         time.sleep(i * self.retry_interval)
                     else:
                         break
                 else:
                     try:
                         model_response = self._call(stream=stream, prompt=prompt, messages=messages, **self.kwargs)
-                        if model_response != 200:
+                        if hasattr(model_response, 'status_code') and model_response.status_code != 200:
                             time.sleep(i * self.retry_interval)
                         else:
                             break
-                    except Exception as e:
+                    except (Exception, openai.error.OpenAIError)  as e:
                         self.logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i+1}")
 
-            if model_response.status_code != 200:
+            if hasattr(model_response, 'status_code') and model_response.status_code != 200:
                 self.logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
 
-            return model_response
+        return model_response
     
 class BaseAsyncModel(metaclass=ABCMeta):
     m_type: Union[ModelEnum, None] = None
@@ -155,19 +156,20 @@ class BaseAsyncModel(metaclass=ABCMeta):
                 for i in range(self.max_retries):
                     if self.raise_exception:
                         model_response = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
-                        if model_response.status_code == 200:
-                            break
-                        else:
+                        if hasattr(model_response, 'status_code') and model_response.status_code != 200:
                             self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                             asyncio.sleep(self.retry_interval)
+                        else:
+                            break
                     else:
                         try:
                             model_response = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
-                            if model_response.status_code == 200:
-                                break
+                            if hasattr(model_response, 'status_code') and model_response.status_code != 200:
+                                self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                                asyncio.sleep(self.retry_interval)
                             else:
-                                await asyncio.sleep(self.retry_interval)
-                        except Exception as e:
+                                break
+                        except (Exception, openai.error.OpenAIError) as e:
                             self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                             await asyncio.sleep(self.retry_interval)
 
