@@ -6,7 +6,6 @@ import numpy as np
 
 from meta_icl.algorithm.PromptAgent.utils import *
 
-
 class GradientDescent():
     def __init__(self,
                  task,
