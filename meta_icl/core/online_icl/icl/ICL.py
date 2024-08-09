@@ -6,7 +6,7 @@ from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embe
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
 from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
+from meta_icl.core.models.generation_model import GenerationModel
 from loguru import logger
 import time
 from meta_icl import CONFIG_REGISTRY
