@@ -605,7 +605,7 @@ def evaluate_single_instruction(
 	and accuracies. Columns are ['raw_prompt', 'raw_answer', 'parsed_answer',
 	'true_answer', 'accuracy'].
 	"""
-	from meta_icl.core.models.generation_model import AioGenerationModel
+	from meta_icl.core.models.generation_model import AioGenerationModel, OpenAIAioGenerationModel, GenerationModel, OpenAIGenerationModel
 
 	assert prediction_treat_as_number == "adaptive" or isinstance(
 		prediction_treat_as_number, bool
@@ -655,14 +655,13 @@ def evaluate_single_instruction(
 	# import pdb;pdb.set_trace()
 	if evaluate_in_parallel:
 		# first round of prompting to get raw answers
-		raw_answers = [x.output.text for x in asyncio.run(scorer_llm.async_call(prompts=raw_prompts_flattened, semaphore=semaphore))]
+		raw_answers = [x.message.content for x in asyncio.run(scorer_llm.async_call(prompts=raw_prompts_flattened, semaphore=semaphore))]
 	else:
 		from tqdm import tqdm  # no parallelism in first round
 		raw_answers = [
-			scorer_llm.call(prompt=prompt).output.text
+			scorer_llm.call(prompt=prompt).message.content
 			for prompt in tqdm(raw_prompts_flattened)
 		]
-		# import pdb;pdb.set_trace()
 
 	if verbose:
 		print("first round of prompting finished")
@@ -687,12 +686,12 @@ def evaluate_single_instruction(
 		# though, because on some GSM8K questions the second-round answers include
 		# some calculations before arriving at the final answer
 		if evaluate_in_parallel:
-		# pylint: disable=undefined-variable
-			raw_answers_second_round = [x.output.text for x in asyncio.run(scorer_llm.async_call(prompts=raw_prompts_flattened_second_round))]
+			raw_answers_second_round = [x.message.content for x in asyncio.run(scorer_llm.async_call(prompts=raw_prompts_flattened, semaphore=semaphore))]
 		else:
+			from tqdm import tqdm  # no parallelism in first round
 			raw_answers_second_round = [
-				scorer_llm.call(prompt=prompt).output.text
-				for prompt in raw_prompts_flattened_second_round
+				scorer_llm.call(prompt=prompt).message.content
+				for prompt in tqdm(raw_prompts_flattened_second_round)
 			]
 			# import pdb;pdb.set_trace()
 		if verbose:
