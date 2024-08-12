@@ -90,7 +90,7 @@ class TestLLILLM(unittest.TestCase):
         responses = asyncio.run(self.async_llm.async_call(list_of_messages=messages))
 
 if __name__ == '__main__':
-    # unittest.main()
+    unittest.main()
     openai.api_key = ''
     openai_config = {
             "module_name": "openai_generation",
