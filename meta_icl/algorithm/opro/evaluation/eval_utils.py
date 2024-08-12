@@ -22,6 +22,7 @@ import re
 import string
 import sys
 import time
+import asyncio
 
 OPRO_ROOT_PATH = os.path.dirname(
 	os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -228,6 +229,7 @@ def gen_prompt(
 				prompt += "Q: " + question
 				prompt += "\n\nA:"
 		elif instruction_pos == "Q_begin":
+			# import pdb;pdb.set_trace()
 			if instruction:
 				prompt += "Q: " + instruction + "\n"
 			else:
@@ -256,6 +258,8 @@ def gen_prompt(
 			prompt += question
 			if instruction:
 				prompt += "\n" + instruction
+	
+	prompt += "The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**."
 	return prompt
 
 
@@ -553,6 +557,8 @@ def evaluate_single_instruction(
 	prediction_num_decimals=0,
 	is_gpt_model=False,
 	verbose=False,
+	semaphore=10,
+	**kwargs,
 ):
 	r"""Evaluate a single instruction on the given indices of the given data.
 
@@ -599,6 +605,8 @@ def evaluate_single_instruction(
 	and accuracies. Columns are ['raw_prompt', 'raw_answer', 'parsed_answer',
 	'true_answer', 'accuracy'].
 	"""
+	from meta_icl.core.models.generation_model import AioGenerationModel
+
 	assert prediction_treat_as_number == "adaptive" or isinstance(
 		prediction_treat_as_number, bool
 	)
@@ -612,6 +620,9 @@ def evaluate_single_instruction(
 		" beginning of the question, at the end of the question, or at the"
 		" beginning of the answer."
 	)
+	if evaluate_in_parallel:
+		assert isinstance(scorer_llm, AioGenerationModel), ("Only async models support parallel evaluating")
+
 	num_eval_examples = len(eval_index_all)
 	assert type(is_multiple_choice) in {bool, list}, (
 		"is_multiple_choice must be a Boolean variable or a list of Boolean"
@@ -641,70 +652,15 @@ def evaluate_single_instruction(
 			dataset_name=dataset_name,
 		)
 		raw_prompts_flattened.append(raw_prompt)
-
+	# import pdb;pdb.set_trace()
 	if evaluate_in_parallel:
-
-		def _prompt_a_list_in_parallel(
-			raw_prompts_flattened,
-			num_servers,
-			call_server_local_func,
-		):
-			num_examples = len(raw_prompts_flattened)
-			raw_prompts_grouped_by_batch_size = []
-			raw_prompts_single_batch = []
-			i = 0
-			while i < num_examples:
-				raw_prompt = raw_prompts_flattened[i]
-				raw_prompts_single_batch.append(raw_prompt)
-				i += 1
-				if i % batch_size == 0:
-					raw_prompts_grouped_by_batch_size.append(raw_prompts_single_batch)
-					raw_prompts_single_batch = []
-			if raw_prompts_single_batch:
-				raw_prompts_grouped_by_batch_size.append(raw_prompts_single_batch)
-
-			server_indices = [
-				i % num_servers + 1
-				for i in range(len(raw_prompts_grouped_by_batch_size))
-			]  # [1, 2, ..., num_servers, 1, 2, ..., num_servers, 1, 2, ...]
-
-			p1 = mp.Pool(num_servers)
-			# pylint: disable=g-complex-comprehension
-			r = [
-				p1.apply_async(
-					_prompting_to_get_raw_answers,
-					args=[
-						raw_prompts_single_batch,
-						call_server_local_func,
-						server_index,
-						max_retry,
-						sleep_time,
-						verbose,
-					],
-				)
-				for raw_prompts_single_batch, server_index in list(
-					zip(raw_prompts_grouped_by_batch_size, server_indices)
-				)
-			]
-			p1.close()
-			p1.join()
-
-			raw_answers = []
-			for i in range(len(raw_prompts_grouped_by_batch_size)):
-				# when there're multiple decodes, only retain the first answer
-				raw_answers += r[i].get()[:batch_size]
-			return raw_answers
-
-# first round of prompting to get raw answers
-		raw_answers = _prompt_a_list_in_parallel(
-			raw_prompts_flattened=raw_prompts_flattened,
-			num_servers=num_servers,
-			call_server_local_func=call_server_func,
-		)
-	else:  # no parallelism in first round
+		# first round of prompting to get raw answers
+		raw_answers = [x.output.text for x in asyncio.run(scorer_llm.async_call(prompts=raw_prompts_flattened, semaphore=semaphore))]
+	else:
+		from tqdm import tqdm  # no parallelism in first round
 		raw_answers = [
-			scorer_llm.call(prompt=prompt).message.content 
-			for prompt in raw_prompts_flattened
+			scorer_llm.call(prompt=prompt).output.text
+			for prompt in tqdm(raw_prompts_flattened)
 		]
 		# import pdb;pdb.set_trace()
 
@@ -732,16 +688,10 @@ def evaluate_single_instruction(
 		# some calculations before arriving at the final answer
 		if evaluate_in_parallel:
 		# pylint: disable=undefined-variable
-			raw_answers_second_round = _prompt_a_list_in_parallel(
-				raw_prompts_flattened=raw_prompts_flattened_second_round,
-				num_servers=num_servers,
-				call_server_local_func=functools.partial(
-					call_server_func, max_decode_steps=50
-				),
-			)
+			raw_answers_second_round = [x.output.text for x in asyncio.run(scorer_llm.async_call(prompts=raw_prompts_flattened_second_round))]
 		else:
 			raw_answers_second_round = [
-				scorer_llm.call(prompt=prompt).message.content
+				scorer_llm.call(prompt=prompt).output.text
 				for prompt in raw_prompts_flattened_second_round
 			]
 			# import pdb;pdb.set_trace()
@@ -790,6 +740,7 @@ def evaluate_single_instruction(
 	def _parse_prediction(
 		x, is_gpt_model, treat_as_number, num_decimals, treat_as_bool
 	):
+		# import pdb; pdb.set_trace()
 		if is_gpt_model and r"\boxed" in x:
 			return re.findall(r"\\boxed{(.*?)}", x)[0]
 		else:
@@ -799,8 +750,25 @@ def evaluate_single_instruction(
 				num_decimals=num_decimals,
 				treat_as_bool=treat_as_bool,
 			)
+		
+	def _parse_prediction_with_star(prediction):
+		try:
+			return re.findall(r"\*\*(.*?)\*\*", prediction)[-1]
+		except:
+			return "-1"
 
 	# pylint: disable=g-long-lambda
+	text_in_star = list(
+		map(
+			lambda x: _parse_prediction_with_star(
+				x,
+			),
+			raw_answers_to_parse,
+		)
+	)
+
+	# pylint: disable=g-long-lambda
+	# import pdb; pdb.set_trace()
 	choices = list(
 		map(
 			lambda x, y: _parse_prediction(
@@ -810,10 +778,11 @@ def evaluate_single_instruction(
 				prediction_num_decimals,
 				prediction_treat_as_bool,
 			),
-			raw_answers_to_parse,
+			text_in_star,
 			prediction_treat_as_number_list,
 		)
 	)
+
 	if not extract_final_answer_by_prompting_again:
 		choices = [
 			_extract_second_round_answer_for_parsing(item) for item in choices
@@ -863,56 +832,3 @@ def evaluate_single_instruction(
 
 	detailed_results_df.set_index("index_in_raw_dataset", inplace=True)
 	return detailed_results_df
-
-
-	# functions to read BBH data
-	# modified from http://google3/third_party/py/cascades/examples/tasks/bbh.py;rcl=501965439 # pylint: disable=line-too-long
-
-
-	def get_bbh_task_names(bbh_root_folder_path):
-		files = os.listdir(bbh_root_folder_path)
-		task_names = [f.split(".json")[0] for f in files]
-		task_names = [f for f in task_names if "." not in f]
-		return task_names
-
-
-	def load_bbh_task_data(
-		task_name: str,
-		base_dir: str,
-		qa_format: bool = True,
-	):
-		"""Load BBH raw data from disk.
-
-		The data is available at https://github.com/suzgunmirac/BIG-Bench-Hard.
-
-		Args:
-			task_name (str): which bbh task to load
-			base_dir (str): the directory containing json files for bbh.
-			qa_format (bool): whether to prepend "Q:" and "A:" to raw input and target,
-			respectively
-
-		Returns:
-			data (list): a list of examples, each example is a dict {'input':
-			<question_string>, 'target': <answer_string>}
-		"""
-
-		if task_name not in get_bbh_task_names(base_dir):
-			raise ValueError(
-				f"Task {task_name} not a valid bbh task.  Consult `get_task_names()`"
-				" for a list of valid tasks."
-			)
-
-		task_loc = f"{base_dir}/{task_name}.json"
-		with open(task_loc, "r") as f:
-			data = json.loads(f.readlines()[0])["examples"]
-
-		if qa_format:
-			formatted_examples = []
-			for d in data:
-			# uses BIG-bench formatting
-				formatted_examples.append(
-					{"input": f"{d['input']}", "target": f"{d['target']}"}
-				)
-			data = formatted_examples
-
-		return data

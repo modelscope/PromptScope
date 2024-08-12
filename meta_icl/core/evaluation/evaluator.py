@@ -1,9 +1,8 @@
 from sklearn.metrics import confusion_matrix
 import os
 
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
 from meta_icl.core.utils.logger import Logger
-from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
+from meta_icl import PROMPT_REGISTRY
 import random
 
 class Eval:
@@ -18,16 +17,19 @@ class Eval:
         :analyzer (optional): A chain that analyze the errors
         :label_schema (optional): The label schema
         """
+        from meta_icl.core.models.generation_model import GenerationModel
+
         self.init_config()
-        self.analyzer_llm = LlamaIndexGenerationModel(**self.model_config.analyzer)
+        self.analyzer_llm = GenerationModel(**self.model_config.analyzer)
         if hasattr(self.model_config, 'evaluator'):
-            self.evaluator_llm = LlamaIndexGenerationModel(**self.model_config.evaluator)
+            self.evaluator_llm = GenerationModel(**self.model_config.evaluator)
 
         self.history = []        
         self.logger = Logger.get_logger(__name__)
         self.mean_score = None
         self.eval_instruction = None
     def init_config(self):
+        from meta_icl import CONFIG_REGISTRY
         self.eval_config = CONFIG_REGISTRY.module_dict['eval_config']
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
@@ -51,7 +53,12 @@ class Eval:
             eval_prompt = PROMPT_REGISTRY.module_dict['eval'].format_map(prompt_input)
             # print('#############\n', annotate_prompt, '################\n')
             response = self.evaluator_llm.call(prompt=eval_prompt)
-            response_list = [item for item in response.message.content.split("||") if item]
+            import pdb; pdb.set_trace()
+            try:
+                response_list = [item for item in response.message.content.split("||") if item]
+            except:
+                response_list = [item for item in response.output.text.split("||") if item]
+
             print('#############\n', response_list, '################\n')
             evaluations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1].strip(), "评估": lines[-1].strip()} for lines in (sample.split('|') for sample in response_list if sample)])
         
@@ -136,8 +143,12 @@ class Eval:
 
         
         analysis = self.analyzer_llm.call(prompt=analyze_prompt)
-        self.logger.info(analysis.message.content)
-        kwargs['analysis'] = analysis.message.content
+        try:
+            self.logger.info(analysis.message.content)
+            kwargs['analysis'] = analysis.message.content
+        except:
+            self.logger.info(analysis.output.text)
+            kwargs['analysis'] = analysis.output.text
         self.history.append(kwargs)
         
     def sample_to_text(self, sample: dict, num_errors_per_label: int = 0, is_score: bool = True) -> str:
