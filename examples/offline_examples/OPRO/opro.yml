@@ -1,7 +1,7 @@
 # use_wandb: False
 
 basic_config:
-    task_name: train # bigbench | ncbi | ... | or your own task
+    task_name: &task_name train # bigbench | ncbi | ... | or your own task
     search_algo: mcts # mcts | beam_search
     print_log: true
     output_path: dump
@@ -21,20 +21,20 @@ task_config:
 
 model_config:
     scorer:
-        module_name: 'dashscope_generation'
-        model_name: 'qwen2-57b-a14b-instruct'
+        module_name: 'aio_generation'
+        model_name: qwen-max-allinone
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
         batch_size: &bs 1
 
     optim:
-        module_name: 'dashscope_generation'
-        model_name: &optim_name 'qwen2-57b-a14b-instruct'
+        module_name: 'aio_generation'
+        model_name: &optim_name qwen-max-allinone
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
-        temperature: &temp 0.1
+        temperature: &temp 1
         
 
 evolution_config:
@@ -42,9 +42,9 @@ evolution_config:
     old_instruction_score_threshold: 0.3
     extract_final_answer_by_prompting_again: False
     include_qa: False
-    evaluate_in_parallel: False
+    evaluate_in_parallel: True
     dataset_name: *dataset
-    task_name: train
+    task_name: *task_name
     initial_instructions: [
         "Let's solve the problem.",
         # "",
@@ -58,11 +58,11 @@ evolution_config:
     meta_prompt_instructions_before_exemplars: True
     few_shot_selection_criteria: random
     optimizer_llm_name: *optim_name
+    optimizer_llm_temperature: *temp
     num_generated_instructions_in_each_step: 8
     evaluate_generated_ins_on_few_shot: False
-    num_few_shot_questions_for_instruction_refinement: 1
+    num_few_shot_questions_for_instruction_refinement: 5
     evaluate_old_ins_on_few_shot: False
     eval_interval: 3
     verbose: False
     batch_size: *bs
-    optimizer_llm_temperature: *temp

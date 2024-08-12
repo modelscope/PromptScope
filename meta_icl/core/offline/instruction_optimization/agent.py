@@ -3,32 +3,26 @@ import time
 from datetime import timedelta
 import sys
 
-from meta_icl.core.algorithm.PromptAgent.utils import get_pacific_time
-from meta_icl.core.algorithm.PromptAgent.tasks import get_task
-from meta_icl.core.algorithm.PromptAgent.search_algo import get_search_algo
-from meta_icl.core.algorithm.base_algorithm import PromptOptimizationWithFeedback
+from meta_icl.algorithm.PromptAgent.utils import get_pacific_time
+from meta_icl.algorithm.PromptAgent.tasks import get_task
+from meta_icl.algorithm.PromptAgent.search_algo import get_search_algo
+from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 from meta_icl.core.utils.logger import Logger
 from meta_icl.core.models.base_model import MODEL_REGISTRY
-from meta_icl.core.models.generation_model import LlamaIndexGenerationModel
+from meta_icl.core.models.generation_model import GenerationModel
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl import PROMPT_REGISTRY
 
-
-CORE_PATH = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-)
-sys.path.insert(0, CORE_PATH)
-
-PROMPT_PATH = os.path.join(CORE_PATH, 'prompt')
 class PromptAgent(PromptOptimizationWithFeedback):
-    def __init__(self) -> None:
+    def __init__(self, dataset_path) -> None:
         """
         PromptAgent: set up task, logger, search algorithm, world model
         """
         self.init_config()
         
         task_name = self.basic_config.task_name
+        self.task_config.data_dir = dataset_path
         self.task = get_task(task_name)(**self.task_config)
         self.initial_prompt = self.basic_config.init_prompt
         self.search_algo = self.basic_config.search_algo
@@ -43,7 +37,8 @@ class PromptAgent(PromptOptimizationWithFeedback):
         self.init_model()
 
     def init_prompt(self):
-        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(PROMPT_PATH, f'prompt_agent_{self.task_config.language.lower()}.yml')))
+        prompt_path = os.path.join(os.path.dirname(__file__), 'prompt', f'prompt_agent_{self.task_config.language.lower()}.yml')
+        PROMPT_REGISTRY.batch_register(load_yaml(prompt_path))
 
     def init_config(self):
         self.basic_config = CONFIG_REGISTRY.module_dict["basic_config"]
@@ -53,9 +48,9 @@ class PromptAgent(PromptOptimizationWithFeedback):
         self.world_model_config = CONFIG_REGISTRY.module_dict["world_model_config"]
 
     def init_model(self):
-        self.base_model = LlamaIndexGenerationModel(**self.model_config.base)
+        self.base_model = GenerationModel(**self.model_config.base)
         
-        self.optim_model = LlamaIndexGenerationModel(**self.model_config.optim)
+        self.optim_model = GenerationModel(**self.model_config.optim)
         
         self.world_model = MODEL_REGISTRY.module_dict[self.search_algo](
             task=self.task, 

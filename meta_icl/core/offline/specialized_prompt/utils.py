@@ -19,7 +19,10 @@ def call_llm(prompt, model_name, temperature=1.0):
                                temperature=temperature)
     if response.status_code == HTTPStatus.OK:
         # print(response)
-        return response.output.choices[0].message.content
+        try:
+            return response.output.choices[0].message.content
+        except:
+            return response.output.choices[0].output.text
     else:
         print('Request id: %s, Status code: %s, error code: %s, error message: %s' % (
             response.request_id, response.status_code,

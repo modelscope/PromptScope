@@ -32,10 +32,6 @@ python evaluate_instructions.py \
 ```
 
 The outputs will then be written to `outputs/scorer-outputs/` in the opro folder.
-
-Notes to Step 4: 
-- When using a Google-Cloud-served model as scorer (like text-bison at https://developers.generativeai.google/tutorials/text_quickstart), add `--palm_api_key="<your_key>"`
-- When using an OpenAI model as scorer, add `--openai_api_key="<your_key>"`
 """
 
 import datetime
@@ -49,63 +45,48 @@ OPRO_ROOT_PATH = os.path.dirname(
 )
 sys.path.insert(0, OPRO_ROOT_PATH)
 
-from absl import app
-from absl import flags
-import google.generativeai as palm
 import numpy as np
-import openai
 from opro import prompt_utils
 from opro.evaluation import eval_utils
 import pandas as pd
 
 ROOT_DATA_FOLDER_PATH = os.path.join(OPRO_ROOT_PATH, "data")
 
-_OPENAI_API_KEY = flags.DEFINE_string(
-    "openai_api_key", "", "The OpenAI API key."
-)
 
-_PALM_API_KEY = flags.DEFINE_string("palm_api_key", "", "The PaLM API key.")
+_SCORER = "qwen2-72b-instruct"
 
-_SCORER = flags.DEFINE_string(
-    "scorer", "text-bison", "The name of the scorer LLM."
-)
+_DATASET = "gsm8k"
 
-_DATASET = flags.DEFINE_string(
-    "dataset", "gsm8k", "The name of dataset to search for instructions on."
-)
+_INSTRUCTION_POS = "A_begin"
 
-_TASK = flags.DEFINE_string(
-    "task",
-    "train",
-    "The name of task within the above dataset to search for instructions on.",
-)
+_EVALUATE_TRAINING_FOLD = False
 
-_INSTRUCTION_POS = flags.DEFINE_string(
-    "instruction_pos",
-    "A_begin",
-    "The position of the instruction to search for.",
-)
+_EVALUATE_TEST_FOLD = True
 
-_EVALUATE_TRAINING_FOLD = flags.DEFINE_bool(
-    "evaluate_training_fold", False, "Whether to evaluate the training fold."
-)
+_TASK = "test"
 
-_EVALUATE_TEST_FOLD = flags.DEFINE_bool(
-    "evaluate_test_fold", True, "Whether to evaluate the test fold."
-)
+QWEN_MODELS = {"qwen-turbo",
+			   "qwen2-57b-a14b-instruct",
+			   "qwen2-72b-instruct",
+			   "qwen-max",
+			   "qwen-max-allinone",
+         "qwen2-72b",
+         "qwen2-7b-instruct"
+			   }
 
-
-def main(_):
+def main():
   # set instructions to evaluate
   instructions_to_evaluate = [
-      "",
-      "Let's think step by step.",
+      # "",   # 72.5
+      "Let's solve the problem.",  # 51.9
+      "Let's unify our exceptional intellects and trailblazing methodologies to conquer the adversities and ascend to unexplored heights of unparalleled triumph, harnessing our collective brilliance and avant-garde strategies to surmount any obstacle and achieve superlative success, all while inspiring future generations to embrace our pioneering spirit and relentlessly pursue the pinnacle of human potential.", # 48.1
+      "Restate the problem in your own words to ensure understanding. Break down the problem into smaller steps, explaining each calculation in detail. Verify each step and re-check your calculations for accuracy. Use proper mathematical notation and maintain consistency with the context of the question.", # 31.3
       "Take a deep breath and work on this problem step-by-step.",
   ]
   print(f"instructions_to_evaluate: {instructions_to_evaluate}")
 
-  evaluate_training_fold = _EVALUATE_TRAINING_FOLD.value
-  evaluate_test_fold = _EVALUATE_TEST_FOLD.value
+  evaluate_training_fold = _EVALUATE_TRAINING_FOLD
+  evaluate_test_fold = _EVALUATE_TEST_FOLD
   
   assert evaluate_training_fold or evaluate_test_fold
   # set ratios of training and test splits
@@ -115,12 +96,10 @@ def main(_):
   if evaluate_training_fold and evaluate_test_fold:
     assert train_ratio + test_ratio == 1
 
-  openai_api_key = _OPENAI_API_KEY.value
-  palm_api_key = _PALM_API_KEY.value
-  scorer_llm_name = _SCORER.value.lower()
-  dataset_name = _DATASET.value.lower()
-  task_name = _TASK.value.lower()
-  instruction_pos = _INSTRUCTION_POS.value
+  scorer_llm_name = _SCORER.lower()
+  dataset_name = _DATASET.lower()
+  task_name = _TASK.lower()
+  instruction_pos = _INSTRUCTION_POS
 
   assert dataset_name in {
       "mmlu",
@@ -175,22 +154,7 @@ def main(_):
     assert dataset_name in {"multiarith", "aqua"}
     assert task_name == "self"
 
-  assert scorer_llm_name in {
-      "text-bison",
-      "gpt-3.5-turbo",
-      "gpt-4",
-  }
-
-  # make sure the model is callable
-  if scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}:
-    assert openai_api_key, "The OpenAI API key must be provided."
-    openai.api_key = openai_api_key
-  else:
-    assert scorer_llm_name == "text-bison"
-    assert (
-        palm_api_key
-    ), "A PaLM API key is needed when prompting the text-bison model."
-    palm.configure(api_key=palm_api_key)
+  assert scorer_llm_name in QWEN_MODELS
 
   assert instruction_pos in {
       "before_Q",
@@ -236,68 +200,29 @@ def main(_):
   print(f"result directory:\n{result_folder}")
 
   # ====================== scorer model configs ==============================
-  # Load the scorer model. This is the model used to compute the score of an
-  # instruction, and can be either pre-trained or fine-tuned.
-  if scorer_llm_name == "text-bison":
-    # when prompting text-bison with Cloud API
-    scorer_finetuned_palm_temperature = 0.0
-    scorer_finetuned_palm_max_decode_steps = 1024
-    scorer_finetuned_palm_batch_size = 1
-    scorer_finetuned_palm_num_servers = 1
-    scorer_finetuned_palm_dict = dict()
-    scorer_finetuned_palm_dict["temperature"] = (
-        scorer_finetuned_palm_temperature
-    )
-    scorer_finetuned_palm_dict["num_servers"] = (
-        scorer_finetuned_palm_num_servers
-    )
-    scorer_finetuned_palm_dict["batch_size"] = scorer_finetuned_palm_batch_size
-    scorer_finetuned_palm_dict["max_decode_steps"] = (
-        scorer_finetuned_palm_max_decode_steps
-    )
-
-    call_scorer_finetuned_palm_server_func = functools.partial(
-        prompt_utils.call_palm_server_from_cloud,
-        model="text-bison-001",
-        temperature=scorer_finetuned_palm_dict["temperature"],
-        max_decode_steps=scorer_finetuned_palm_dict["max_decode_steps"],
-    )
-
-    scorer_llm_dict = {
-        "model_type": scorer_llm_name.lower(),
-    }
-    scorer_llm_dict.update(scorer_finetuned_palm_dict)
-    call_scorer_server_func = call_scorer_finetuned_palm_server_func
-
-  else:
-    # GPT models
-    assert scorer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}
-    scorer_gpt_max_decode_steps = 1024
-    scorer_gpt_temperature = 0.0
-
-    scorer_gpt_dict = dict()
-    scorer_gpt_dict["max_decode_steps"] = scorer_gpt_max_decode_steps
-    scorer_gpt_dict["temperature"] = scorer_gpt_temperature
-    scorer_gpt_dict["num_decodes"] = 1
-    scorer_gpt_dict["batch_size"] = 1
-    scorer_gpt_dict["num_servers"] = 1
-
-    scorer_llm_dict = {
-        "model_type": scorer_llm_name.lower(),
-    }
-    scorer_llm_dict.update(scorer_gpt_dict)
-    call_scorer_server_func = functools.partial(
-        prompt_utils.call_openai_server_func,
-        model=scorer_llm_name.lower(),
-        max_decode_steps=scorer_gpt_max_decode_steps,
-        temperature=scorer_gpt_temperature,
-    )
-
+  aio_scorer_config = {
+        'module_name': 'aio_generation',
+        'model_name': scorer_llm_name,
+        'max_tokens': 2000,
+        'seed': 1234,
+        'batch_size': 1,
+  }
+  scorer_config = {
+        'module_name': 'dashscope_generation',
+        'model_name': scorer_llm_name,
+        'max_tokens': 2000,
+        'seed': 1234,
+        'batch_size': 1,
+  }
+  from meta_icl.core.models.generation_model import AioGenerationModel, GenerationModel
+  import asyncio
+  
+  scorer_llm = AioGenerationModel(**aio_scorer_config)
   # ===================== try calling the scorer servers ======================
   print("\n======== testing the scorer server ===========")
-  scorer_test_output = call_scorer_server_func(
-      "Does the sun rise from the north? Just answer yes or no."
-  )
+  scorer_test_output = [x.output.text for x in asyncio.run(scorer_llm.async_call(
+      prompts=["Does the sun rise from the north? Just answer yes or no."])
+  )]
   print(f"scorer test output: {scorer_test_output}")
   print("Finished testing the scorer servers.")
 
@@ -524,22 +449,8 @@ def main(_):
     boolean_tasks = set()
     numerical_output_tasks = set(tasks_all)
 
-  if scorer_llm_name == "text-bison":
-    # instruction fine-tuned models
-    batch_size = 1
-    num_servers = scorer_llm_dict["num_servers"]
-    extract_final_answer_by_prompting_again = False
-    include_qa = False
-    evaluate_in_parallel = False
-  else:
-    # GPT models
-    assert scorer_llm_name in {"gpt-3.5-turbo", "gpt-4"}
-    batch_size = 1
-    num_servers = 1
-    extract_final_answer_by_prompting_again = False
-    include_qa = False
-    evaluate_in_parallel = False
-
+  extract_final_answer_by_prompting_again = False
+  include_qa = True
   print(
       f"scorer_llm_name: {scorer_llm_name},"
       " extract_final_answer_by_prompting_again:"
@@ -639,9 +550,6 @@ def main(_):
     scorer_configs_json_path = os.path.join(
         single_task_result_folder, "scorer_configs.json"
     )
-    print(f"saving scorer configs to\n{scorer_configs_json_path}")
-    with open(scorer_configs_json_path, "w") as f:
-      json.dump(scorer_llm_dict, f, indent=4)
 
     # train-test split
     np.random.seed(0)
@@ -655,7 +563,13 @@ def main(_):
         )
     )
     test_index = np.sort(
-        np.array(list(set(np.arange(num_examples)) - set(train_index)))
+        np.array(
+            np.random.choice(
+                num_examples,
+                size=int(test_ratio * num_examples),
+                replace=False,
+            )
+        )
     )
     if dataset_name == "math":
       train_index = original_index[train_index]
@@ -711,20 +625,22 @@ def main(_):
             f" percentage): {np.average(train_scores) * 100:.1f}"
         )
       if evaluate_test_fold:
+        if scorer_llm_name == 'qwen-max-allinone':
+          semaphore = 30
+        else:
+          semaphore = 10
         print("... evaluating the test fold ...")
         detailed_test_results_df = eval_utils.evaluate_single_instruction(
             data=raw_data,
             instruction=instruction,
             eval_index_all=test_index,  # evaluating the test exemplars
-            batch_size=batch_size,
-            call_server_func=call_scorer_server_func,
+            scorer_llm=scorer_llm,
             dataset_name=dataset_name,
-            num_servers=num_servers,
             extract_final_answer_by_prompting_again=extract_final_answer_by_prompting_again,
             instruction_pos=instruction_pos,
             is_multiple_choice=is_multiple_choice,
             include_qa=include_qa,
-            evaluate_in_parallel=evaluate_in_parallel,
+            evaluate_in_parallel=True,
             prediction_treat_as_number=prediction_treat_as_number,
             prediction_treat_as_bool=prediction_treat_as_bool,
             prediction_num_decimals=0,
@@ -732,6 +648,7 @@ def main(_):
             verbose=False,
             max_retry=5,
             sleep_time=180,
+            semaphore=semaphore,
         )
         test_file_path = os.path.join(
             single_task_result_folder, f"{test_ratio}-TEST-{filename}.csv"
@@ -766,4 +683,4 @@ def main(_):
 
 
 if __name__ == "__main__":
-  app.run(main)
+  main()
