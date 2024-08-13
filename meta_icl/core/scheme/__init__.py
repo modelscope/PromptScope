@@ -1,7 +1,7 @@
-from .message import Message, QwenMessage
-from .model_response import ModelResponse, QwenResponse
+from .message import Message
+from .model_response import ModelResponse
 
 __all__ = [
-    "QwenMessage",
-    "QwenResponse",
+    "Message",
+    "ModelResponse",
 ]

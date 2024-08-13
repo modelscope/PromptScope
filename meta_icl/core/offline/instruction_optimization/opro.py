@@ -451,7 +451,7 @@ class OPRO(PromptOptimizationWithFeedback):
 				optimizer_llm_input_text = meta_prompt
 				# generate instructions
 				# print(f"current temperature: {optimizer_llm_temperature_curr}")
-				raw_outputs = self.optim_llm.call(prompt=optimizer_llm_input_text).output.text
+				raw_outputs = self.optim_llm.call(prompt=optimizer_llm_input_text).message.content
 				# print(raw_outputs)
 			# Extract the generated instructions from the optimizer LLM output. Only
 			# keep some samples if the desired number of remaining instructions
