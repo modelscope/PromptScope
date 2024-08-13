@@ -4,7 +4,7 @@ import concurrent.futures
 
 from meta_icl.algorithm.base_algorithm import DemonstrationAugmentation
 from meta_icl.core.utils.logger import Logger
-from meta_icl.core.models.generation_model import GenerationModel
+from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel
 from meta_icl.core.utils.utils import load_yaml
 
 class IPC_Generation(DemonstrationAugmentation):
@@ -27,7 +27,12 @@ class IPC_Generation(DemonstrationAugmentation):
         self.logger = Logger.get_logger(__name__)
 
     def init_model(self):
-        self.generation_llm = GenerationModel(**self.model_config.generation)
+        self.module_name = self.model_config.generation.get('module_name')
+        if self.module_name == 'dashscope_generation':
+            self.generation_llm = GenerationModel(**self.model_config.generation)
+        elif self.module_name == 'openai_generation':
+            self.generation_llm = OpenAIGenerationModel(**self.model_config.generation)
+        
     def init_config(self):
         """
         Initialize the configuration file
@@ -78,18 +83,21 @@ class IPC_Generation(DemonstrationAugmentation):
 
         return all_results
     
-    def  run(self, prompt: str):
+    def run(self, prompt: str):
         """
         generate samples
         """
         batch_input = prompt
         batch_inputs = self.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
         samples_batches = self.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
-        print(samples_batches)
-        try:
-            samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
-        except:
-            samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
+        if self.module_name == 'dashscope_generation':
+            try:
+                samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
+            except:
+                samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
+        elif self.module_name == 'openai_generation':
+            samples_lists = [samples_batch.choices[0].message.content.split("||") for samples_batch in samples_batches]
+
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
         self.logger.info(samples_list)
         return samples_list

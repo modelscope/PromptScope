@@ -16,7 +16,7 @@ class Message(BaseModel):
 
     meta_data: Dict[str, str] = Field({}, description="meta data for msg")
 
-class QwenMessage(BaseModel):
-    role: str = Field(..., description="The role of the message sender (user, assistant, system)")
+# class QwenMessage(BaseModel):
+#     role: str = Field(..., description="The role of the message sender (user, assistant, system)")
 
-    content: str = Field(..., description="The body of the message")   
+#     content: str = Field(..., description="The body of the message")   
