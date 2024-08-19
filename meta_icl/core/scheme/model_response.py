@@ -38,11 +38,11 @@ class ModelResponse(BaseModel):
 
 ModelResponseGen = Generator[ModelResponse, None, None]
 
-class QwenResponse(BaseModel):
-    status_code: int = Field(200, description="model response status code")
+# class QwenResponse(BaseModel):
+#     status_code: int = Field(200, description="model response status code")
 
-    request_id: str = Field("", description="model request id")
+#     request_id: str = Field("", description="model request id")
 
-    output: dict = Field({}, description="contain the model response")
+#     output: dict = Field({}, description="contain the model response")
 
-    usage: dict = Field({}, description="tokens used")
+#     usage: dict = Field({}, description="tokens used")

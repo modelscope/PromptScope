@@ -74,6 +74,15 @@ QWEN_MODELS = {"qwen-turbo",
          "qwen2-7b-instruct"
 			   }
 
+OPENAI_MODELS = {"gpt",
+			   "qwen2-57b-a14b-instruct",
+			   "qwen2-72b-instruct",
+			   "qwen-max",
+			   "qwen-max-allinone",
+         "qwen2-72b",
+         "qwen2-7b-instruct"
+			   }
+
 def main():
   # set instructions to evaluate
   instructions_to_evaluate = [
@@ -220,7 +229,10 @@ def main():
   scorer_llm = AioGenerationModel(**aio_scorer_config)
   # ===================== try calling the scorer servers ======================
   print("\n======== testing the scorer server ===========")
-  scorer_test_output = [x.output.text for x in asyncio.run(scorer_llm.async_call(
+  scorer_test_output = [x.message.content for x in asyncio.run(scorer_llm.async_call(
+      prompts=["Does the sun rise from the north? Just answer yes or no."])
+  )]
+  scorer_test_output = [x.message.content for x in asyncio.run(scorer_llm.async_call(
       prompts=["Does the sun rise from the north? Just answer yes or no."])
   )]
   print(f"scorer test output: {scorer_test_output}")
