@@ -1,7 +1,7 @@
 import json
 import os.path
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Union
 
 import yaml
 
@@ -16,7 +16,7 @@ class PromptHandler(object):
 
     def __init__(self,
                  class_path: str,
-                 language: LanguageEnum | str,
+                 language: Union[LanguageEnum, str],
                  class_name: str = "",
                  prompt_file: str = "",
                  prompt_dict: dict = None,
