@@ -10,6 +10,8 @@ from typing import Generic, Optional
 from .base_algo import SearchAlgo, State, Action
 from pathlib import Path
 
+from meta_icl.core.utils.prompt_handler import PromptHandler
+
 class MCTSNode(Generic[State, Action]):
     id_iter = itertools.count()
 

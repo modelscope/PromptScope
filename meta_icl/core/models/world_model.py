@@ -2,6 +2,7 @@ from .gradient_descent import *
 from typing import Generic
 from meta_icl.algorithm.PromptAgent.search_algo.base_algo import State, Action
 from meta_icl.algorithm.PromptAgent.search_algo.mcts import MCTSNode
+from meta_icl.core.utils.prompt_handler import PromptHandler
 from tqdm import tqdm
 
 class WorldModel(Generic[State, Action]):
@@ -18,6 +19,7 @@ class WorldModel(Generic[State, Action]):
                  test_batch_size: int = 1,
                  eval_batch_size: int = 1,
                  print_log: bool = True,
+                 prompt_handler: PromptHandler = None,
                  **kwargs) -> None:
         
         """
@@ -55,7 +57,8 @@ class WorldModel(Generic[State, Action]):
             base_model=base_model, 
             optim_model=optim_model, 
             num_new_prompts = num_new_prompts,
-            print_log=print_log
+            print_log=print_log,
+            prompt_handler=prompt_handler,
             )
         
         self.log_vars()

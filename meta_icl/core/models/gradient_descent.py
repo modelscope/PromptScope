@@ -5,6 +5,7 @@ import re
 import numpy as np
 
 from meta_icl.algorithm.PromptAgent.utils import *
+from meta_icl.core.utils.prompt_handler import PromptHandler
 
 class GradientDescent():
     def __init__(self,
@@ -13,8 +14,8 @@ class GradientDescent():
                  optim_model,
                  print_log = True,
                  logger = None,
-                 num_new_prompts = 1,):
-        from meta_icl import PROMPT_REGISTRY
+                 num_new_prompts = 1,
+                 prompt_handler: PromptHandler = None,):
         self.task = task
         self.base_model = base_model
         self.optim_model = optim_model
@@ -24,20 +25,17 @@ class GradientDescent():
 
         self.use_correct_examples = False
 
-        from meta_icl import PROMPT_REGISTRY
+        self.optimize_prompt_template = prompt_handler.optimize_prompt_template_single \
+            if num_new_prompts == 1 else prompt_handler.optimize_prompt_template
+        self.ascend_optimize_prompt_template = prompt_handler.ascend_optimize_prompt_template_single \
+            if num_new_prompts == 1 else prompt_handler.ascend_optimize_prompt_template
+        self.gradient_prompt_template = prompt_handler.gradient_prompt_template
+        self.ascend_gradient_prompt_template = prompt_handler.ascend_gradient_prompt_template
+        self.example_template = prompt_handler.example_template
 
-        prompt_templates = PROMPT_REGISTRY.module_dict
-        self.optimize_prompt_template = prompt_templates['optimize_prompt_template_single'] \
-            if num_new_prompts == 1 else prompt_templates['optimize_prompt_template']
-        self.ascend_optimize_prompt_template = prompt_templates['ascend_optimize_prompt_template_single'] \
-            if num_new_prompts == 1 else prompt_templates['ascend_optimize_prompt_template']
-        self.gradient_prompt_template = prompt_templates['gradient_prompt_template']
-        self.ascend_gradient_prompt_template = prompt_templates['ascend_gradient_prompt_template']
-        self.example_template = prompt_templates['example_template']
-
-        self.forward_log_template = prompt_templates['forward_log_template']
-        self.gradient_log_template = prompt_templates['gradient_log_template']
-        self.optimize_log_template = prompt_templates['optimize_log_template']
+        self.forward_log_template = prompt_handler.forward_log_template
+        self.gradient_log_template = prompt_handler.gradient_log_template
+        self.optimize_log_template = prompt_handler.optimize_log_template
 
         self._build_forward_prompts_func = task.build_forward_prompts_completion
         self.call_func = self.base_model.call
