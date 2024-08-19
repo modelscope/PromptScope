@@ -1,16 +1,18 @@
 from sklearn.metrics import confusion_matrix
 import os
+from typing import List
 
 from meta_icl.core.utils.logger import Logger
-from meta_icl import PROMPT_REGISTRY
+from meta_icl.core.utils.prompt_handler import PromptHandler
+from meta_icl.core.enumeration.language_enum import LanguageEnum
 import random
 
 class Eval:
     """
     The Eval class is responsible to calculate the score and the large errors
     """
-
-    def __init__(self):
+    def __init__(self, 
+                 **kwargs):
         """
         Initialize a new instance of the Eval class.
         :param config: The configuration file (EasyDict)
@@ -35,7 +37,7 @@ class Eval:
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
 
     # @staticmethod
-    def eval_with_llm(self, samples):
+    def eval_with_llm(self, samples: List[str], prompt_handler: PromptHandler):
         if not samples:
             self.logger.info("No samples to evaluate, direct return")
         print('samples', samples)
@@ -50,7 +52,7 @@ class Eval:
         for sample_batch in samples_batches:
             sample_str = "|".join(sample_batch)
             prompt_input['samples'] = sample_str
-            eval_prompt = PROMPT_REGISTRY.module_dict['eval'].format_map(prompt_input)
+            eval_prompt = prompt_handler.eval.format_map(prompt_input)
             # print('#############\n', annotate_prompt, '################\n')
             response = self.evaluator_llm.call(prompt=eval_prompt)
             import pdb; pdb.set_trace()
@@ -122,7 +124,7 @@ class Eval:
                     txt_res += f"Sample: {error['问题']}\nRating: {error['评估']}\n#\n"
         return txt_res
 
-    def error_analysis(self, **kwargs):
+    def error_analysis(self, prompt_handler: PromptHandler, **kwargs):
         assert 'errors' in kwargs
         errors = kwargs['errors']
         error_str = self.error_to_str(errors, num_errors_per_label=self.eval_config.num_errors_per_label)
@@ -133,10 +135,10 @@ class Eval:
             for i, row in enumerate(kwargs['conf_matrix']):
                 conf_text += f"\n{self.eval_config.label_schema[i]}: {row}"
             kwargs['confusion_matrix'] = conf_text
-            analyze_prompt = PROMPT_REGISTRY.module_dict['error_analysis'].format_map(kwargs)
+            analyze_prompt = prompt_handler.error_analysis.format_map(kwargs)
         elif self.eval_config.func_name == 'ranking':
             kwargs['label_schema'] = self.eval_config.label_schema
-            analyze_prompt = PROMPT_REGISTRY.module_dict['error_analysis_generation'].format_map(kwargs)
+            analyze_prompt = prompt_handler.error_analysis_generation.format_map(kwargs)
 
         self.mean_score = kwargs['score']
         self.logger.info(kwargs)
