@@ -739,7 +739,7 @@ def run_evolution(**kwargs):
 				optimizer_llm_input_text = meta_prompt
 				# generate instructions
 				# print(f"current temperature: {optimizer_llm_temperature_curr}")
-				raw_outputs = optim_llm.call(prompt=optimizer_llm_input_text).output.text
+				raw_outputs = optim_llm.call(prompt=optimizer_llm_input_text).message.content
 				# print(raw_outputs)
 			# Extract the generated instructions from the optimizer LLM output. Only
 			# keep some samples if the desired number of remaining instructions
@@ -788,7 +788,7 @@ def run_evolution(**kwargs):
 		elif isinstance(optim_llm, AioGenerationModel):
 			import asyncio
 			optimizer_llm_input_text = [meta_prompt for _ in range(num_generated_instructions_in_each_step)]
-			raw_outputs = [x.output.text for x in asyncio.run(optim_llm.async_call(prompts=optimizer_llm_input_text, temperature=optimizer_temperature))]
+			raw_outputs = [x.message.content for x in asyncio.run(optim_llm.async_call(prompts=optimizer_llm_input_text, temperature=optimizer_temperature))]
 			generated_instructions_raw = [
 							extract_string_in_square_brackets(string)[1:-1]
 							for string in raw_outputs
