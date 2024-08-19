@@ -27,10 +27,6 @@ if not hasattr(LanguageEnum, rank_config_params.task_config.language.upper()):
 kwargs, best_prompt = {}, None
 if hasattr(generate_config_params.task_config, 'input_path'):
     input_path = Path(os.path.join(generate_config_params.task_config.input_path, 'ranking'))
-    if (input_path / 'samples.json').is_file():
-        with open(input_path / 'samples.json', 'r') as f:
-            data = [json.loads(line) for line in f]
-        kwargs['data'] = data
     if (input_path / 'history.pkl').is_file():
         state = pkl.load(open(input_path / 'history.pkl', 'rb'))
         best_prompt = state['prompt']
