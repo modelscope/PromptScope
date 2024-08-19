@@ -1,9 +1,28 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Any, Dict
-from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.utils.demontration_utils import generate_similar_demonstration
 
-class BaseDemoAugmentation(ABC):
+
+class BaseDemonstrationAugmentation(ABC):
+    """
+    Base Abstract Class for Prompt Optimization with Feedback
+    """
+
+    def __init__(self):
+        pass
+
     @abstractmethod
-    def generate(self, seed_example: Union[str, List[str], Dict], n: int) -> List:
+    def init_model(self):
+        pass
+
+    @abstractmethod
+    def init_config(self):
+        pass
+
+    @abstractmethod
+    def init_prompt(self):
+        pass
+
+    @abstractmethod
+    def run(self, seed_demonstrations: Union[str, List[str], Dict, Any],
+            n: int, **kwargs) -> List:
         pass

@@ -2,12 +2,13 @@ import os
 from tqdm import tqdm
 import concurrent.futures
 
-from meta_icl.algorithm.base_algorithm import DemonstrationAugmentation
+from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
 from meta_icl.core.utils.logger import Logger
 from meta_icl.core.models.generation_model import GenerationModel
 from meta_icl.core.utils.utils import load_yaml
 
-class IPC_Generation(DemonstrationAugmentation):
+
+class IPC_Generation(BaseDemonstrationAugmentation):
     """
     The main pipeline for IPC-based demonstration augmentation.
     """
@@ -28,6 +29,7 @@ class IPC_Generation(DemonstrationAugmentation):
 
     def init_model(self):
         self.generation_llm = GenerationModel(**self.model_config.generation)
+
     def init_config(self):
         """
         Initialize the configuration file
@@ -36,10 +38,11 @@ class IPC_Generation(DemonstrationAugmentation):
 
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
+
     def init_prompt(self):
         from meta_icl import PROMPT_REGISTRY
-        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'ipc_{self.task_config.language.lower()}.yml')))
-
+        PROMPT_REGISTRY.batch_register(load_yaml(
+            os.path.join(os.path.dirname(__file__), 'prompt', f'ipc_{self.task_config.language.lower()}.yml')))
 
     # @staticmethod
     # def log_and_print(logger, message):
@@ -54,7 +57,7 @@ class IPC_Generation(DemonstrationAugmentation):
         batch_num = num_samples // batch_size
         all_batches = [batch_input for _ in range(batch_num)]
         return all_batches
-    
+
     @staticmethod
     def batch_call(inputs: list[dict], num_workers: int, llm: GenerationModel):
         """
@@ -63,6 +66,7 @@ class IPC_Generation(DemonstrationAugmentation):
         :param num_workers: The number of workers
         :return: A list of results
         """
+
         def prompt_generator():
             for prompt in inputs:
                 yield prompt
@@ -77,13 +81,14 @@ class IPC_Generation(DemonstrationAugmentation):
                 all_results = list(executor.map(answer_with_progress, prompt_generator()))
 
         return all_results
-    
-    def  run(self, prompt: str):
+
+    def run(self, prompt: str):
         """
         generate samples
         """
         batch_input = prompt
-        batch_inputs = self.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
+        batch_inputs = self.generate_samples_batch(batch_input, self.task_config.samples_per_step,
+                                                   self.task_config.batch_size)
         samples_batches = self.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
         print(samples_batches)
         try:
