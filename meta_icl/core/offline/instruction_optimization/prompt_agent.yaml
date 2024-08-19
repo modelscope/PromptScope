@@ -1,0 +1,178 @@
+# log prompts
+
+forward_log_template: 
+  en: |
+    ---------------\tforward\t----------------
+    cur_prompt:\n{cur_prompt}
+    labels:  {labels}
+    preds:   {preds}
+    correct: {correct}
+    acc:     {acc}
+
+
+error_string_log_template: 
+  en: |
+    --------------\terror_string\t-----------------
+    {error_string}
+
+correct_string_log_template: 
+  en: |
+    --------------\tcorrect_string\t-----------------
+    {correct_string}
+
+gradient_log_template:
+  en: |
+    ---------------\tcal_gradient\t----------------
+    gradient_prompt:\n{gradient_prompt}
+    gradient:\n{gradient}
+
+correct_gradient_log_template:
+  en: |
+    ---------------\tcal_correct_gradient\t----------------
+    gradient_prompt:\n{gradient_prompt}
+    gradient:\n{gradient}
+
+optimize_log_template:
+  en: |
+    -------------\toptimize\t---------------
+    optimize_prompt:\n{optimize_prompt}
+    response:\n{response}
+    optimized_prompt:\n{optimized_prompt}
+
+self_evaluate_log_template:
+  en: |
+    -------------\tself_eval\t---------------
+    self_eval_prompt:\n{self_eval_prompt}
+    response:\n{response}
+    self_eval_score:\n{self_eval_score}
+
+# These prompts are modified based on Automatic Prompt Optimization with "Gradient Descent" and Beam Search
+# https://arxiv.org/abs/2305.03495
+
+gradient_prompt_template:
+  en: |
+    I'm writing prompts for a language model designed for a task.
+
+    My current prompt is:
+    {cur_prompt}
+
+    But this prompt gets the following examples wrong:
+    {example_string}
+
+    For each wrong example, carefully examine each question and wrong answer step by step, provide comprehensive and different reasons why the prompt leads to the wrong answer. At last, based on all these reasons, summarize and list all the aspects that can improve the prompt.
+
+optimize_prompt_template:
+  en: |
+    I'm writing prompts for a language model designed for a task.
+
+    My current prompt is:
+    {cur_prompt}
+
+    But this prompt gets the following examples wrong:
+    {example_string}
+
+    Based on these errors, the problems with this prompt and the reasons are:
+    {gradient}
+
+    There are a list of former prompts including the current prompt, and each prompt is modified from its former prompts:
+    {trajectory_prompts}
+
+    Based on the above information, please write {steps_per_gradient} new prompts following these guidelines:
+    1. The new prompts should solve the current prompt's problems.
+    2. The new prompts should consider the list of prompts and evolve based on the current prompt.
+    3. Each new prompt should be wrapped with <START> and <END>.
+
+    The new prompts are:
+
+example_template:
+  en: |
+    <{index}> 
+    The model's input is:
+    {question}
+
+    The model's response is: 
+    {response}
+
+    The correct label is: {label}
+    The model's prediction is: {prediction}.
+
+optimize_prompt_template_single:
+  en: |
+    I'm writing prompts for a language model designed for a task.
+
+    My current prompt is:
+    {cur_prompt}
+
+    But this prompt gets the following examples wrong:
+    {example_string}
+
+    Based on these errors, the problems with this prompt and the reasons are:
+    {gradient}
+
+    There are a list of former prompts including the current prompt, and each prompt is modified from its former prompts:
+    {trajectory_prompts}
+
+    Based on the above information, please write 1 new prompt following these guidelines:
+    1. The new prompt should solve the current prompt's problems.
+    2. The new prompt should consider the list of prompts and evolve based on the current prompt.
+    3. The new prompt should be wrapped with <START> and <END>.
+
+    The new prompts is:
+
+ascend_gradient_prompt_template:
+  en: |
+    I'm writing prompts for a language model designed for a task.
+
+    My current prompt is:
+    {cur_prompt}
+
+    This prompt gets the following examples correct:
+    {example_string}
+
+    For each example, carefully examine each question and correct answer step by step, provide comprehensive and different reasons why the prompt leads to the correct answer. At last, based on all these reasons, summarize and list all the aspects that can improve the prompt.
+
+ascend_optimize_prompt_template:
+  en: |
+    I'm writing prompts for a language model designed for a task.
+
+    My current prompt is:
+    {cur_prompt}
+
+    This prompt gets the following examples correct:
+    {example_string}
+
+    Based on these examples, the advantages of this prompt and the reasons are:
+    {gradient}
+
+    There are a list of former prompts including the current prompt, and each prompt is modified from its former prompts:
+    {trajectory_prompts}
+
+    Based on the above information, please write {steps_per_gradient} new prompts following these guidelines:
+    1. The new prompts should solve the current prompt's problems.
+    2. The new prompts should consider the list of prompts and evolve based on the current prompt.
+    3. Each new prompt should be wrapped with <START> and <END>.
+
+    The new prompts are:
+
+ascend_optimize_prompt_template_single:
+  en: |
+    I'm writing prompts for a language model designed for a task.
+
+    My current prompt is:
+    {cur_prompt}
+
+    This prompt gets the following examples correct:
+    {example_string}
+
+    Based on these examples, the advantages of this prompt and the reasons are:
+    {gradient}
+
+    There are a list of former prompts including the current prompt, and each prompt is modified from its former prompts:
+    {trajectory_prompts}
+
+    Based on the above information, please write 1 new prompts following these guidelines:
+    1. The new prompts should solve the current prompt's problems.
+    2. The new prompts should consider the list of prompts and evolve based on the current prompt.
+    3. Each new prompt should be wrapped with <START> and <END>.
+
+    The new prompts is:

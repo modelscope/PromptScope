@@ -12,17 +12,24 @@ from meta_icl.core.models.base_model import MODEL_REGISTRY
 from meta_icl.core.models.generation_model import GenerationModel
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.utils.utils import load_yaml
-from meta_icl import PROMPT_REGISTRY
+from meta_icl.core.enumeration.language_enum import LanguageEnum
 
 class PromptAgent(PromptOptimizationWithFeedback):
-    def __init__(self, dataset_path) -> None:
+    FILE_PATH: str = __file__
+    def __init__(self, 
+                 dataset_path: str = __file__,
+                 language: LanguageEnum = "en",
+                 **kwargs
+                 ) -> None:
         """
         PromptAgent: set up task, logger, search algorithm, world model
         """
+        super().__init__(language=language, **kwargs)
         self.init_config()
         
         task_name = self.basic_config.task_name
-        self.task_config.data_dir = dataset_path
+        self.dataset_path = dataset_path
+        self.task_config.data_dir = self.dataset_path
         self.task = get_task(task_name)(**self.task_config)
         self.initial_prompt = self.basic_config.init_prompt
         self.search_algo = self.basic_config.search_algo
@@ -32,13 +39,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         self.logger = Logger.get_logger(__name__)
         self.logger.info(exp_name)
 
-        self.init_prompt()
-
         self.init_model()
-
-    def init_prompt(self):
-        prompt_path = os.path.join(os.path.dirname(__file__), 'prompt', f'prompt_agent_{self.task_config.language.lower()}.yml')
-        PROMPT_REGISTRY.batch_register(load_yaml(prompt_path))
 
     def init_config(self):
         self.basic_config = CONFIG_REGISTRY.module_dict["basic_config"]
@@ -56,7 +57,8 @@ class PromptAgent(PromptOptimizationWithFeedback):
             task=self.task, 
             logger=self.logger, 
             base_model=self.base_model,
-            optim_model=self.optim_model, 
+            optim_model=self.optim_model,
+            prompt_handler=self.prompt_handler, 
             **self.world_model_config
             )
         
