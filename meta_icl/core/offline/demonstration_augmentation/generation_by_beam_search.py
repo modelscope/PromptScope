@@ -109,16 +109,18 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     def run(self, seed_demonstrations: Union[str, List[str], Dict, Any],
             n: int,
             max_steps: int,
-            beam_width: int) -> List:
+            beam_width: int) -> str:
         self.beam_search_generation(max_steps=max_steps,
                                     beam_width=beam_width,
                                     seed_demonstrations=seed_demonstrations)
+        return self.sav_file_path
 
     def _renew_all_state(self):
         self.all_states = []
 
     def _update_demonstration_file_name(self, prefix, date, model_name):
         self.sav_file_name = "{}_{}_{}.json".format(prefix, date, model_name)
+        self.sav_file_path = os.path.join(self.demonstration_save_dir, self.sav_file_name)
 
     def _add_demonstrations(self, demonstration: List or dict or str):
         if isinstance(demonstration, List):
@@ -138,6 +140,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     def _sav_demonstration(self):
         json_file_path = os.path.join(self.demonstration_save_dir, self.sav_file_name)
         logger.info("save self.all_state to pth: {}".format(json_file_path))
+
         sav_json(data=self.all_states, json_file_path=json_file_path)
 
     def expand_fn(self, state):
