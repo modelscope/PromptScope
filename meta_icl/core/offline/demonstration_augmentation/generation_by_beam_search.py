@@ -1,27 +1,118 @@
+from abc import ABC, abstractmethod
+
 from meta_icl.core.utils.sys_prompt_utils import check_dir, sav_json
 from meta_icl.core.utils.utils import get_current_date
 import json, os
-from typing import List
+from typing import List, Any
+import numpy as np
 
 from loguru import logger
+from meta_icl.core.models.generation_model import GenerationModel
+from meta_icl.core.utils.utils import extract_from_markdown_json
+from meta_icl.core.utils.sys_prompt_utils import (call_llm_with_message, message_formatting, text_rerank,
+                                                  convert_model_name_to_model_config)
+from meta_icl.core.utils.demontration_utils import demo_augmentation_by_llm_prompt_org
+from loguru import logger
+from typing import Union, Dict, List
 
-class GenerationByBeamSearch:
+Default_Instruction_4_Demonstration_Generation = """请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。
+
+要求：
+1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的
+2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。
+3. 和提供的参考样例保持一致输出格式，并且每个样例用markdown json 形式单独区分。
+${other_requirements}
+
+参考样例：
+```json
+${demonstration}
+```
+
+请给出${num_generated_examples}个类似样例:
+"""
+from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
+
+
+class BaseAugmentationByBeamSearch(BaseDemonstrationAugmentation):
+    @abstractmethod
+    def expand_fn(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def score_fn(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def beam_search_generation(self, **kwargs):
+        pass
+
+    # @abstractmethod
+    # def run(self, seed_demonstrations: Union[str, List[str], Dict, Any],
+    #         n: int, **kwargs) -> List:
+    #     pass
+
+
+class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     def __init__(self,
                  demonstration_save_dir,
-                 demonstration_expand,
-                 demonstration_var_score,
-                 auto_save=True):
+                 num_expand: int,
+                 demonstration_generation_instruction: str,
+                 demonstration_requirements: str,
+                 seed_demonstrations: Union[str, List[str], Dict, Any],
+                 auto_save=True,
+                 expand_model_config=None,
+                 model_name=None):
         """
-        :param demonstration_var_score
-        :param demonstration_expand: func
+        # :param demonstration_var_score
+        # :param demonstration_expand: func
         :param demonstration_save_dir: func
         """
+
+        super().__init__()
+        self.model = None
         check_dir(demonstration_save_dir)
         self.demonstration_save_dir = demonstration_save_dir
-        self.expand_fn = demonstration_expand
-        self.score_fn = demonstration_var_score
+        # self.expand_fn = demonstration_expand
+        # self.score_fn = demonstration_var_score
         self.all_states = []
         self.auto_save = auto_save
+
+        self.num_expand = num_expand
+        self.demonstration_generation_instruction = demonstration_generation_instruction
+        self.demonstration_requirements = demonstration_requirements
+        # self.seed_demonstrations = seed_demonstrations
+
+        # assert (expand_model_config is not None) or (model_name is not None)
+        # if expand_model_config is not None:
+        #     self.model = GenerationModel(**expand_model_config)
+        # else:
+        #     self.model = model_name
+        self.expand_model_config = expand_model_config
+        self.model_name = model_name
+
+    def init_model(self):
+        pass
+
+    def init_config(self):
+        pass
+
+    def init_prompt(self):
+        pass
+
+    @property
+    def expand_model_name(self):
+        if self.expand_model_config is not None:
+            return self.expand_model_config["model_name"]
+        else:
+            return self.model_name
+
+    def run(self, seed_demonstrations: Union[str, List[str], Dict, Any],
+            n: int,
+            max_steps: int,
+            beam_width: int) -> List:
+        self.beam_search_generation(max_steps=max_steps,
+                                    beam_width=beam_width,
+                                    seed_demonstrations=seed_demonstrations)
 
     def _renew_all_state(self):
         self.all_states = []
@@ -49,7 +140,118 @@ class GenerationByBeamSearch:
         logger.info("save self.all_state to pth: {}".format(json_file_path))
         sav_json(data=self.all_states, json_file_path=json_file_path)
 
-    def beam_search(self, max_steps, beam_width, expand_config):
+    def expand_fn(self, state):
+        # Produce some new states from the current state.
+        # In a real application, this would involve generating possible next steps.
+
+        """
+        Produce some new demonstrations from the current demonstration.
+        :param state: list of demonstrations
+        # :param expand_config:
+        :return expanded: list of lists of demonstrations
+        """
+
+        import copy
+        # assert ("num_expand" in expand_config.keys()
+        #         # and "model_name" in expand_config.keys()
+        #         and "demonstration_generation_instruction" in expand_config.keys()
+        #         and "demonstration_requirements" in expand_config.keys()), (
+        #     "expand_config must contain \"num_expand\", "
+        #     # "\"model_name\", "
+        #     "\"demonstration_generation_instruction\", "
+        #     "\"demonstration_requirements\"")
+
+        expand = []
+        # extract the required parameters from expand_config
+        # num_expand = expand_config["num_expand"]
+        # model_name = expand_config.get("model_name", None)
+
+        # demonstration_generation_instruction = expand_config["demonstration_generation_instruction"]
+        logger.info("[demonstration_expand] state: {}".format(state))
+        if isinstance(state[-1], str):
+            demonstration_text = "\n".join(f"```json\n{item}\n```" for item in state)
+        else:
+            demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```" for item in state)
+            logger.info("demonstration_text: \n{}\n".format(demonstration_text))
+
+        # print("demonstration_text: \n{}\n".format(demonstration_text))
+        # demonstration_requirements = expand_config["demonstration_requirements"]
+        logger.info("demonstration_requirements: {}".format(self.demonstration_requirements))
+        # based on the current demonstration state[-1], expand num_expand demonstrations
+        new_demonstrations = self.generate_similar_demonstration(
+            demonstration_text=demonstration_text,
+            model_name=self.model_name,
+            model_config=self.expand_model_config,
+            demonstration_requirements=self.demonstration_requirements,
+            demonstration_generation_instruction=self.demonstration_generation_instruction,
+            num_generated_examples=self.num_expand
+        )
+        logger.info("new_demonstrations: {}".format(new_demonstrations))
+        for new_demonstration in new_demonstrations:
+            state_copy = copy.deepcopy(state)
+            state_copy.append(new_demonstration)
+            expand.append(state_copy)
+        return expand
+
+    @staticmethod
+    def generate_similar_demonstration(demonstration_text,
+                                       demonstration_generation_instruction,
+                                       model_name=None,
+                                       num_generated_examples=1,
+                                       demonstration_requirements=None,
+                                       model_config=None):
+        """
+            generate demonstration based on the reference demonstration (demonstration_text)
+            :param demonstration_text:
+            :param demonstration_requirements:
+            :param model_name:
+            :param demonstration_generation_instruction:
+            :param num_generated_examples: the number of generated examples
+            :param model_config:
+            """
+        assert (model_config is not None) or (model_name is not None)
+        prompt = demo_augmentation_by_llm_prompt_org(
+            demonstration_text=demonstration_text,
+            demonstration_generation_instruction=demonstration_generation_instruction,
+            num_generated_examples=num_generated_examples,
+            demonstration_requirements=demonstration_requirements
+        )
+        if model_config is not None:
+            # model_config = convert_model_name_to_model_config(model_config=model_config, add_random=True)
+            logger.info(model_config)
+            generation_model = GenerationModel(**model_config)
+        else:
+            model_config = convert_model_name_to_model_config(model_name=model_name, add_random=True)
+            generation_model = model_name
+
+        results = call_llm_with_message(prompt, model=generation_model, model_config=model_config)
+        logger.info("[generate_similar_demonstration]-generated results: {}".format(results))
+        return extract_from_markdown_json(results)
+
+    def score_fn(self, state: list):
+        if len(state) == 1:
+            return 0
+        logger.info("state: {}".format(state))
+        logger.info("#query#: \n{}\ntype: {}\n#documents#: \n{}\n".format(state[-1], type(state[-1]), state[:-1]))
+        state_copy = [json.dumps(item, ensure_ascii=False) for item in state]
+        text_rerank_results = text_rerank(query=state_copy[-1], documents=state_copy[:-1])
+        logger.info(text_rerank_results)
+        scores = [item["relevance_score"] for item in text_rerank_results["output"]["results"]]
+        logger.info(scores)
+        if len(scores) == 1:
+            logger.info(1 - scores[0])
+            return 1 - scores[0]
+        else:
+            logger.info(1 - np.mean(scores))
+            return 1 - np.mean(scores)
+
+    def beam_search_generation(self, max_steps, beam_width, seed_demonstrations):
+
+        # "num_expand" in expand_config.keys()
+        # # and "model_name" in expand_config.keys()
+        # and "demonstration_generation_instruction" in expand_config.keys()
+        # and "demonstration_requirements" in expand_config.keys()
+
         """
             Performs beam search.
 
@@ -62,14 +264,15 @@ class GenerationByBeamSearch:
             :return: The best state found according to the scoring function.
             """
 
-        initial_state = expand_config["initial_demonstration"]
+        # initial_state = expand_config["initial_demonstration"]
+        initial_state = seed_demonstrations
         logger.info("initial state: {}".format(initial_state))
         logger.info("type of init: {}".format(type(initial_state)))
 
         self._renew_all_state()
         self._update_demonstration_file_name(prefix="demonstration",
                                              date=get_current_date(),
-                                             model_name=expand_config["model_name"])
+                                             model_name=self.expand_model_name)
         self._add_demonstrations(initial_state)
 
         # Initialize the beam with the initial state.
@@ -81,7 +284,7 @@ class GenerationByBeamSearch:
             logger.info("step: {}".format(step))
             candidates = []
             for state, score in beam:
-                next_states = self.expand_fn(state, expand_config)
+                next_states = self.expand_fn(state)
                 logger.info("next_states: \n{}".format(next_states))
                 if len(next_states) < 1:
                     logger.info("failed to generate new state: retry!")
@@ -101,3 +304,74 @@ class GenerationByBeamSearch:
         # Return the state with the highest score after the final iteration.
         best_state, best_score = max(beam, key=lambda x: x[1])
         return best_state, self.all_states
+
+
+if __name__ == '__main__':
+    num_expand = 5
+    demonstration_generation_instruction = "请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。\n\n要求：\n1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的\n2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。\n3. 和提供的参考样例保持一致输出格式，并且每个样例必须用markdown json形式单独区分。即输出形式:\n```json\n你生成的样例1\n```\n\n```json\n你生成的样例2\n```\n\n${other_requirements}\n\n参考样例：\n${demonstration}\n\n\n请给出${num_generated_examples}个类似样例:"
+    demonstration_requirements = ""
+    demonstration_dir = "examples/gsm8k_example/results"
+    model_config = {
+        "module_name": 'dashscope_generation',
+        "model_name": "qwen-plus",
+        "clazz": 'models.llama_index_generation_model',
+        "max_tokens": 2000,
+        "seed": 1234,
+        "temperature": 1
+    }
+
+    diversity_generator = BeamSearchGenerationByDiversity(
+        demonstration_save_dir=demonstration_dir,
+        num_expand=num_expand,
+        demonstration_generation_instruction=demonstration_generation_instruction,
+        demonstration_requirements=demonstration_requirements,
+        seed_demonstrations=None,
+        auto_save=True,
+        expand_model_config=model_config
+    )
+    seed_demonstrations = [
+        {
+            "input": "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. "
+                     "How many clips did Natalia sell altogether in April and May?",
+            "output": "To find out how many clips Natalia sold altogether in April and May, follow these steps:\n\n1. "
+                      "**April Sales**: Natalia sold clips to 48 friends in April.\n\n2. **May Sales**: It's "
+                      "mentioned that she sold half as many clips in May as she did in April. So, to find out how "
+                      "many clips she sold in May, you divide the April sales by 2.\n\n   \\[ \\text{May Sales} = "
+                      "\\frac{\\text{April Sales}}{2} = \\frac{48}{2} = 24 \\]\n\n3. **Total Sales (April + May)**: "
+                      "To find the total number of clips sold in both months, add the sales from April to the sales "
+                      "from May.\n\n   \\[ \\text{Total Sales} = \\text{April Sales} + \\text{May Sales} = 48 + 24 = "
+                      "72 \\]\n\nSo, Natalia sold a total of 72 clips altogether in April and May.\n#### 72"
+        },
+        {
+            "input": "A deep-sea monster rises from the waters once every hundred years to feast on a ship and sate "
+                     "its hunger. Over three hundred years, it has consumed 847 people. Ships have been built larger "
+                     "over time, so each new ship has twice as many people as the last ship. How many people were on "
+                     "the ship the monster ate in the first hundred years?",
+            "output": "Let's denote the number of people on the first ship (100 years ago) as \\(x\\).\n\nAccording "
+                      "to the problem, each subsequent ship has twice as many people as the previous one. So, "
+                      "in the second hundred years, the ship had \\(2x\\) people, and in the third hundred years, "
+                      "the ship had \\(4x\\) people (since \\(2 \\times 2 = 4\\), doubling each time).\n\nThe total "
+                      "number of people eaten over the three hundred years is given as 847. We can set up an equation "
+                      "to represent this:\n\n\\[x + 2x + 4x = 847\\]\n\nCombining like terms gives us:\n\n\\[7x = "
+                      "847\\]\n\nTo find \\(x\\), divide both sides of the equation by 7:\n\n\\[x = \\frac{847}{"
+                      "7}\\]\n\n\\[x = 121\\]\n\nTherefore, there were 121 people on the ship that the monster ate in "
+                      "the first hundred years.\n#### 121"
+        },
+        {
+            "input": "Weng earns $12 an hour for babysitting. Yesterday, she just did 50 minutes of babysitting. How "
+                     "much did she earn? ",
+            "output": "To calculate Weng's earnings for 50 minutes of babysitting at a rate of $12 per hour, "
+                      "follow these steps:\n\n1. **Determine the hourly rate**: The rate is already given as $12 per "
+                      "hour.\n\n2. **Convert babysitting time to hours**: Since the rate is in dollars per hour, "
+                      "you need to convert the 50 minutes into hours. There are 60 minutes in an hour, so you divide "
+                      "the number of minutes by 60.\n\n\\[ \\text{Time in hours} = \\frac{\\text{Time in minutes}}{"
+                      "60} = \\frac{50}{60} \\]\n\n3. **Calculate the fraction of an hour**: \n\n\\[ \\frac{50}{60} = "
+                      "\\frac{5}{6} \\text{ hours} \\]\n\n4. **Calculate earnings**: To find out how much she earned, "
+                      "multiply the fraction of the hour she worked by her hourly rate.\n\n\\[ \\text{Earnings} = "
+                      "\\text{Hourly rate} \\times \\text{Fraction of an hour worked} \\]\n\n\\[ \\text{Earnings} = "
+                      "\\$12 \\times \\frac{5}{6} \\]\n\n5. **Perform the multiplication**:\n\n\\[ \\text{Earnings} = "
+                      "\\$12 \\times \\frac{5}{6} = \\$10 \\]\n\nSo, Weng earned $10 for 50 minutes of "
+                      "babysitting.\n#### 10"
+        }
+    ]
+    diversity_generator.run(seed_demonstrations=seed_demonstrations, n=10, max_steps=2, beam_width=2)
