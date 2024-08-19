@@ -31,7 +31,7 @@ ${demonstration}
 请给出${num_generated_examples}个类似样例:
 """
 
-other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户问智能体的问题\n2. \"tools\"可选的范围是[\"text-to-image\", \"open-search\", \"code_interpreter\"]"
+# other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户问智能体的问题\n2. \"tools\"可选的范围是[\"text-to-image\", \"open-search\", \"code_interpreter\"]"
 
 
 def demo_augmentation_by_llm_prompt_org(
@@ -48,8 +48,11 @@ def demo_augmentation_by_llm_prompt_org(
     :param num_generated_examples: the number of generated examples
     """
     if demonstration_generation_instruction is not None:
-        pass
+        logger.info("demonstration_generation_instruction is provided as: {}".format(
+            demonstration_generation_instruction))
     else:
+        logger.info("demonstration_generation_instruction is not provided!, use the default on: {}".format(
+            Default_Instruction_4_Demonstration_Generation))
         demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
     # extract demonstration text
     if isinstance(demonstration_text, dict):
@@ -59,11 +62,6 @@ def demo_augmentation_by_llm_prompt_org(
             demonstration_text = "\n".join(demonstration_text)
         elif isinstance(demonstration_text[0], dict):
             demonstration_text = "\n```\n```json\n".join([json.dumps(d, ensure_ascii=False) for d in demonstration_text])
-
-    # replace the variables in demonstration_generation_instruction, including:
-    # ${demonstration} the reference demonstration
-    # ${num_generated_examples},
-    # ${other_requirements}
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${demonstration}",
                                                                                         demonstration_text)
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",
