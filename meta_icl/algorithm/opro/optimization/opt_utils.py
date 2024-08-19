@@ -35,7 +35,7 @@ from meta_icl.core.models.generation_model import AioGenerationModel
 QWEN_MODELS = {"qwen-turbo",
 			   "qwen2-57b-a14b-instruct",
 			   "qwen2-72b-instruct",
-			   "qwen-max",
+			   "qwen-max-allinone",
 			   "qwen-max-0107",
 			   }
 
@@ -113,6 +113,254 @@ def gen_meta_prompt(
     num_score_buckets=np.inf,
     dataset_name="",
     task_name="",
+):
+	"""Generate meta prompt for instruction rewriting.
+
+	Args:
+	old_instructions_and_scores (list): a list of (instruction, score, i_step)
+		pairs.
+	instruction_pos (str): where to put the instruction, one of {'before_QA',
+		'Q_begin', 'Q_end', 'A_begin'}.
+	optimizer_llm_name (str): the name of the LLM used for instruction editing.
+	old_instruction_score_threshold (float): only add old instructions with score
+		no less than this threshold.
+	max_num_instructions (int): the maximum number of instructions in the meta
+		prompt.
+	meta_prompt_type (str): the type of meta-prompt: whether to have both
+		previous instructions and dataset exemplars (often for fine-tuned
+		optimizers), or to have only previous instructions (often for pre-trained
+		optimizers).
+	few_shot_qa_pairs (bool): whether to have few-shot QA pairs in the meta
+		prompt.
+	include_qa (bool): whether to include "Q:" and "A:" formats in the prompt.
+	data (list or pd.DataFrame): the raw data.
+	few_shot_index_list (list): the list of indices of few-shot examples.
+	instructions_before_exemplars (bool): whether the instruction-score pairs are
+		before the exemplars from the dataset.
+	num_score_buckets (np.inf or int): the number of score buckets when we
+		convert float accuracies to integers. Default to np.inf for not
+		bucketizing.
+	dataset_name (str): the name of the current dataset. Only used when
+		generating task description when meta_prompt_type == "instructions_only".
+	task_name (str): the name of the current task. Only used when generating task
+		description when meta_prompt_type == "instructions_only".
+
+	Returns:
+	meta_prompt (str): the generated meta prompt.
+	"""
+	assert instruction_pos in {
+		"before_Q",
+		"Q_begin",
+		"Q_end",
+		"A_begin",
+	}, (
+		"The instruction position should be either before the question, or at the"
+		" beginning of the question, at the end of the question, or at the"
+		" beginning of the answer."
+	)
+	assert meta_prompt_type in {
+		"both_instructions_and_exemplars",
+		"instructions_only",
+	}
+	assert dataset_name in {
+		"mmlu",
+		"bbh",
+		"gsm8k",
+	}, "The lower-case dataset name must be one of mmlu, bbh, gsm8k."
+	assert num_score_buckets == np.inf or isinstance(num_score_buckets, int)
+
+	meta_prompt = ""
+	if meta_prompt_type == "both_instructions_and_exemplars":
+		if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+			if instruction_pos == "A_begin":
+				meta_prompt_old_instruction_part = (
+					"Your task is to generate the answer starting sentence <Start>."
+					" Below are some previous starting sentences with their scores."
+					" The score ranges from 0 to 100.\n"
+				)
+			else:
+				meta_prompt_old_instruction_part = (
+					"Your task is to generate the instruction <INS>."
+					" Below are some previous instructions with their scores."
+					" The score ranges from 0 to 100.\n"
+				)
+		else:
+			assert optimizer_llm_name.lower() in QWEN_MODELS
+			meta_prompt_old_instruction_part = (
+				"I have some texts along with their corresponding scores."
+				" The texts are arranged in ascending order based on their scores,"
+				" where higher scores indicate better quality.\n\n"
+			)
+			# add old instructions
+			old_instructions_and_scores_str = gen_ins_and_score_pairs_substr(
+				old_instructions_and_scores=old_instructions_and_scores,
+				old_instruction_score_threshold=old_instruction_score_threshold,
+				max_num_instructions=max_num_instructions,
+				return_str_only=True,
+				num_score_buckets=num_score_buckets,
+			)
+			meta_prompt_old_instruction_part += old_instructions_and_scores_str
+			# add QA pairs if few_shot_qa_pairs == True
+			meta_prompt_exemplar_part = ""
+		if few_shot_qa_pairs:
+			if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+				meta_prompt_exemplar_part += "Below are some problems.\n"
+			else:
+				assert optimizer_llm_name.lower() in QWEN_MODELS
+				meta_prompt_exemplar_part += (
+					"The following exemplars show how to apply your text: you replace"
+					" <INS> in each input with your text, then read the input and give"
+					" an output. We say your output is wrong if your output is"
+					" different from the given output, and we say your output is"
+					" correct if they are the same. When replacing <INS> with an old"
+					" piece of text above, we get wrong outputs on the following"
+					" inputs.\n\n"
+				)
+			for idx in few_shot_index_list:
+				if dataset_name == "mmlu":
+					question = eval_utils._format_mmlu_example(data, idx)  # pylint: disable=protected-access
+					true_answer = data.iloc[idx, -1]
+				elif dataset_name == "bbh":
+					question = data[idx]["input"]
+					true_answer = data[idx]["target"]
+				else:
+					assert dataset_name == "gsm8k"
+					question = data.iloc[idx, 0]
+					true_answer = data.iloc[idx, 1]
+
+				if include_qa:  # when "Q:" and "A:" are present in the prompt
+					if instruction_pos == "before_Q":
+						meta_prompt_exemplar_part += f"\ninput:\n<INS>\nQ: {question}\nA:"
+					elif instruction_pos == "Q_begin":
+						meta_prompt_exemplar_part += f"\ninput:\nQ: <INS>\n{question}\nA:"
+					elif instruction_pos == "Q_end":
+						meta_prompt_exemplar_part += f"\ninput:\nQ: {question}\n<INS>\nA:"
+					else:  # instruction_pos == "A_begin"
+						if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+							meta_prompt_exemplar_part += f"\nQ: {question}\nA: <Start>"
+						else:
+							assert optimizer_llm_name.lower() in QWEN_MODELS
+							meta_prompt_exemplar_part += f"\ninput:\nQ: {question}\nA: <INS>"
+				else:  # when there're no "Q:" and "A:" in the prompt
+					assert instruction_pos in {"Q_begin", "Q_end"}
+					if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+						if instruction_pos == "Q_begin":
+							meta_prompt_exemplar_part += f"\nProblem:\n<INS>\n{question}\n"
+						elif instruction_pos == "Q_end":
+							meta_prompt_exemplar_part += f"\nProblem:\n{question}\n<INS>\n"
+					else:
+						assert optimizer_llm_name.lower() in QWEN_MODELS
+						if instruction_pos == "Q_begin":
+							meta_prompt_exemplar_part += f"\ninput:\n<INS>\n{question}\n"
+						elif instruction_pos == "Q_end":
+							meta_prompt_exemplar_part += f"\ninput:\n{question}\n<INS>\n"
+
+				if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+					meta_prompt_exemplar_part += (
+						f"\nGround truth answer:\n{true_answer}\n"
+					)
+				else:
+					assert optimizer_llm_name.lower() in QWEN_MODELS
+					meta_prompt_exemplar_part += f"\noutput:\n{true_answer}\n"
+
+		if few_shot_qa_pairs:
+			if instructions_before_exemplars:
+				meta_prompt += (
+					meta_prompt_old_instruction_part
+					+ "\n\n"
+					+ meta_prompt_exemplar_part
+				)
+			else:
+				meta_prompt += (
+					meta_prompt_exemplar_part
+					+ "\n\n"
+					+ meta_prompt_old_instruction_part
+				)
+		else:
+			meta_prompt += meta_prompt_old_instruction_part
+
+		if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+			if instruction_pos == "A_begin":
+				meta_prompt += (
+					"\n\nGenerate a starting sentence that is different from all the"
+					" <Start> sentences above, and has a higher score than all the"
+					" <Start> sentences above. The starting sentence should begin with"
+					" <Start> and end with </Start>. The starting sentence should be"
+					" concise, effective, and generally applicable to all QA pairs"
+					" above."
+				)
+			else:
+				meta_prompt += (
+					"\n\nGenerate an instruction that"
+					" is different from all the instructions <INS> above,"
+					" and has a higher score than all the instructions <INS> above."
+					" The instruction should begin with <INS> and end with </INS>."
+					" The instruction should be concise, effective,"
+					" and generally applicable to all problems above."
+				)
+		else:
+			assert optimizer_llm_name.lower() in QWEN_MODELS
+			meta_prompt += (
+				"\n\nWrite your new text that is different from the old ones and"
+				" has a score as high as possible, especially focus on instruction following. Write the text in square brackets."
+			)
+	else:
+		# when using a pre-trained model as optimizer
+		assert meta_prompt_type == "instructions_only"
+
+		assert instruction_pos in {"Q_begin", "Q_end", "A_begin"}
+		if instruction_pos == "Q_begin":
+			instruction_pos_description = "at the beginning of the question"
+		elif instruction_pos == "Q_end":
+			instruction_pos_description = "at the end of the question"
+		else:
+			assert instruction_pos == "A_begin"
+			instruction_pos_description = "at the beginning of the answer"
+
+		if dataset_name == "gsm8k":
+			instruction_task_description = "grade school math"
+		elif dataset_name == "mmlu":
+			instruction_task_description = task_name
+		else:
+			assert dataset_name == "bbh"
+			instruction_task_description = " ".join(task_name.split("_"))
+
+		meta_instruction = (
+			f"Create a piece of text {instruction_pos_description.strip()} to"
+			" enhance the precision in solving diverse"
+			f" {instruction_task_description.strip()} problems."
+		)
+		old_instructions_and_scores = sorted(
+			old_instructions_and_scores, key=lambda x: x[1]
+		)
+		old_instructions_and_scores_str = ""
+		for instruction, score, _ in old_instructions_and_scores:
+			if num_score_buckets == np.inf:
+				score_to_show = round(score, 2)
+			else:
+				score_to_show = _bucketize_float(score, num_score_buckets)
+			old_instructions_and_scores_str += (
+				f"\n\nPrecision: {score_to_show} <TEXT>{instruction}</TEXT>"
+			)
+		meta_prompt += meta_instruction + old_instructions_and_scores_str
+	return meta_prompt
+
+def gen_meta_prompt_with_ph(
+    old_instructions_and_scores,
+    instruction_pos,
+    optimizer_llm_name,
+    old_instruction_score_threshold=0.1,
+    max_num_instructions=1000,
+    meta_prompt_type="both_instructions_and_exemplars",
+    few_shot_qa_pairs=False,
+    include_qa=True,
+    data=None,
+    few_shot_index_list=None,
+    instructions_before_exemplars=True,
+    num_score_buckets=np.inf,
+    dataset_name="",
+    task_name="",
+	prompt_handler=None,
 ):
 	"""Generate meta prompt for instruction rewriting.
 

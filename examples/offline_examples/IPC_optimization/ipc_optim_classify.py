@@ -8,8 +8,6 @@ from meta_icl.core.utils.logger import Logger
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.offline.instruction_optimization.ipc import IPC_Optimization
 
-from llama_index.llms.dashscope import DashScope, DashScopeGenerationModels
-
 
 logger = Logger.get_logger(__name__)
 basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_optim_classify.yml')
