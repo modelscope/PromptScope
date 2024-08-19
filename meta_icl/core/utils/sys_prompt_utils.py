@@ -11,10 +11,10 @@ from loguru import logger
 
 from meta_icl.core.models.generation_model import GenerationModel
 
-# KEY = ""
+KEY = ""
 
 # # KEY = "***REMOVED***"
-# dashscope.api_key = KEY
+dashscope.api_key = KEY
 
 DASHSCOPE_MAX_BATCH_SIZE = 25
 DefaultModelConfig = {
@@ -29,26 +29,45 @@ from scipy.spatial.distance import cdist
 from typing import Union
 
 
-def convert_model_name_to_model_config(model_name: str, add_random=False, **kwargs) -> dict:
-    if model_name.lower() == 'qwen_200b':
-        model_name = 'qwen_max'
-    elif model_name.lower() == 'qwen_14b':
-        model_name = 'qwen-turbo'
-    elif model_name.lower() == 'qwen_70b':
-        model_name = 'qwen-plus'
+def convert_model_name_to_model_config(model_name: Union[str, dict]=None,
+                                       add_random=False,
+                                       model_config=None, **kwargs) -> dict:
+    if model_name is not None:
+        if model_name.lower() == 'qwen_200b':
+            model_name = 'qwen_max'
+        elif model_name.lower() == 'qwen_14b':
+            model_name = 'qwen-turbo'
+        elif model_name.lower() == 'qwen_70b':
+            model_name = 'qwen-plus'
 
-    model_config = copy.deepcopy(DefaultModelConfig)
-    model_config['model'] = model_name
-
-    if add_random:
-        model_config['seed'] = np.random.randint(1, 10000)
-        model_config['temperature'] = 1.2
-
-    else:
+        model_config = copy.deepcopy(DefaultModelConfig)
         model_config['model'] = model_name
-        for key, value in kwargs.items():
-            model_config[key] = value
-    return model_config
+
+        if add_random:
+            model_config['seed'] = np.random.randint(1, 10000)
+            model_config['temperature'] = 1.2
+
+        else:
+            model_config['model'] = model_name
+            for key, value in kwargs.items():
+                model_config[key] = value
+        return model_config
+    else:
+        assert model_config is not None
+        # model_config:
+        # module_name: 'aio_generation'
+        # model_name: qwen - max - allinone
+        # clazz: 'models.llama_index_generation_model'
+        # max_tokens: 2000
+        # seed: 1234
+        # temperature: 1
+        model_config_add_random = copy.deepcopy(model_config)
+        if add_random:
+            model_config_add_random['seed'] = np.random.randint(1, 10000)
+            model_config['temperature'] = 1.2
+        return model_config_add_random
+
+
 
 def find_top_k_embeddings(query_embedding, list_embeddings, k):
     '''
@@ -139,7 +158,9 @@ Attention: If both model and model_config are given, the model_config will be us
     # print("\n***** messages *****\n{}\n".format(messages))
     if isinstance(model, GenerationModel):
         res = model.call(messages=messages, stream=is_stream, **kwargs)
-        return res.message.content
+        logger.info(res)
+        return res.output.text
+        # return res.message.content
 
     if is_stream and model.lower() != 'qwen_200b':
         raise ValueError("expect Qwen model, other model's stream output is not supported")

@@ -36,7 +36,7 @@ other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户
 
 def demo_augmentation_by_llm_prompt_org(
         demonstration_text: Union[str, Dict, List[Dict]],
-        demonstration_generation_instruction: str,
+        demonstration_generation_instruction: str=None,
         num_generated_examples=1,
         demonstration_requirements=None
 ):
@@ -74,170 +74,170 @@ def demo_augmentation_by_llm_prompt_org(
     return prompt
 
 
-def generate_similar_demonstration(
-        demonstration_text,
-        demonstration_generation_instruction,
-        model_name,
-        num_generated_examples=1,
-        demonstration_requirements=None,
-        model_config=None):
-    """
-    generate demonstration based on the reference demonstration (demonstration_text)
-    :param demonstration_text:
-    :param demonstration_requirements:
-    :param model_name:
-    :param demonstration_generation_instruction:
-    :param num_generated_examples: the number of generated examples
-    :param model_config:
-    """
-    # if demonstration_generation_instruction is not None:
-    #     pass
-    # else:
-    #     demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
-    # # extract demonstration text
-    # if isinstance(demonstration_text, dict):
-    #     demonstration_text = json.dumps(demonstration_text, ensure_ascii=False)
-    #
-    # # replace the variables in demonstration_generation_instruction, including:
-    # # ${demonstration} the reference demonstration
-    # # ${num_generated_examples},
-    # # ${other_requirements}
-    # demonstration_generation_instruction = demonstration_generation_instruction.replace("${demonstration}",
-    #                                                                                     demonstration_text)
-    # demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",
-    #                                                                                     str(num_generated_examples))
-    # prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
-    # print("prompt: \n{}\n".format(prompt))
-    # prompt = message_formatting(system_prompt=None, query=prompt)
-    prompt = demo_augmentation_by_llm_prompt_org(
-        demonstration_text=demonstration_text,
-        demonstration_generation_instruction=demonstration_generation_instruction,
-        num_generated_examples=num_generated_examples,
-        demonstration_requirements=demonstration_requirements
-    )
-    model_config = convert_model_name_to_model_config(model_name, add_random=True)
-    results = call_llm_with_message(prompt, model=model_name, model_config=model_config)
-    logger.info("[generate_similar_demonstration]-generated results: {}".format(results))
-    return extract_from_markdown_json(results)
+# def generate_similar_demonstration(
+#         demonstration_text,
+#         demonstration_generation_instruction,
+#         model_name,
+#         num_generated_examples=1,
+#         demonstration_requirements=None,
+#         model_config=None):
+#     """
+#     generate demonstration based on the reference demonstration (demonstration_text)
+#     :param demonstration_text:
+#     :param demonstration_requirements:
+#     :param model_name:
+#     :param demonstration_generation_instruction:
+#     :param num_generated_examples: the number of generated examples
+#     :param model_config:
+#     """
+#     # if demonstration_generation_instruction is not None:
+#     #     pass
+#     # else:
+#     #     demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
+#     # # extract demonstration text
+#     # if isinstance(demonstration_text, dict):
+#     #     demonstration_text = json.dumps(demonstration_text, ensure_ascii=False)
+#     #
+#     # # replace the variables in demonstration_generation_instruction, including:
+#     # # ${demonstration} the reference demonstration
+#     # # ${num_generated_examples},
+#     # # ${other_requirements}
+#     # demonstration_generation_instruction = demonstration_generation_instruction.replace("${demonstration}",
+#     #                                                                                     demonstration_text)
+#     # demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",
+#     #                                                                                     str(num_generated_examples))
+#     # prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
+#     # print("prompt: \n{}\n".format(prompt))
+#     # prompt = message_formatting(system_prompt=None, query=prompt)
+#     prompt = demo_augmentation_by_llm_prompt_org(
+#         demonstration_text=demonstration_text,
+#         demonstration_generation_instruction=demonstration_generation_instruction,
+#         num_generated_examples=num_generated_examples,
+#         demonstration_requirements=demonstration_requirements
+#     )
+#     model_config = convert_model_name_to_model_config(model_name, add_random=True)
+#     results = call_llm_with_message(prompt, model=model_name, model_config=model_config)
+#     logger.info("[generate_similar_demonstration]-generated results: {}".format(results))
+#     return extract_from_markdown_json(results)
 
 
-def demonstration_expand(state, expand_config):
-    # Produce some new states from the current state.
-    # In a real application, this would involve generating possible next steps.
-
-    """
-    Produce some new demonstrations from the current demonstration.
-    :param state: list of demonstrations
-    :param expand_config:
-    :return expanded: list of lists of demonstrations
-    """
-
-    import copy
-    assert ("num_expand" in expand_config.keys()
-            and "model_name" in expand_config.keys()
-            and "demonstration_generation_instruction" in expand_config.keys()
-            and "demonstration_requirements" in expand_config.keys()), ("expand_config must contain \"num_expand\", "
-                                                                        "\"model_name\", "
-                                                                        "\"demonstration_generation_instruction\", "
-                                                                        "\"demonstration_requirements\"")
-
-    expand = []
-    # extract the required parameters from expand_config
-    num_expand = expand_config["num_expand"]
-    model_name = expand_config["model_name"]
-    demonstration_generation_instruction = expand_config["demonstration_generation_instruction"]
-    print("[demonstration_expand] state: {}".format(state))
-    if isinstance(state[-1], str):
-        demonstration_text = "\n".join(f"```json\n{item}\n```" for item in state)
-    else:
-        demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```" for item in state)
-        print("demonstration_text: \n{}\n".format(demonstration_text))
-
-    # print("demonstration_text: \n{}\n".format(demonstration_text))
-    demonstration_requirements = expand_config["demonstration_requirements"]
-    print("demonstration_requirements: {}".format(demonstration_requirements))
-    # based on the current demonstration state[-1], expand num_expand demonstrations
-    new_demonstrations = generate_similar_demonstration(
-        demonstration_text=demonstration_text,
-        demonstration_requirements=demonstration_requirements,
-        model_name=model_name,
-        demonstration_generation_instruction=demonstration_generation_instruction,
-        num_generated_examples=num_expand
-    )
-    print("new_demonstrations: {}".format(new_demonstrations))
-    for new_demonstration in new_demonstrations:
-        state_copy = copy.deepcopy(state)
-        state_copy.append(new_demonstration)
-        expand.append(state_copy)
-    return expand
-
-
-def demonstration_var_score(state):
-    if len(state) == 1:
-        return 0
-    print("state: {}".format(state))
-    print("#query#: \n{}\ntype: {}\n#documents#: \n{}\n".format(state[-1], type(state[-1]), state[:-1]))
-    state_copy = [json.dumps(item, ensure_ascii=False) for item in state]
-    text_rerank_results = text_rerank(query=state_copy[-1], documents=state_copy[:-1])
-    print(text_rerank_results)
-    scores = [item["relevance_score"] for item in text_rerank_results["output"]["results"]]
-    print(scores)
-    if len(scores) == 1:
-        print(1 - scores[0])
-        return 1 - scores[0]
-    else:
-        print(1 - np.mean(scores))
-        return 1 - np.mean(scores)
-
-
-def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expand_fn_config):
-    """
-    Performs beam search.
-
-    :param initial_state: List The initial state to begin search from.
-    :param max_steps: The maximum number of steps (or iterations) to perform.
-    :param beam_width: The number of paths to explore at each step.
-    :param expand_fn: A function that takes a state and returns a list of possible next states.
-    :param score_fn: A function that takes a state and returns a score. Higher scores are better.
-    :param expand_fn_config: the config for the expand_fn, a function that takes a state and returns a list of possible next states.
-    :return: The best state found according to the scoring function.
-    """
-    print("initial state: {}".format(initial_state))
-    print("type of init: {}".format(type(initial_state)))
-    all_states = []
-
-    if isinstance(initial_state[0], str):
-        all_states = [json.loads(item) for item in initial_state]
-    else:
-        all_states.extend(initial_state)
-
-    # Initialize the beam with the initial state.
-    beam = [[initial_state, score_fn(initial_state)]]
-    print("beam: {}".format(beam))
-
-    for step in range(max_steps):
-        # Expand states in the current beam.
-        print("step: {}".format(step))
-        candidates = []
-        for state, score in beam:
-            next_states = expand_fn(state, expand_fn_config)
-            for item in next_states:
-                all_states.append(item[-1])
-            print("next_states: \n{}".format(next_states))
-            for next_state in next_states:
-                next_score = score_fn(next_state)
-                print("next_score: {}".format(next_score))
-                candidates.append([next_state, next_score])
-
-        # Select the top `beam_width` states for the next iteration.
-        print(candidates)
-        print("length of candidates: {}".format(len(candidates)))
-        candidates.sort(key=lambda x: x[1], reverse=True)
-        beam = candidates[:beam_width]
-
-    # Return the state with the highest score after the final iteration.
-    best_state, best_score = max(beam, key=lambda x: x[1])
-    return best_state, all_states
+# def demonstration_expand(state, expand_config):
+#     # Produce some new states from the current state.
+#     # In a real application, this would involve generating possible next steps.
+#
+#     """
+#     Produce some new demonstrations from the current demonstration.
+#     :param state: list of demonstrations
+#     :param expand_config:
+#     :return expanded: list of lists of demonstrations
+#     """
+#
+#     import copy
+#     assert ("num_expand" in expand_config.keys()
+#             and "model_name" in expand_config.keys()
+#             and "demonstration_generation_instruction" in expand_config.keys()
+#             and "demonstration_requirements" in expand_config.keys()), ("expand_config must contain \"num_expand\", "
+#                                                                         "\"model_name\", "
+#                                                                         "\"demonstration_generation_instruction\", "
+#                                                                         "\"demonstration_requirements\"")
+#
+#     expand = []
+#     # extract the required parameters from expand_config
+#     num_expand = expand_config["num_expand"]
+#     model_name = expand_config["model_name"]
+#     demonstration_generation_instruction = expand_config["demonstration_generation_instruction"]
+#     print("[demonstration_expand] state: {}".format(state))
+#     if isinstance(state[-1], str):
+#         demonstration_text = "\n".join(f"```json\n{item}\n```" for item in state)
+#     else:
+#         demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```" for item in state)
+#         print("demonstration_text: \n{}\n".format(demonstration_text))
+#
+#     # print("demonstration_text: \n{}\n".format(demonstration_text))
+#     demonstration_requirements = expand_config["demonstration_requirements"]
+#     print("demonstration_requirements: {}".format(demonstration_requirements))
+#     # based on the current demonstration state[-1], expand num_expand demonstrations
+#     new_demonstrations = generate_similar_demonstration(
+#         demonstration_text=demonstration_text,
+#         demonstration_requirements=demonstration_requirements,
+#         model_name=model_name,
+#         demonstration_generation_instruction=demonstration_generation_instruction,
+#         num_generated_examples=num_expand
+#     )
+#     print("new_demonstrations: {}".format(new_demonstrations))
+#     for new_demonstration in new_demonstrations:
+#         state_copy = copy.deepcopy(state)
+#         state_copy.append(new_demonstration)
+#         expand.append(state_copy)
+#     return expand
+#
+#
+# def demonstration_var_score(state):
+#     if len(state) == 1:
+#         return 0
+#     print("state: {}".format(state))
+#     print("#query#: \n{}\ntype: {}\n#documents#: \n{}\n".format(state[-1], type(state[-1]), state[:-1]))
+#     state_copy = [json.dumps(item, ensure_ascii=False) for item in state]
+#     text_rerank_results = text_rerank(query=state_copy[-1], documents=state_copy[:-1])
+#     print(text_rerank_results)
+#     scores = [item["relevance_score"] for item in text_rerank_results["output"]["results"]]
+#     print(scores)
+#     if len(scores) == 1:
+#         print(1 - scores[0])
+#         return 1 - scores[0]
+#     else:
+#         print(1 - np.mean(scores))
+#         return 1 - np.mean(scores)
+#
+#
+# def beam_search(initial_state, max_steps, beam_width, expand_fn, score_fn, expand_fn_config):
+#     """
+#     Performs beam search.
+#
+#     :param initial_state: List The initial state to begin search from.
+#     :param max_steps: The maximum number of steps (or iterations) to perform.
+#     :param beam_width: The number of paths to explore at each step.
+#     :param expand_fn: A function that takes a state and returns a list of possible next states.
+#     :param score_fn: A function that takes a state and returns a score. Higher scores are better.
+#     :param expand_fn_config: the config for the expand_fn, a function that takes a state and returns a list of possible next states.
+#     :return: The best state found according to the scoring function.
+#     """
+#     print("initial state: {}".format(initial_state))
+#     print("type of init: {}".format(type(initial_state)))
+#     all_states = []
+#
+#     if isinstance(initial_state[0], str):
+#         all_states = [json.loads(item) for item in initial_state]
+#     else:
+#         all_states.extend(initial_state)
+#
+#     # Initialize the beam with the initial state.
+#     beam = [[initial_state, score_fn(initial_state)]]
+#     print("beam: {}".format(beam))
+#
+#     for step in range(max_steps):
+#         # Expand states in the current beam.
+#         print("step: {}".format(step))
+#         candidates = []
+#         for state, score in beam:
+#             next_states = expand_fn(state, expand_fn_config)
+#             for item in next_states:
+#                 all_states.append(item[-1])
+#             print("next_states: \n{}".format(next_states))
+#             for next_state in next_states:
+#                 next_score = score_fn(next_state)
+#                 print("next_score: {}".format(next_score))
+#                 candidates.append([next_state, next_score])
+#
+#         # Select the top `beam_width` states for the next iteration.
+#         print(candidates)
+#         print("length of candidates: {}".format(len(candidates)))
+#         candidates.sort(key=lambda x: x[1], reverse=True)
+#         beam = candidates[:beam_width]
+#
+#     # Return the state with the highest score after the final iteration.
+#     best_state, best_score = max(beam, key=lambda x: x[1])
+#     return best_state, all_states
 
 
 if __name__ == '__main__':

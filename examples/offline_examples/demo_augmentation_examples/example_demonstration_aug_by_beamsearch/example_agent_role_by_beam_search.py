@@ -1,8 +1,8 @@
 from meta_icl.core.utils.demontration_utils import (beam_search,
                                                     demonstration_var_score,
                                                     demonstration_expand)
-from meta_icl.core.utils import load_json_file, sav_json
-from meta_icl.core.utils import get_current_date, check_dir
+from meta_icl.core.utils.sys_prompt_utils import load_json_file, sav_json, check_dir
+from meta_icl.core.utils.utils import get_current_date
 import json, os, copy
 from meta_icl.core.offline.demonstration_augmentation.generation_by_beam_search import GenerationByBeamSearch
 
