@@ -4,45 +4,33 @@ import os
 import json
 # import wandb
 import random
+from typing import Union, List
 
 from meta_icl.core.evaluation.evaluator import Eval
 from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
 from meta_icl.core.utils.logger import Logger
 from meta_icl.core.utils.utils import load_yaml
+from meta_icl.core.utils.prompt_handler import PromptHandler
 from meta_icl.core.models.generation_model import GenerationModel
-from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
+from meta_icl import CONFIG_REGISTRY
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 
 class IPC_Optimization(PromptOptimizationWithFeedback):
-    """
-    The main pipeline for intent-based prompt calibration (IPC). The pipeline is composed of 4 main components:
-    1. dataset - The dataset handle the data including the annotation and the prediction
-    2. annotator - The annotator is responsible generate the GT
-    3. predictor - The predictor is responsible to generate the prediction
-    4. eval - The eval is responsible to calculate the score and the large errors
-    """
+    FILE_PATH: str = __file__
 
-    def __init__(self):
-        """
-        Initialize a new instance of the ClassName class.
-        :param config: The configuration file (EasyDict)
-        :param task_description: Describe the task that needed to be solved
-        :param initial_prompt: Provide an initial prompt to solve the task
-        :param output_path: The output dir to save dump, by default the dumps are not saved
-        """
-        super().__init__()
+    def __init__(self, language: str = "cn", **kwargs):
+        super().__init__(language=language, **kwargs)
 
         self.init_config()
         self.init_model()
-        self.init_prompt()
+        self.patient: int = 0
+        self.samples: List[str] = None
+        self.logger: Logger = Logger.get_logger(__name__)
+        self.cur_step: int = 0
+        self.cur_prompt: str = self.task_config.instruction
+        self.eval = Eval(FILE_PATH=self.FILE_PATH)
 
-        self.patient = 0
-        self.samples = None
-        self.logger = Logger.get_logger(__name__)
-        self.cur_step = 0
-        self.cur_prompt = self.task_config.instruction
-        self.eval = Eval()
-    
+        
     def init_model(self):
         self.generation_llm = GenerationModel(**self.model_config.generation)
         self.predictor_llm = GenerationModel(**self.model_config.predictor)
@@ -55,8 +43,6 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         self.eval_config = CONFIG_REGISTRY.module_dict.get('eval_config', None)
         if hasattr(self, 'eval'):
             self.eval.init_config()
-    def init_prompt(self):
-        PROMPT_REGISTRY.batch_register(load_yaml(os.path.join(os.path.dirname(__file__), 'prompt', f'ipc_{self.task_config.language.lower()}.yml')))
 
     def run(self, **kwargs):
         # Run the optimization pipeline for num_steps
@@ -87,7 +73,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             if not self.samples:
                 self.logger.info('Dataset is empty generating initial samples')
                 prompt_input = {'task_description': self.task_config.task_description, 'instruction': self.cur_prompt, 'batch_size': self.task_config.batch_size}
-                generate_prompt = PROMPT_REGISTRY.module_dict[prompt_type].format_map(prompt_input)
+                generate_prompt = getattr(self.prompt_handler, prompt_type).format_map(prompt_input)
                 self.samples = self.generate(prompt=generate_prompt)
             else:
                 self.logger.info('Generating Adversarials')
@@ -100,7 +86,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         if kwargs.get('mode', '') == 'generation':
             self.logger.info('Calculating Score and Error Analysis')
             self.eval.init_config()
-            eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm([sample[-1] for sample in samples])
+            eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm(samples=[sample[-1] for sample in samples], prompt_handler=self.prompt_handler)
         else:
             self.logger.info('Running annotator')
             annotations = self.annotate([sample[1] for sample in samples])
@@ -108,7 +94,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             predictions = self.predict([sample[1] for sample in samples])
             self.logger.info('Calculating Score and Error Analysis')
             eval_kwargs['score'], eval_kwargs['corrects'], eval_kwargs['errors'], eval_kwargs['conf_matrix'] = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
-        self.eval.error_analysis(**eval_kwargs)
+        self.eval.error_analysis(prompt_handler=self.prompt_handler, **eval_kwargs)
         self.logger.info('Updating Prompt')
         self.update_cur_prompt(mode)
         if self.stop_criteria():
@@ -126,7 +112,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         batch, annotations = 0, []
         for sample_batch in samples_batches:
             sample_str = "|".join(sample_batch)
-            annotate_prompt = PROMPT_REGISTRY.module_dict['annotate'].format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
+            annotate_prompt = self.prompt_handler.annotate.format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
             # print('#############\n', annotate_prompt, '################\n')
             response = self.annotator.call(prompt=annotate_prompt)
             try:
@@ -147,7 +133,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         batch, predictions = 0, []
         for sample_batch in samples_batches:
             sample_str = "|".join(sample_batch)
-            prediction_prompt = PROMPT_REGISTRY.module_dict['predict'].format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
+            prediction_prompt = self.prompt_handler.predict.format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
             # print('#############\n', prediction_prompt, '################\n')
             response = self.annotator.call(prompt=prediction_prompt)
             try:
@@ -184,9 +170,9 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         if hasattr(self.task_config, 'label_schema'):
             prompt_input["labels"] = json.dumps(self.task_config.label_schema)
         if mode == 'generation':
-            generate_prompt = PROMPT_REGISTRY.module_dict['prompt_generation_generation'].format_map(prompt_input)
+            generate_prompt = self.prompt_handler.prompt_generation_generation.format_map(prompt_input)
         else:
-            generate_prompt = PROMPT_REGISTRY.module_dict['prompt_generation'].format_map(prompt_input)
+            generate_prompt = self.prompt_handler.prompt_generation.format_map(prompt_input)
         try:
             prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).message.content
         except:
@@ -229,7 +215,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
                 prompt_input['history'] = history_samples
             else:
                 prompt_input['history'] = 'No previous errors information'
-            generate_prompt = PROMPT_REGISTRY.module_dict['step_adv_sample_classification'].format_map(prompt_input)
+            generate_prompt = self.prompt_handler.step_adv_sample_classification.format_map(prompt_input)
             new_samples = self.generate(prompt=generate_prompt)
             self.samples.extend(new_samples)
             self.logger.info(self.samples)
@@ -295,9 +281,9 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
     def modify_input_for_ranker(self):
         prompt_input = {'label_schema': self.task_config.label_schema,
                         'prompt': self.task_config.instruction}
-        prompt_mod_prompt = PROMPT_REGISTRY.module_dict['ranker_prompt_mod'].format_map(prompt_input)
+        prompt_mod_prompt = self.prompt_handler.ipc_ranker_prompt_mod.format_map(prompt_input)
         prompt_input = {'task_description': self.task_config.task_description}
-        description_mod_prompt = PROMPT_REGISTRY.module_dict['ranker_description_mod'].format_map(prompt_input)
+        description_mod_prompt = self.prompt_handler.ipc_ranker_description_mod.format_map(prompt_input)
 
         try:
             mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).message.content
@@ -311,7 +297,3 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
 
         self.task_config.instruction = mod_prompt
         self.task_config.task_description = mod_description
-
-    
-
-    

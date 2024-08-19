@@ -500,7 +500,7 @@ class OPRO(PromptOptimizationWithFeedback):
 		elif isinstance(self.optim_llm, AioGenerationModel):
 			import asyncio
 			optimizer_llm_input_text = [meta_prompt for _ in range(num_generated_instructions_in_each_step)]
-			raw_outputs = [x.output.text for x in asyncio.run(self.optim_llm.async_call(prompts=optimizer_llm_input_text, temperature=optimizer_llm_temperature))]
+			raw_outputs = [x.message.content for x in asyncio.run(self.optim_llm.async_call(prompts=optimizer_llm_input_text, temperature=optimizer_llm_temperature))]
 			generated_instructions_raw = [
 							opt_utils.extract_string_in_square_brackets(string)[1:-1]
 							for string in raw_outputs
