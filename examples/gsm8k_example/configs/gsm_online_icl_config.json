@@ -1,0 +1,25 @@
+{
+    "task_configs": {
+        "num_questions": 3,
+        "base_model": "qwen2-57b-a14b-instruct",
+        "model_config": {
+            "generation": {
+                "module_name": "dashscope_generation",
+                "model_name": "qwen2-57b-a14b-instruct",
+                "clazz": "models.llama_index_generation_model",
+                "max_tokens": 2000,
+                "seed": 1234
+            }
+        }
+    },
+    "icl_configs": {
+        "embedding_retriever_configs": {
+            "embedding_pth": "logs/gsm8k_example/storage/gsm8k_emb_model:<text_embedding_v2>_search_key:['input']_examples_ver_2024-08-20 15:12:55.index",
+            "embedding_model": "text_embedding_v2",
+            "search_key": [
+                "input"
+            ],
+            "examples_pth": "logs/gsm8k_example/storage/gsm8k_icl_examples_ver_2024-08-20 15:12:55.json"
+        }
+    }
+}
