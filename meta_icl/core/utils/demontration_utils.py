@@ -56,12 +56,14 @@ def demo_augmentation_by_llm_prompt_org(
         demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
     # extract demonstration text
     if isinstance(demonstration_text, dict):
-        demonstration_text = json.dumps(demonstration_text, ensure_ascii=False)
+        demonstration_text = f"```json\n{json.dumps(demonstration_text, ensure_ascii=False)}\n```"
     if isinstance(demonstration_text, List):
         if isinstance(demonstration_text[0], str):
             demonstration_text = "\n".join(demonstration_text)
         elif isinstance(demonstration_text[0], dict):
-            demonstration_text = "\n```\n```json\n".join([json.dumps(d, ensure_ascii=False) for d in demonstration_text])
+            # demonstration_text = "\n```\n```json\n".join(item for item in [json.dumps(d, ensure_ascii=False) for d in demonstration_text])
+            demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```" for item in state)
+            logger.info("demonstration_text: \n{}\n".format(demonstration_text))
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${demonstration}",
                                                                                         demonstration_text)
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${num_generated_examples}",

@@ -17,7 +17,7 @@ if __name__ == '__main__':
     diversity_generator = BeamSearchGenerationByDiversity(
         demonstration_save_dir=demonstration_dir,
         num_expand=num_expand,
-        demonstration_generation_instruction=demonstration_generation_instruction,
+        # demonstration_generation_instruction=demonstration_generation_instruction,
         demonstration_requirements=demonstration_requirements,
         auto_save=True,
         expand_model_config=model_config

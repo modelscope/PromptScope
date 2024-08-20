@@ -8,9 +8,11 @@ Default_Instruction_4_Similar_Demonstration_Generation:
     ${other_requirements}
 
     参考样例：
-    ```json
+
+
     ${demonstration}
-    ```
+
+
 
     请给出${num_generated_examples}个类似样例:
 
@@ -24,10 +26,11 @@ Default_Instruction_4_Diverse_Demonstration_Generation:
     ${other_requirements}
     
     参考样例：
-    ```json
+    
     ${demonstration}
-    ```
+    
     请给出${num_generated_examples}个类似样例:
+    
 
 
 
