@@ -159,8 +159,8 @@ Attention: If both model and model_config are given, the model_config will be us
     if isinstance(model, GenerationModel):
         res = model.call(messages=messages, stream=is_stream, **kwargs)
         logger.info(res)
-        return res.output.text
-        # return res.message.content
+        # return res.output.text
+        return res.message.content
 
     if is_stream and model.lower() != 'qwen_200b':
         raise ValueError("expect Qwen model, other model's stream output is not supported")
