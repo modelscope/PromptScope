@@ -60,7 +60,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     def __init__(self,
                  demonstration_save_dir,
                  num_expand: int,
-                 demonstration_generation_instruction: str = "",
+                 demonstration_generation_instruction: str = None,
                  language: str = "cn",
                  prompt_handler: PromptHandler = None,
                  demonstration_requirements: str = "",
@@ -92,16 +92,17 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         self.model_name = model_name
 
         self.language = LanguageEnum(language)
-        self.class_name = class_name,
-        self.prompt_file = prompt_file,
+        self.class_name = class_name
+        self.prompt_file = prompt_file
         self.prompt_dict = prompt_dict
+        self._prompt_handler=prompt_handler
     @property
     def demonstration_generation_instruction(self):
         if self._demonstration_generation_instruction is not None:
             return self._demonstration_generation_instruction
         else:
             self._demonstration_generation_instruction = (
-                self.prompt_handler.prompt_dict)["demonstration_generation_instruction"]
+                self.prompt_handler.prompt_dict)["Default_Instruction_4_Diverse_Demonstration_Generation"]
             return self._demonstration_generation_instruction
 
     def init_model(self):
@@ -118,6 +119,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         if self._prompt_handler is not None:
             return self._prompt_handler
         else:
+            logger.info(self.class_name)
             self._prompt_handler = PromptHandler(class_path=self.FILE_PATH,
                                                  language=self.language,
                                                  class_name=self.class_name,
