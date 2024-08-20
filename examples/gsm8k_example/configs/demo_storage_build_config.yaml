@@ -1,0 +1,9 @@
+embedding_model: "text_embedding_v2"
+embedding_shape: 1536
+examples_list_pth: "examples/gsm8k_example/results/demonstration_2024-08-20 11:06:32_qwen-plus.json"
+icl_config_pth:  "examples/gsm8k_example/configs/gsm_online_icl_config.yaml"
+search_key: ["input"]
+sav_dir: "logs/gsm8k_example/storage"
+prefix:  "gsm8k"
+others:  {}
+sav_type: idx

@@ -135,9 +135,9 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
             return self.model_name
 
     def run(self, seed_demonstrations: Union[str, List[str], Dict, Any],
-            n: int,
             max_steps: int,
-            beam_width: int) -> str:
+            beam_width: int,
+            n: int=5) -> str:
         self.beam_search_generation(max_steps=max_steps,
                                     beam_width=beam_width,
                                     seed_demonstrations=seed_demonstrations)
