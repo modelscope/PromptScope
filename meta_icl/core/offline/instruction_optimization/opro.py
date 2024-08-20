@@ -30,7 +30,9 @@ QWEN_MODELS = {"qwen-turbo",
 				}
 
 class OPRO(PromptOptimizationWithFeedback):
-	def __init__(self):
+	FILE_PATH: str = __file__
+	def __init__(self, language, **kwargs):
+		super().__init__(language, **kwargs)
 		self.init_config()
 		self.init_model()
 		self.scorer_llm_name = self.model_config.scorer.model_name
@@ -404,8 +406,7 @@ class OPRO(PromptOptimizationWithFeedback):
 					)
 				).tolist()
 			self.few_shot_index_list_by_step_dict[i_step] = few_shot_index_list
-
-			meta_prompt = opt_utils.gen_meta_prompt(
+			meta_prompt = opt_utils.gen_meta_prompt_with_ph(
 				old_instructions_and_scores=self.old_instructions_and_scores,
 				instruction_pos=self.instruction_pos,
 				optimizer_llm_name=self.optimizer_llm_name,
@@ -420,11 +421,12 @@ class OPRO(PromptOptimizationWithFeedback):
 				num_score_buckets=num_score_buckets,
 				dataset_name=self.dataset_name,
 				task_name=self.task_name,
+				prompt_handler=self.prompt_handler,
 			)
 
 		else:  # no few-shot exemplars in meta-prompt
 			few_shot_index_list = []
-			meta_prompt = opt_utils.gen_meta_prompt(
+			meta_prompt = opt_utils.gen_meta_prompt_with_ph(
 				old_instructions_and_scores=self.old_instructions_and_scores,
 				instruction_pos=self.instruction_pos,
 				optimizer_llm_name=self.optimizer_llm_name,
@@ -437,6 +439,7 @@ class OPRO(PromptOptimizationWithFeedback):
 				num_score_buckets=num_score_buckets,
 				dataset_name=self.dataset_name,
 				task_name=self.task_name,
+				prompt_handler=self.prompt_handler
 			)
 		print(f"\nmeta_prompt: \n\n{meta_prompt}\n")
 		self.meta_prompts.append((meta_prompt, i_step))
