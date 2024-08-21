@@ -12,18 +12,15 @@ class IPC_Generation(BaseDemonstrationAugmentation):
     """
     The main pipeline for IPC-based demonstration augmentation.
     """
-
-    def __init__(self):
+    FILE_PATH: str = __file__
+    def __init__(self, language: str = "cn", **kwargs):
         """
         Initialize a new instance of the ClassName class.
-        :param config: The configuration file (EasyDict)
-        :param task_description: Describe the task that needed to be solved
-        :param initial_prompt: Provide an initial prompt to solve the task
-        :param output_path: The output dir to save dump, by default the dumps are not saved
+        :param language: prompt language
         """
+        super().__init__(language=language, **kwargs)
         self.init_config()
         self.init_model()
-        self.init_prompt()
 
         self.logger = Logger.get_logger(__name__)
 
@@ -42,11 +39,6 @@ class IPC_Generation(BaseDemonstrationAugmentation):
 
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-
-    def init_prompt(self):
-        from meta_icl import PROMPT_REGISTRY
-        PROMPT_REGISTRY.batch_register(load_yaml(
-            os.path.join(os.path.dirname(__file__), 'prompt', f'ipc_{self.task_config.language.lower()}.yml')))
 
     # @staticmethod
     # def log_and_print(logger, message):
@@ -86,10 +78,16 @@ class IPC_Generation(BaseDemonstrationAugmentation):
 
         return all_results
     
-    def run(self, prompt: str):
+    def run(self, prompt: str=""):
         """
         generate samples
         """
+        prompt_input = {'task_description': self.task_config.task_description, 
+                        'instruction': self.task_config.instruction, 
+                        'batch_size': self.task_config.batch_size}
+
+        if not prompt:
+            prompt = self.prompt_handler.representative_sample.format_map(prompt_input)
         batch_input = prompt
         batch_inputs = self.generate_samples_batch(batch_input, self.task_config.samples_per_step,
                                                    self.task_config.batch_size)
