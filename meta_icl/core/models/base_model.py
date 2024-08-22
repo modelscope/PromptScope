@@ -90,7 +90,7 @@ class BaseModel(metaclass=ABCMeta):
                             time.sleep(i * self.retry_interval)
                         else:
                             break
-                    except (Exception, openai.error.OpenAIError)  as e:
+                    except (Exception, openai.OpenAIError) as e:
                         self.logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i+1}")
 
             if not model_response.raw:
@@ -179,7 +179,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
                             else:
                                 model_response.raw = call_output
                                 break
-                        except (Exception, openai.error.OpenAIError) as e:
+                        except (Exception, openai.OpenAIError) as e:
                             self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                             await asyncio.sleep(self.retry_interval)
 

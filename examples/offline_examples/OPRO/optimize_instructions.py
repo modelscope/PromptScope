@@ -426,7 +426,7 @@ def main():
 		"save_folder": save_folder,
 	}
 
-	pipeline = OPRO()
+	pipeline = OPRO(language="en")
 	pipeline.update_config(**additional_kwargs)
 	pipeline.run()
 

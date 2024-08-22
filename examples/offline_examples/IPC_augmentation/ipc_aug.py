@@ -5,7 +5,7 @@ import json
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.utils.logger import Logger
-from meta_icl import CONFIG_REGISTRY, PROMPT_REGISTRY
+from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
 
 logger = Logger.get_logger(__name__)
@@ -21,10 +21,7 @@ if not hasattr(LanguageEnum, config_params.task_config.language.upper()):
 
 # Initializing the pipeline
 pipeline = IPC_Generation()
-task_config = config_params.task_config
-prompt_input = {'task_description': task_config.task_description, 'instruction': task_config.instruction, 'batch_size': task_config.batch_size}
-generate_prompt = PROMPT_REGISTRY.module_dict['representative_sample'].format_map(prompt_input)
-samples = pipeline.run(prompt=generate_prompt)
+samples = pipeline.run()
 
 res = []
 for sample in samples:

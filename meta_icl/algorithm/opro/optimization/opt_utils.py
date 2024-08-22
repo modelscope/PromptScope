@@ -421,24 +421,12 @@ def gen_meta_prompt_with_ph(
 	if meta_prompt_type == "both_instructions_and_exemplars":
 		if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
 			if instruction_pos == "A_begin":
-				meta_prompt_old_instruction_part = (
-					"Your task is to generate the answer starting sentence <Start>."
-					" Below are some previous starting sentences with their scores."
-					" The score ranges from 0 to 100.\n"
-				)
+				meta_prompt_old_instruction_part = prompt_handler.openai_meta_prompt_old_instruction_part_A_begin
 			else:
-				meta_prompt_old_instruction_part = (
-					"Your task is to generate the instruction <INS>."
-					" Below are some previous instructions with their scores."
-					" The score ranges from 0 to 100.\n"
-				)
+				meta_prompt_old_instruction_part = prompt_handler.openai_meta_prompt_old_instruction_part_others
 		else:
 			assert optimizer_llm_name.lower() in QWEN_MODELS
-			meta_prompt_old_instruction_part = (
-				"I have some texts along with their corresponding scores."
-				" The texts are arranged in ascending order based on their scores,"
-				" where higher scores indicate better quality.\n\n"
-			)
+			meta_prompt_old_instruction_part = prompt_handler.qwen_meta_prompt_old_instruction_part
 			# add old instructions
 			old_instructions_and_scores_str = gen_ins_and_score_pairs_substr(
 				old_instructions_and_scores=old_instructions_and_scores,
@@ -455,15 +443,7 @@ def gen_meta_prompt_with_ph(
 				meta_prompt_exemplar_part += "Below are some problems.\n"
 			else:
 				assert optimizer_llm_name.lower() in QWEN_MODELS
-				meta_prompt_exemplar_part += (
-					"The following exemplars show how to apply your text: you replace"
-					" <INS> in each input with your text, then read the input and give"
-					" an output. We say your output is wrong if your output is"
-					" different from the given output, and we say your output is"
-					" correct if they are the same. When replacing <INS> with an old"
-					" piece of text above, we get wrong outputs on the following"
-					" inputs.\n\n"
-				)
+				meta_prompt_exemplar_part += prompt_handler.qwen_meta_prompt_exemplar_part
 			for idx in few_shot_index_list:
 				if dataset_name == "mmlu":
 					question = eval_utils._format_mmlu_example(data, idx)  # pylint: disable=protected-access
@@ -529,29 +509,12 @@ def gen_meta_prompt_with_ph(
 
 		if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
 			if instruction_pos == "A_begin":
-				meta_prompt += (
-					"\n\nGenerate a starting sentence that is different from all the"
-					" <Start> sentences above, and has a higher score than all the"
-					" <Start> sentences above. The starting sentence should begin with"
-					" <Start> and end with </Start>. The starting sentence should be"
-					" concise, effective, and generally applicable to all QA pairs"
-					" above."
-				)
+				meta_prompt += prompt_handler.openai_meta_prompt_A_begin
 			else:
-				meta_prompt += (
-					"\n\nGenerate an instruction that"
-					" is different from all the instructions <INS> above,"
-					" and has a higher score than all the instructions <INS> above."
-					" The instruction should begin with <INS> and end with </INS>."
-					" The instruction should be concise, effective,"
-					" and generally applicable to all problems above."
-				)
+				meta_prompt += prompt_handler.openai_meta_prompt_others
 		else:
 			assert optimizer_llm_name.lower() in QWEN_MODELS
-			meta_prompt += (
-				"\n\nWrite your new text that is different from the old ones and"
-				" has a score as high as possible, especially focus on instruction following. Write the text in square brackets."
-			)
+			meta_prompt += prompt_handler.qwen_meta_prompt
 	else:
 		# when using a pre-trained model as optimizer
 		assert meta_prompt_type == "instructions_only"
@@ -653,6 +616,7 @@ def run_evolution(**kwargs):
 		"num_few_shot_questions_for_instruction_refinement"
 	]
 	evaluate_old_ins_on_few_shot = kwargs["evaluate_old_ins_on_few_shot"]
+	prompt_handler = kwargs["prompt_handler"]
 	eval_interval = kwargs["eval_interval"]
 	save_folder = kwargs["save_folder"]
 	verbose = kwargs["verbose"] if "verbose" in kwargs else False
@@ -941,7 +905,7 @@ def run_evolution(**kwargs):
 
 			few_shot_index_list_by_step_dict[i_step] = few_shot_index_list
 
-			meta_prompt = gen_meta_prompt(
+			meta_prompt = gen_meta_prompt_with_ph(
 				old_instructions_and_scores=old_instructions_and_scores,
 				instruction_pos=instruction_pos,
 				optimizer_llm_name=optimizer_llm_name,
@@ -956,11 +920,12 @@ def run_evolution(**kwargs):
 				num_score_buckets=num_score_buckets,
 				dataset_name=dataset_name,
 				task_name=task_name,
+				prompt_handler=prompt_handler,
 			)
 
 		else:  # no few-shot exemplars in meta-prompt
 			few_shot_index_list = []
-			meta_prompt = gen_meta_prompt(
+			meta_prompt = gen_meta_prompt_with_ph(
 				old_instructions_and_scores=old_instructions_and_scores,
 				instruction_pos=instruction_pos,
 				optimizer_llm_name=optimizer_llm_name,
@@ -973,6 +938,7 @@ def run_evolution(**kwargs):
 				num_score_buckets=num_score_buckets,
 				dataset_name=dataset_name,
 				task_name=task_name,
+				prompt_handler=prompt_handler,
 			)
 		print(f"\nmeta_prompt: \n\n{meta_prompt}\n")
 		meta_prompts.append((meta_prompt, i_step))
@@ -1097,10 +1063,8 @@ def run_evolution(**kwargs):
 						data=raw_data,
 						instruction=instruction,
 						eval_index_all=few_shot_index_list,
-						batch_size=batch_size,
-						call_server_func=call_scorer_server_func,
+						scorer_llm=scorer_llm,
 						dataset_name=dataset_name,
-						num_servers=num_servers,
 						extract_final_answer_by_prompting_again=extract_final_answer_by_prompting_again,
 						include_qa=include_qa,
 						evaluate_in_parallel=evaluate_in_parallel,
@@ -1136,10 +1100,8 @@ def run_evolution(**kwargs):
 					data=raw_data,
 					instruction=instruction,
 					eval_index_all=few_shot_index_list,
-					batch_size=scorer_llm_dict["batch_size"],
-					call_server_func=call_scorer_server_func,
+					scorer_llm=scorer_llm,
 					dataset_name=dataset_name,
-					num_servers=scorer_llm_dict["num_servers"],
 					extract_final_answer_by_prompting_again=extract_final_answer_by_prompting_again,
 					include_qa=include_qa,
 					evaluate_in_parallel=evaluate_in_parallel,
