@@ -22,7 +22,7 @@ task_config:
 model_config:
     scorer:
         module_name: 'aio_generation'
-        model_name: qwen-max-allinone
+        model_name: qwen2-72b-instruct
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
@@ -30,7 +30,7 @@ model_config:
 
     optim:
         module_name: 'aio_generation'
-        model_name: &optim_name qwen-max-allinone
+        model_name: &optim_name qwen2-72b-instruct
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
