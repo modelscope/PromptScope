@@ -3,7 +3,7 @@ from tqdm import tqdm
 import concurrent.futures
 
 from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel
 from meta_icl.core.utils.utils import load_yaml
 
@@ -22,8 +22,6 @@ class IPC_Generation(BaseDemonstrationAugmentation):
         self.init_config()
         self.init_model()
 
-        self.logger = Logger.get_logger(__name__)
-
     def init_model(self):
         self.module_name = self.model_config.generation.get('module_name')
         if self.module_name == 'dashscope_generation':
@@ -39,11 +37,6 @@ class IPC_Generation(BaseDemonstrationAugmentation):
 
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
         self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-
-    # @staticmethod
-    # def log_and_print(logger, message):
-    #     print(message)
-    #     logger.info(message)
 
     @staticmethod
     def generate_samples_batch(batch_input, num_samples, batch_size):
@@ -101,5 +94,5 @@ class IPC_Generation(BaseDemonstrationAugmentation):
             samples_lists = [samples_batch.choices[0].message.content.split("||") for samples_batch in samples_batches]
 
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
-        self.logger.info(samples_list)
+        logger.info(samples_list)
         return samples_list

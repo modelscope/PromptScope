@@ -1,7 +1,7 @@
 import unittest
 
 from meta_icl.core.models.generation_model import GenerationModel, AioGenerationModel, OpenAIGenerationModel, OpenAIAioGenerationModel
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 import asyncio
 import openai
 
