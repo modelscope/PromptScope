@@ -29,6 +29,9 @@ class BaseICL(ABC):
     def get_results(self, **kwargs):
         pass
 
+    def _formatting_function(self):
+        pass
+
 
 class BM25ICL(BaseICL):
     def __init__(self,
