@@ -16,7 +16,7 @@ import numpy as np
 import collections
 import pandas as pd
 
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 from meta_icl.core.models.generation_model import AioGenerationModel, GenerationModel
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback

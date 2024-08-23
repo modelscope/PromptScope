@@ -1,8 +1,7 @@
 from sklearn.metrics import confusion_matrix
 import os
 from typing import List
-
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 from meta_icl.core.utils.prompt_handler import PromptHandler
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 import random
@@ -27,7 +26,6 @@ class Eval:
             self.evaluator_llm = GenerationModel(**self.model_config.evaluator)
 
         self.history = []        
-        self.logger = Logger.get_logger(__name__)
         self.mean_score = None
         self.eval_instruction = None
     def init_config(self):
@@ -39,7 +37,7 @@ class Eval:
     # @staticmethod
     def eval_with_llm(self, samples: List[str], prompt_handler: PromptHandler):
         if not samples:
-            self.logger.info("No samples to evaluate, direct return")
+            logger.warning("No samples to evaluate, direct return")
         print('samples', samples)
         samples_batches = [samples[i:i + self.eval_config.batch_size] for i in range(0, len(samples), self.eval_config.batch_size)]
         print('samples_batches', samples_batches)
@@ -64,7 +62,7 @@ class Eval:
             print('#############\n', response_list, '################\n')
             evaluations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1].strip(), "评估": lines[-1].strip()} for lines in (sample.split('|') for sample in response_list if sample)])
         
-        self.logger.info(evaluations)
+        logger.info(evaluations)
         errors = self.extract_errors(evaluations, self.eval_config.error_threshold)
         mean_score = self.cal_mean_score(evaluations)
         return mean_score, errors
@@ -141,15 +139,15 @@ class Eval:
             analyze_prompt = prompt_handler.error_analysis_generation.format_map(kwargs)
 
         self.mean_score = kwargs['score']
-        self.logger.info(kwargs)
+        logger.info(kwargs)
 
         
         analysis = self.analyzer_llm.call(prompt=analyze_prompt)
         try:
-            self.logger.info(analysis.message.content)
+            logger.info(analysis.message.content)
             kwargs['analysis'] = analysis.message.content
         except:
-            self.logger.info(analysis.output.text)
+            logger.info(analysis.output.text)
             kwargs['analysis'] = analysis.output.text
         self.history.append(kwargs)
         
