@@ -4,12 +4,14 @@ import json
 
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.offline.instruction_optimization.ipc import IPC_Optimization
+from meta_icl.core.utils.utils import get_current_date
 
+current_file_path = Path(__file__)
 
-logger = Logger.get_logger(__name__)
+logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_current_date()}.log", rotation="10 MB", level="INFO")
 basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_optim_classify.yml')
 
 config_params = load_yaml(basic_config_path)
