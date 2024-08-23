@@ -8,7 +8,7 @@ from typing import Union, List
 
 from meta_icl.core.evaluation.evaluator import Eval
 from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.utils.prompt_handler import PromptHandler
 from meta_icl.core.models.generation_model import GenerationModel
@@ -25,7 +25,6 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         self.init_model()
         self.patient: int = 0
         self.samples: List[str] = None
-        self.logger: Logger = Logger.get_logger(__name__)
         self.cur_step: int = 0
         self.cur_prompt: str = self.task_config.instruction
         self.eval = Eval(FILE_PATH=self.FILE_PATH)
@@ -61,7 +60,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         """
         This is the main optimization process step.
         """
-        self.logger.info(f'Starting step {self.cur_step}')
+        logger.info(f'Starting step {self.cur_step}')
         if kwargs.get('mode', '') == 'generation':
             prompt_type = 'adv_sample_generation'
         else:
@@ -71,12 +70,12 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
 
         if not hasattr(kwargs, 'data'):
             if not self.samples:
-                self.logger.info('Dataset is empty generating initial samples')
+                logger.info('Dataset is empty generating initial samples')
                 prompt_input = {'task_description': self.task_config.task_description, 'instruction': self.cur_prompt, 'batch_size': self.task_config.batch_size}
                 generate_prompt = getattr(self.prompt_handler, prompt_type).format_map(prompt_input)
                 self.samples = self.generate(prompt=generate_prompt)
             else:
-                self.logger.info('Generating Adversarials')
+                logger.info('Generating Adversarials')
                 self.step_generate()
 
         samples = [sample.split('|') for sample in self.samples]
@@ -84,21 +83,21 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         eval_kwargs['prompt'] = self.cur_prompt
 
         if kwargs.get('mode', '') == 'generation':
-            self.logger.info('Calculating Score and Error Analysis')
+            logger.info('Calculating Score and Error Analysis')
             self.eval.init_config()
             eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm(samples=[sample[-1] for sample in samples], prompt_handler=self.prompt_handler)
         else:
-            self.logger.info('Running annotator')
+            logger.info('Running annotator')
             annotations = self.annotate([sample[1] for sample in samples])
-            self.logger.info('Running predictor')
+            logger.info('Running predictor')
             predictions = self.predict([sample[1] for sample in samples])
-            self.logger.info('Calculating Score and Error Analysis')
+            logger.info('Calculating Score and Error Analysis')
             eval_kwargs['score'], eval_kwargs['corrects'], eval_kwargs['errors'], eval_kwargs['conf_matrix'] = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
         self.eval.error_analysis(prompt_handler=self.prompt_handler, **eval_kwargs)
-        self.logger.info('Updating Prompt')
+        logger.info('Updating Prompt')
         self.update_cur_prompt(mode)
         if self.stop_criteria():
-            self.logger.info('Stop criteria reached')
+            logger.info('Stop criteria reached')
             return True
         self.save_state(mode)     
         self.cur_step += 1
@@ -122,7 +121,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             # print('#############\n', response_list, '################\n')
             annotations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "标注": lines[-1]} for lines in (sample.split('|') for sample in response_list if sample)])
             batch += 1
-        self.logger.info(annotations)
+        logger.info(annotations)
         return annotations
     
     def predict(self, samples: list[str]):
@@ -143,7 +142,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             # print('#############\n', response_list, '################\n')
             predictions.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "预测": lines[-1]} for lines in (sample.split('|') for sample in response_list if sample)])
             batch += 1
-        self.logger.info(predictions)
+        logger.info(predictions)
         return predictions
 
     def extract_best_prompt(self):
@@ -177,9 +176,9 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).message.content
         except:
             prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).output.text
-        self.logger.info(prompt_suggestion)
-        self.logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
-        self.logger.info(f'Get new prompt:\n{prompt_suggestion}')
+        logger.info(prompt_suggestion)
+        logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
+        logger.info(f'Get new prompt:\n{prompt_suggestion}')
         self.cur_prompt = prompt_suggestion
     
     def generate(self, prompt: str):
@@ -194,7 +193,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         except:
             samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
-        self.logger.info(samples_list)
+        logger.info(samples_list)
         return samples_list
     
     def step_generate(self):
@@ -218,7 +217,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             generate_prompt = self.prompt_handler.step_adv_sample_classification.format_map(prompt_input)
             new_samples = self.generate(prompt=generate_prompt)
             self.samples.extend(new_samples)
-            self.logger.info(self.samples)
+            logger.info(self.samples)
     
     def stop_criteria(self):
         """
@@ -254,7 +253,7 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
             return
         if not hasattr(self.task_config, 'output_path') or self.task_config.output_path is None:
             return
-        self.logger.info('Save state')
+        logger.info('Save state')
         output_path = os.path.join(self.task_config.output_path, mode)
         if not os.path.isdir(output_path):
             os.makedirs(output_path)
@@ -291,9 +290,9 @@ class IPC_Optimization(PromptOptimizationWithFeedback):
         except:
             mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).output.text
             mod_description = self.generation_llm.call(prompt=description_mod_prompt).output.text
-        self.logger.info(f"Task description modified for ranking to: \n{mod_description}")
+        logger.info(f"Task description modified for ranking to: \n{mod_description}")
 
-        self.logger.info(f"Initial prompt modified for ranking to: \n{mod_prompt}")
+        logger.info(f"Initial prompt modified for ranking to: \n{mod_prompt}")
 
         self.task_config.instruction = mod_prompt
         self.task_config.task_description = mod_description

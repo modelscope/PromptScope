@@ -7,7 +7,7 @@ from meta_icl.algorithm.PromptAgent.utils import get_pacific_time
 from meta_icl.algorithm.PromptAgent.tasks import get_task
 from meta_icl.algorithm.PromptAgent.search_algo import get_search_algo
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 from meta_icl.core.models.base_model import MODEL_REGISTRY
 from meta_icl.core.models.generation_model import GenerationModel
 from meta_icl import CONFIG_REGISTRY
@@ -36,8 +36,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         if self.task_config.get('data_dir', None) and task_name == "bigbench":
             task_name = task_name + "_" + self.task_config["data_dir"].split('/')[-1].split('.')[-2]
         exp_name = f'{get_pacific_time().strftime("%Y%m%d_%H%M%S")}-{task_name}-algo_{self.search_algo}'
-        self.logger = Logger.get_logger(__name__)
-        self.logger.info(exp_name)
+        logger.info(exp_name)
 
         self.init_model()
 
@@ -55,7 +54,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         
         self.world_model = MODEL_REGISTRY.module_dict[self.search_algo](
             task=self.task, 
-            logger=self.logger, 
+            logger=logger, 
             base_model=self.base_model,
             optim_model=self.optim_model,
             prompt_handler=self.prompt_handler, 
@@ -65,7 +64,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         self.search_algo = get_search_algo(self.search_algo)(
             task=self.task, 
             world_model=self.world_model, 
-            logger=self.logger,
+            logger=logger,
             log_dir=self.basic_config.output_path,
             **self.search_config
             )
@@ -73,7 +72,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         """
         set init state, run search algorithm, get best prompt
         """
-        self.logger.info(f'init_prompt: {self.initial_prompt}')
+        logger.info(f'init_prompt: {self.initial_prompt}')
         start_time = time.time()
 
         self.search_algo.before_search(init_state=self.initial_prompt)
@@ -83,20 +82,20 @@ class PromptAgent(PromptOptimizationWithFeedback):
             iteration_num = self.search_algo.depth_limit
 
         for i in range(iteration_num):
-            self.logger.info(
+            logger.info(
             f'---------------------  iteration {i} ------------------------')
             self.step()
 
         states, result_dict = self.extract_best_prompt()
         end_time = time.time()
         exe_time = str(timedelta(seconds=end_time-start_time)).split('.')[0]
-        self.logger.info(f'\nDone!Excution time: {exe_time}')
+        logger.info(f'\nDone!Excution time: {exe_time}')
         return states, result_dict
 
     def step(self):
-        self.logger.info('Searching Path')
+        logger.info('Searching Path')
         path = self.search_algo.search()
-        self.logger.info('Update Prompt According to Error Analysis')
+        logger.info('Update Prompt According to Error Analysis')
         path, cum_rewards = self.update_with_error(path)
     def update_with_error(self, path):
         return self.search_algo.update_nodes(path)

@@ -11,7 +11,7 @@ from meta_icl.core.enumeration.model_enum import ModelEnum
 from meta_icl.core.utils.registry import Registry
 from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
 from meta_icl.core.utils.timer import Timer
-from meta_icl.core.utils.logger import Logger
+from loguru import logger
 
 MODEL_REGISTRY = Registry("models")
 class BaseModel(metaclass=ABCMeta):
@@ -38,9 +38,7 @@ class BaseModel(metaclass=ABCMeta):
 
         self.data = {}
         self._call_module: Any = None
-        
-        self.logger = Logger.get_logger()
-        
+
     @property
     def call_module(self):
         if self._call_module is None:
@@ -91,10 +89,10 @@ class BaseModel(metaclass=ABCMeta):
                         else:
                             break
                     except (Exception, openai.OpenAIError) as e:
-                        self.logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i+1}")
+                        logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i+1}")
 
             if not model_response.raw:
-                self.logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
+                logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
 
         return self.after_call(stream=stream, model_response=model_response, **kwargs)
     
@@ -126,8 +124,6 @@ class BaseAsyncModel(metaclass=ABCMeta):
 
         self.data = {}
         self._call_module: Any = None
-        
-        self.logger = Logger.get_logger()
         
     @property
     def call_module(self):
@@ -165,7 +161,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
                     if self.raise_exception:
                         call_output = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
                         if hasattr(call_output, 'status_code') and call_output.status_code != 200:
-                            self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                            logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                             asyncio.sleep(self.retry_interval)
                         else:
                             model_response.raw = call_output
@@ -174,17 +170,17 @@ class BaseAsyncModel(metaclass=ABCMeta):
                         try:
                             call_output = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
                             if hasattr(call_output, 'status_code') and call_output.status_code != 200:
-                                self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                                logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                                 asyncio.sleep(self.retry_interval)
                             else:
                                 model_response.raw = call_output
                                 break
                         except (Exception, openai.OpenAIError) as e:
-                            self.logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                            logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
                             await asyncio.sleep(self.retry_interval)
 
                 if not model_response.raw:
-                    self.logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
+                    logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
 
                 return {"response": self.after_call(model_response=model_response, **kwargs), "index": index}
 
