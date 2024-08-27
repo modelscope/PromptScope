@@ -1,15 +1,34 @@
-online_prompt:
+icl_template:
   cn: |
     {instruction}
     
     以下是一些样例：
     {examples}
     
-    请根据以上样例，回答问题：{input}
+    {query_str}
+    
+
   en: |
     {instruction}
     
     Here are some examples:
     {examples}
     
-    Please answer the following question based on the above examples: {input}
+    {query_str}
+instruction:
+  cn: 请一步一步地回答下面的数学题。
+  en: Please answer the following math problem step by step.
+example_template:
+  cn: |
+    问题：{input}
+    
+    答案：{output}
+  en: |
+    Question: {input}
+    
+    Answer: {output}
+
+query_template:
+  cn: 请根据以上样例，回答问题：{input}
+  en: "Please answer the following question based on the above examples: {input}"
+
