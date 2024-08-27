@@ -29,7 +29,7 @@ class BaseICL(ABC):
     def get_results(self, **kwargs):
         pass
 
-    def _formatting_function(self):
+    def _update_formatting_function(self):
         pass
 
 
@@ -138,7 +138,7 @@ class EmbeddingICL(BaseICL):
     def _get_example_list(self, examples_pth):
         self.examples = load_file(examples_pth)
 
-    def get_meta_prompt(self, cur_query: dict, formatting_function, num=3):
+    def get_meta_prompt(self, cur_query: dict, formatting_function:object=None, num=3):
         """
         :param cur_query: the query to generate the intention analysis results.
         :param embedding_key: the key to get the embedding.
@@ -147,6 +147,7 @@ class EmbeddingICL(BaseICL):
 
         :return: the meta prompt
         """
+
 
         try:
             query_embedding = get_single_embedding([cur_query], embedding_model=self.embedding_model,
