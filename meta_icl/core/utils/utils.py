@@ -198,7 +198,7 @@ def load_file(file_pth):
         ValueError(f'cannot support file type: {file_type}!')
 
 
-def organize_text_4_embedding(example_list, search_key):
+def organize_text_4_embedding(example_list: list, search_key):
     """
 
     :param example_list: list of dict
@@ -240,7 +240,7 @@ def get_single_embedding(query, embedding_model, search_key=None):
     :param query: str
     :return: embedding vector
     """
-
+    logger.info(f'input query: {query}')
     query = organize_text_4_embedding(example_list=query, search_key=search_key)
     logger.info(f"rewrite search query for embedding as: {query}")
     try:
