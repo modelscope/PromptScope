@@ -1,0 +1,15 @@
+online_prompt:
+  cn: |
+    {instruction}
+    
+    以下是一些样例：
+    {examples}
+    
+    请根据以上样例，回答问题：{input}
+  en: |
+    {instruction}
+    
+    Here are some examples:
+    {examples}
+    
+    Please answer the following question based on the above examples: {input}

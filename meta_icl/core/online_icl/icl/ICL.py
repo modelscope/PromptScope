@@ -29,9 +29,6 @@ class BaseICL(ABC):
     def get_results(self, **kwargs):
         pass
 
-    def _update_formatting_function(self):
-        pass
-
 
 class BM25ICL(BaseICL):
     def __init__(self,
@@ -51,7 +48,7 @@ class BM25ICL(BaseICL):
         if base_model is not None:
             self.base_model = base_model
         else:
-            self.base_model = AioGenerationModel(**self.task_configs["model_config"]["generation"])
+            self.base_model = GenerationModel(**self.task_configs["model_config"]["generation"])
 
     def _load_demonstration_selector(self):
         self.example_selector = BM25Retriever(example_list=self.example_list,
@@ -118,7 +115,7 @@ class EmbeddingICL(BaseICL):
         if base_model is not None:
             self.base_model = base_model
         else:
-            self.base_model = AioGenerationModel(**self.task_configs["model_config"]["generation"])
+            self.base_model = GenerationModel(**self.task_configs["model_config"]["generation"])
         self._get_example_embeddings(embedding_pth)
         self._get_example_list(examples_pth)
         self._load_demonstration_selector(sav_type=embedding_pth.split('.')[-1])
