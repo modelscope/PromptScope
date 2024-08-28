@@ -30,8 +30,25 @@ QWEN_MODELS = {"qwen-turbo",
 				}
 
 class OPRO(PromptOptimizationWithFeedback):
+	"""
+	OPRO (Optimization by PROmpting) is a system designed to iteratively refine and optimize
+	prompts for language models (Large Language Models as Optimizers). It manages configurations, initializes models, validates parameters,
+	and orchestrates a step-by-step process to create, assess, and refine instructions or prompts
+	targeting specific tasks within designated datasets such as MMLU, BBH, or GSM8K. Leveraging Qwen models
+	for scoring and optimization strategies, it supports both instruction-centric and example-based
+	meta-prompts, maintaining a record of progress through comprehensive evaluations to incrementally
+	enhance the efficacy of generated instructions.
+	"""
 	FILE_PATH: str = __file__
 	def __init__(self, language, **kwargs):
+		"""
+		Initializes the OPRO instance with necessary configurations, models, and data structures for
+		tracking optimization progress.
+
+		Args:
+			language (str): The target language for prompt optimization.
+			**kwargs: Additional keyword arguments for configuration overrides.
+		"""
 		super().__init__(language, **kwargs)
 		self.init_config()
 		self.init_model()
@@ -66,6 +83,10 @@ class OPRO(PromptOptimizationWithFeedback):
 		self.old_instruction_md5_hashstrings_set = set()
 		self.prev_saved_instructions = set()
 	def init_model(self):
+		"""
+		Initializes the language models used for scoring and optimization based on the configuration.
+		If parallel evaluation is enabled, asynchronous models are initialized; otherwise, synchronous models are used.
+		"""
 		if self.evolution_config.evaluate_in_parallel:
 			self.scorer_llm = AioGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].scorer)
 			self.optim_llm = AioGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].optim)
@@ -74,14 +95,42 @@ class OPRO(PromptOptimizationWithFeedback):
 			self.optim_llm = GenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].optim)
 
 	def init_config(self):
+		"""
+		Initialize configuration settings for the OPRO system by retrieving
+		configurations from the registry for the model, task, basic settings,
+		and evolution strategies. This method sets up the essential parameters
+		for the entire optimization process.
+
+		The configurations include:
+		- Model configuration: Details about the language model used (e.g., Qwen models).
+		- Task configuration: Settings specific to the tasks like MMLU, BBH, GSM8K.
+		- Basic configuration: Fundamental operational settings of the system.
+		- Evolution configuration: Strategies for iterative improvement of prompts.
+
+		Returns:
+			None. Configurations are stored as attributes within the instance.
+		"""
 		self.model_config = CONFIG_REGISTRY.module_dict['model_config']
 		self.task_config = CONFIG_REGISTRY.module_dict['task_config']
 		self.basic_config = CONFIG_REGISTRY.module_dict['basic_config']
 		self.evolution_config = CONFIG_REGISTRY.module_dict["evolution_config"]
 
 	def update_config(self, config='evolution_config', **kwargs):
+		"""
+		Updates the specified configuration dictionary with the provided key-value pairs.
+
+		Args:
+			config (str): The name of the configuration attribute to update. Defaults to 'evolution_config'.
+			**kwargs: Arbitrary keyword arguments representing the key-value pairs to update in the config.
+
+		Note:
+			This method uses `__getattribute__` to dynamically access the attribute corresponding to the given `config`.
+		"""
 		self.__getattribute__(config).update(**kwargs)
 	def validation(self):
+		"""
+		Performs validation checks on the current configuration or state.
+		"""
 
 		assert self.dataset_name in {
 			"mmlu",
@@ -151,11 +200,17 @@ class OPRO(PromptOptimizationWithFeedback):
 			f"scorer: {self.scorer_llm_name}, optimizer: {self.optimizer_llm_name}, dataset:"
 			f" {self.dataset_name}, task: {self.task_name}, instruction_pos: {self.instruction_pos}"
 		)
-	def init_prompt(self):
-		pass
 
 	def run(self):
-		"""The function for evolution."""
+		"""
+		The primary method initiating and orchestrating the evolutionary process for optimizing instructions.
+		It configures settings, prints experimental parameters, initializes dataset specifics, and starts
+		with the evaluation of initial instructions using a scoring language model.
+
+		This includes handling different dataset types (e.g., multiple-choice, open-ended),
+		dynamically adjusting configurations based on dataset requirements, and setting up the environment
+		for iterative instruction improvement steps.
+		"""
 		print(f"tasks_all: {self.evolution_config.tasks_all}")
 		print(
 			f"train_ratio: {self.evolution_config.train_ratio}, number of training points:"
@@ -302,6 +357,39 @@ class OPRO(PromptOptimizationWithFeedback):
 		  eval_ratio,
 		  **kwargs,
 		  ):
+		"""
+		Generates new instructions based on different selection criteria for few-shot examples.
+
+		This function dynamically adjusts the few-shot examples presented to the model during the 
+		instruction refinement process. It supports various strategies for selecting these examples, 
+		intended to improve the model's understanding and performance on tasks by focusing on areas 
+		of weakness or through random exposure for diversity.
+
+		Conditions covered:
+		- 'accumulative_most_frequent': Selects questions that have been answered incorrectly most frequently 
+		  since the start, either all or a sampled subset depending on their total count.
+		- 'current_most_frequent': Chooses questions that are frequently missed under the current set of 
+		  instructions, ensuring diversity if not enough unique questions meet the threshold.
+		- 'constant': Picks a constant set of few-shot questions randomly but fixed across iterations.
+		- 'random': Randomly selects questions for each iteration, introducing variability.
+
+		Args:
+			few_shot_qa_pairs (bool): Flag indicating whether to use few-shot QA pairs in instruction generation.
+			few_shot_selection_criteria (str): The strategy for picking few-shot examples ('accumulative_most_frequent', 
+										  'current_most_frequent', 'constant', 'random').
+			Other variables used (not passed as arguments):
+				self.wrong_questions_from_start_counter: A counter tracking the frequency of incorrect answers.
+				num_few_shot_questions_for_instruction_refinement: The number of few-shot examples to include.
+				i_step: The current iteration step, relevant for seeded randomness.
+				old_instructions_and_scores: Historical data on instruction performance.
+				old_instruction_score_threshold: A threshold for considering instruction performance.
+				result_by_instruction_folder: Directory containing results per instruction.
+				max_num_instructions, num_score_buckets: Parameters for instruction scoring.
+				self.train_index: List of indices representing the training dataset.
+
+		Returns (implicitly through assignment):
+			few_shot_index_list (List[int]): Indices of questions selected for the few-shot demonstration.
+		"""
 		# generate new instructions
 		if few_shot_qa_pairs:
 			if few_shot_selection_criteria == "accumulative_most_frequent":
@@ -738,4 +826,8 @@ class OPRO(PromptOptimizationWithFeedback):
 		print(f"\nsaved all results to\n{save_folder}")
 
 	def extract_best_prompt(self):
+		"""
+		This method is intended to extract the best prompt from the evaluated results.
+		Currently, it is a placeholder and needs implementation.
+		"""
 		pass
