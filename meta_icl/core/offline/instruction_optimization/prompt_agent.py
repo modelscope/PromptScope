@@ -15,6 +15,11 @@ from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 
 class PromptAgent(PromptOptimizationWithFeedback):
+    """
+    PromptAgent (PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization) 
+    is designed to optimize prompts for language models, by initializing tasks, configuring settings, 
+    selecting search algorithms and models, logging progress, and determining the most effective prompt through iterative refinement.
+    """
     FILE_PATH: str = __file__
     def __init__(self, 
                  dataset_path: str = __file__,
@@ -22,7 +27,20 @@ class PromptAgent(PromptOptimizationWithFeedback):
                  **kwargs
                  ) -> None:
         """
-        PromptAgent: set up task, logger, search algorithm, world model
+        Initialize the PromptAgent with necessary configurations, task setup, search algorithm selection,
+        and logging initialization. The agent then readies the model for the prompt optimization process.
+
+        Args:
+            dataset_path (str): Path to the dataset used for the task.
+            language (LanguageEnum): Language setting for the tasks and prompts.
+            **kwargs: Additional keyword arguments for flexibility in configurations.
+
+        Post Init:
+            - Configurations are initialized and potentially updated based on kwargs.
+            - A task instance is created according to the specified task name and configuration.
+            - An appropriate search algorithm is set up based on the chosen strategy.
+            - A logging mechanism is configured to track the experiment under a named experiment ID.
+            - The AI model is initialized in preparation for prompt evaluations and optimizations.
         """
         super().__init__(language=language, **kwargs)
         self.init_config()
@@ -41,6 +59,14 @@ class PromptAgent(PromptOptimizationWithFeedback):
         self.init_model()
 
     def init_config(self):
+        """
+        Initializes the configuration for the agent by retrieving various configuration sections
+        from the global CONFIG_REGISTRY. This sets up the basic, task-specific, model, search,
+        and world model configurations required for the agent's operation.
+
+        The configurations are retrieved from a registry module which centralizes the access to 
+        different parts of the setup, ensuring modularity and easier management of settings.
+        """
         self.basic_config = CONFIG_REGISTRY.module_dict["basic_config"]
         self.task_config = CONFIG_REGISTRY.module_dict["task_config"]
         self.model_config = CONFIG_REGISTRY.module_dict["model_config"]
@@ -48,6 +74,13 @@ class PromptAgent(PromptOptimizationWithFeedback):
         self.world_model_config = CONFIG_REGISTRY.module_dict["world_model_config"]
 
     def init_model(self):
+        """
+        Initializes the models and search algorithm for the prompt optimization process.
+
+        This method sets up the base model, optimization model, world model, and search algorithm
+        based on the configurations provided. It also initializes the logging mechanism for tracking
+        the optimization process.
+        """
         self.base_model = GenerationModel(**self.model_config.base)
         
         self.optim_model = GenerationModel(**self.model_config.optim)
@@ -70,7 +103,17 @@ class PromptAgent(PromptOptimizationWithFeedback):
             )
     def run(self):
         """
-        set init state, run search algorithm, get best prompt
+        Orchestrates the search for the best prompt by initializing the search with a given prompt,
+        executing iterations as per the configured search algorithm, logging each step, measuring
+        total execution time, and extracting the optimal prompt along with related metadata.
+
+        The specific number of iterations is determined by the configuration of the search algorithm
+        ('mcts' uses `iteration_num`, while 'beam_search' refers to `depth_limit`).
+
+        Returns:
+            tuple: A pair containing:
+                - states: Relevant states or information from the search process leading to the best prompt.
+                - result_dict: A dictionary encapsulating details about the best prompt and potentially its score or metrics.
         """
         logger.info(f'init_prompt: {self.initial_prompt}')
         start_time = time.time()
@@ -93,14 +136,34 @@ class PromptAgent(PromptOptimizationWithFeedback):
         return states, result_dict
 
     def step(self):
+        """
+        Executes a single step in the optimization process which includes searching for the best path 
+        and updating prompts based on error analysis.
+        """
         logger.info('Searching Path')
-        path = self.search_algo.search()
+        path = self.search_algo.search() # ⭐ Conducts a search for the optimal path
         logger.info('Update Prompt According to Error Analysis')
-        path, cum_rewards = self.update_with_error(path)
+        path, cum_rewards = self.update_with_error(path) # ⭐ Refines prompts along the found path using error feedback
     def update_with_error(self, path):
+        """
+        Updates nodes within the search algorithm's data structure based on the error from the executed path,
+        effectively refining the prompts.
+
+        Args:
+            path: The sequence of nodes representing the path chosen for update.
+
+        Returns:
+          A tuple containing the updated path and cumulative rewards from this update step.
+        """
         return self.search_algo.update_nodes(path)
     
     def extract_best_prompt(self):
+        """
+        Retrieves the best prompt discovered by the search algorithm after completing the search process.
+
+        Returns:
+            The most effective prompt generated by the optimization, intended to enhance AI system interactions.
+        """
         return self.search_algo.after_search()
 
 
