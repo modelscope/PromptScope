@@ -2,7 +2,7 @@ from typing import List, Dict
 from abc import ABC, abstractmethod
 
 from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_method
-from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings, message_formatting,
+from meta_icl.core.utils.sys_prompt_utils import (message_formatting,
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
 from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
@@ -10,6 +10,7 @@ from meta_icl.core.models.generation_model import GenerationModel
 from loguru import logger
 import time
 from meta_icl import CONFIG_REGISTRY
+from meta_icl.core.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
 
 
 class BaseICL(ABC):
@@ -57,7 +58,7 @@ class BM25ICL(BaseICL):
     def _load_demonstration_list(self, examples_pth):
         self.example_list = load_file(examples_pth)
 
-    def get_meta_prompt(self, cur_query: dict, formatting_function, num=3, **kwargs):
+    def get_meta_prompt(self, cur_query: dict, formatting_function: [object, ICLPromptHandler] = None, num=3, **kwargs):
         """
         :param cur_query: the query to generate the intention analysis results.
         :param search_key_list: the key to index & search by bm25.
@@ -65,6 +66,8 @@ class BM25ICL(BaseICL):
         :param formatting_function: the formatting function to generate the final query
         :return: the meta prompt
         """
+        if isinstance(formatting_function, ICLPromptHandler):
+            formatting_function = formatting_function.organize_icl_prompt
         query_to_search = organize_text_4_embedding(example_list=[cur_query],
                                                     search_key=self.retriever_key_list)
         logger.info(f"query to search: {query_to_search}")
@@ -135,7 +138,7 @@ class EmbeddingICL(BaseICL):
     def _get_example_list(self, examples_pth):
         self.examples = load_file(examples_pth)
 
-    def get_meta_prompt(self, cur_query: dict, formatting_function:object=None, num=3):
+    def get_meta_prompt(self, cur_query: dict, formatting_function: [object, ICLPromptHandler] = None, num=3):
         """
         :param cur_query: the query to generate the intention analysis results.
         :param embedding_key: the key to get the embedding.
@@ -144,7 +147,8 @@ class EmbeddingICL(BaseICL):
 
         :return: the meta prompt
         """
-
+        if isinstance(formatting_function, ICLPromptHandler):
+            formatting_function = formatting_function.organize_icl_prompt
 
         try:
             query_embedding = get_single_embedding([cur_query], embedding_model=self.embedding_model,
