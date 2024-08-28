@@ -46,6 +46,9 @@ class ICLPromptHandler(PromptHandler):
         return '\n'.join(example_template.format_map(example) for example in retrieved_examples)
 
     def organize_icl_prompt(self, selection_examples, cur_query, configs: dict = None) -> str:
+        """
+
+        """
         icl_template = self.prompt_dict.get('icl_template')
         logger.info(f"icl_template: {icl_template}")
         instruction = self.prompt_dict.get('instruction')
