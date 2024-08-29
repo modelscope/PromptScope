@@ -34,7 +34,8 @@ evolution_config:
     dataset_name: *dataset
     task_name: *task_name
     initial_instructions: [
-        "Let's solve the problem.",
+        # "Let's solve the problem.",
+        "请一步一步思考"
         # "",
         # "The answer is",
     ]

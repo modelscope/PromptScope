@@ -54,7 +54,7 @@ class OPRO(PromptOptimizationWithFeedback):
 		self.init_model()
 		self.scorer_llm_name = self.model_config.scorer.model_name
 		self.optimizer_llm_name = self.model_config.optim.model_name
-		self.dataset_name = self.task_config.dataset_name.lower()
+		self.dataset_name = self.basic_config.dataset_name.lower()
 		self.task_name = self.basic_config.task_name
 		self.meta_prompt_type = self.basic_config.meta_prompt_type
 		self.instruction_pos = self.basic_config.instruction_pos
@@ -111,7 +111,6 @@ class OPRO(PromptOptimizationWithFeedback):
 			None. Configurations are stored as attributes within the instance.
 		"""
 		self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-		self.task_config = CONFIG_REGISTRY.module_dict['task_config']
 		self.basic_config = CONFIG_REGISTRY.module_dict['basic_config']
 		self.evolution_config = CONFIG_REGISTRY.module_dict["evolution_config"]
 
