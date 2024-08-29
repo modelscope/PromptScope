@@ -51,31 +51,31 @@ class OPRO(PromptOptimizationWithFeedback):
 			language (str): The target language for prompt optimization.
 			**kwargs: Additional keyword arguments for configuration overrides.
 		"""
-        super().__init__(language, **kwargs)
-        self.init_config()
-        self.init_model()
-        self.scorer_llm_name = self.model_config.scorer.model_name
-        self.optimizer_llm_name = self.model_config.optim.model_name
-        self.dataset_name = self.task_config.dataset_name.lower()
-        self.task_name = self.basic_config.task_name
-        self.meta_prompt_type = self.basic_config.meta_prompt_type
-        self.instruction_pos = self.basic_config.instruction_pos
-        self.validation()
-        # the dictionary of the few-shot QA indices in meta-prompt
-        # key: step index; value: the list of few-shot indices in that step
-        self.few_shot_index_list_by_step_dict = dict()
-        self.generated_ins_on_few_shot_results_dict = dict()
-        self.old_ins_on_few_shot_results_dict = dict()
-        # evaluation results every a few steps
-        # format: [(i_step, instruction, detailed_results_df)]
-        self.eval_results = []
-        # all generated instructions, format: [(instruction, score, step_index)]
-        # the instructions that were skipped have score NaN
-        self.old_instructions_and_scores_raw = []
-        # the new instructions, format: [(instruction, score, step_index)]
-        self.old_instructions_and_scores = []
-        self.meta_prompts = []  # format: [(meta_prompt, step_index)]
-        self.instruction_score_dict = dict()  # the dictionary of {instruction: score}
+		super().__init__(language, **kwargs)
+		self.init_config()
+		self.init_model()
+		self.scorer_llm_name = self.model_config.scorer.model_name
+		self.optimizer_llm_name = self.model_config.optim.model_name
+		self.dataset_name = self.basic_config.dataset_name.lower()
+		self.task_name = self.basic_config.task_name
+		self.meta_prompt_type = self.basic_config.meta_prompt_type
+		self.instruction_pos = self.basic_config.instruction_pos
+		self.validation()
+		# the dictionary of the few-shot QA indices in meta-prompt
+		# key: step index; value: the list of few-shot indices in that step
+		self.few_shot_index_list_by_step_dict = dict()
+		self.generated_ins_on_few_shot_results_dict = dict()
+		self.old_ins_on_few_shot_results_dict = dict()
+		# evaluation results every a few steps
+		# format: [(i_step, instruction, detailed_results_df)]
+		self.eval_results = []
+		# all generated instructions, format: [(instruction, score, step_index)]
+		# the instructions that were skipped have score NaN
+		self.old_instructions_and_scores_raw = []
+		# the new instructions, format: [(instruction, score, step_index)]
+		self.old_instructions_and_scores = []
+		self.meta_prompts = []  # format: [(meta_prompt, step_index)]
+		self.instruction_score_dict = dict()  # the dictionary of {instruction: score}
 
         self.detailed_results_df_by_instruction_dict = dict()
         self.wrong_questions_from_start_counter = collections.Counter()
@@ -113,10 +113,9 @@ class OPRO(PromptOptimizationWithFeedback):
 		Returns:
 			None. Configurations are stored as attributes within the instance.
 		"""
-        self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-        self.task_config = CONFIG_REGISTRY.module_dict['task_config']
-        self.basic_config = CONFIG_REGISTRY.module_dict['basic_config']
-        self.evolution_config = CONFIG_REGISTRY.module_dict["evolution_config"]
+		self.model_config = CONFIG_REGISTRY.module_dict['model_config']
+		self.basic_config = CONFIG_REGISTRY.module_dict['basic_config']
+		self.evolution_config = CONFIG_REGISTRY.module_dict["evolution_config"]
 
     def update_config(self, config='evolution_config', **kwargs):
         """
