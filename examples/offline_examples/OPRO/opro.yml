@@ -1,23 +1,11 @@
 # use_wandb: False
 
 basic_config:
-    task_name: &task_name train # bigbench | ncbi | ... | or your own task
-    search_algo: mcts # mcts | beam_search
-    print_log: true
+    task_name: &task_name train
     output_path: dump
     instruction_pos: &ins_p Q_begin
     meta_prompt_type: &meta_pt both_instructions_and_exemplars
-
-task_config:
-    train_size: 4
-    eval_size: 3 # data split for reward calculation
-    test_size: 3 # if test_size is not 0, the optimized nodes will be tested at last.
-    seed: 42 # if need to fixed shuffled dataset
-    dataset_name: &dataset gsm8k # if data is downloaded
-    # Note: the current supported bigbench tasks are specified by 
-    # data_dir using the same task_name (bigbench), if there is not
-    # specific .py class inplemented in the tasks folder.
-    post_instruction: false # false: prompt + task question | true: task question + prompt
+    dataset_name: &dataset gsm8k
 
 model_config:
     scorer:
@@ -46,7 +34,8 @@ evolution_config:
     dataset_name: *dataset
     task_name: *task_name
     initial_instructions: [
-        "Let's solve the problem.",
+        # "Let's solve the problem.",
+        "请一步一步思考"
         # "",
         # "The answer is",
     ]

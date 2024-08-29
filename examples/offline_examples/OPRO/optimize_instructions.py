@@ -62,7 +62,7 @@ def config():
 def main():
 	scorer_llm_name = CONFIG_REGISTRY.module_dict['model_config'].scorer.model_name
 	optimizer_llm_name = CONFIG_REGISTRY.module_dict['model_config'].optim.model_name
-	dataset_name = CONFIG_REGISTRY.module_dict['task_config'].dataset_name.lower()
+	dataset_name = CONFIG_REGISTRY.module_dict['basic_config'].dataset_name.lower()
 	task_name = CONFIG_REGISTRY.module_dict['basic_config'].task_name
 
 	if dataset_name == "mmlu":
