@@ -7,7 +7,7 @@ from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from loguru import logger
 from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.offline.instruction_optimization.ipc import IPC_Optimization
+from meta_icl.core.offline.instruction_optimization.ipc import IPCOptimization
 from meta_icl.core.utils.utils import get_current_date
 
 current_file_path = Path(__file__)
@@ -36,7 +36,7 @@ if hasattr(generate_config_params.task_config, 'input_path'):
         kwargs['ranking_prompt'] = state['prompt']
 
 # Initializing the pipeline
-pipeline = IPC_Optimization()
+pipeline = IPCOptimization()
 
 if not best_prompt:
     kwargs['mode'] = 'ranking'
@@ -47,6 +47,6 @@ pipeline.samples = None
 
 CONFIG_REGISTRY.batch_register(generate_config_params)
 # CONFIG_REGISTRY.module_dict['eval_config'].instruction = best_prompt
-pipeline = IPC_Optimization()
+pipeline = IPCOptimization()
 pipeline.init_config()
 best_prompt = pipeline.run(**kwargs)

@@ -17,7 +17,7 @@ icl_template:
     {query_str}
 instruction:
   cn: 请一步一步地回答下面的数学题。
-  en: Please answer the following math problem step by step.
+  en: Let's meticulously dissect the given problems, adhere strictly to the instructions, and methodically solve them step by step to find the most accurate solutions.
 example_template:
   cn: |
     问题：{input}

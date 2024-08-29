@@ -2,13 +2,13 @@ task_configs:
   model_config:
     generation:
       module_name: dashscope_generation
-      model_name: qwen2-57b-a14b-instruct
+      model_name: qwen-turbo
       clazz: models.llama_index_generation_model
       max_tokens: 2000
       seed: 1234
   prompt_config:
     template_path: examples/gsm8k_example/prompt/online_prompt.yaml
-    language: cn
+    language: en
 icl_configs:
   embedding_retriever_configs:
     embedding_pth: logs/gsm8k_example/storage/gsm8k_emb_model:<text_embedding_v2>_search_key:['input']_examples_ver_2024-08-20
