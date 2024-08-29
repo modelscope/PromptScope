@@ -78,7 +78,7 @@ def instruction_to_filename(instruction, md5_hashing=True):
 	"""Convert an instruction string to filename."""
 	if md5_hashing:
 		m = hashlib.md5()
-		m.update(instruction.encode("ascii"))
+		m.update(instruction.encode("utf-8"))
 		filename = m.hexdigest()
 	else:
 		# remove punctuations and line break, and give a name to the empty string
