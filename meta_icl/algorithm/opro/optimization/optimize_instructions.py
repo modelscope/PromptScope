@@ -24,7 +24,7 @@ Step 3: check if the model configs (like batch size) are the same as the actual 
 Step 4: run
 
 ```
-python optimize_instructions.py \
+python demo_optimize_instructions.py \
     --optimizer="gpt-3.5-turbo" --scorer="text-bison" \
     --instruction_pos="A_begin" --dataset="gsm8k" --task="train"
 ```
