@@ -1,8 +1,0 @@
-icl_configs:
-  BM25_retriever_configs:
-    examples_list_pth: data/app_data/agent_followup_data/demonstrations/role_followups_full_reformat.json
-    BM_25_index_dir: data/app_data/agent_followup_data/icl_data_bm25/agent_role_demonstrations_2024-07-16
-      16:14:39
-    search_key:
-    - chat_history
-    - last_query

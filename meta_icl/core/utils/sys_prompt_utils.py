@@ -2,9 +2,6 @@ import random
 from http import HTTPStatus
 import dashscope
 import time, copy
-import csv
-import json
-import re
 import random
 from typing import Generator, List, Any
 from loguru import logger
@@ -29,7 +26,7 @@ from scipy.spatial.distance import cdist
 from typing import Union
 
 
-def convert_model_name_to_model_config(model_name: Union[str, dict]=None,
+def convert_model_name_to_model_config(model_name: Union[str, dict] = None,
                                        add_random=False,
                                        model_config=None, **kwargs) -> dict:
     if model_name is not None:
@@ -66,7 +63,6 @@ def convert_model_name_to_model_config(model_name: Union[str, dict]=None,
             model_config_add_random['seed'] = np.random.randint(1, 10000)
             model_config['temperature'] = 1.2
         return model_config_add_random
-
 
 
 def find_top_k_embeddings(query_embedding, list_embeddings, k):
@@ -192,7 +188,7 @@ Attention: If both model and model_config are given, the model_config will be us
 
         return call_qwen_with_message_with_retry(messages,
                                                  model_config=model_config, **kwargs)
-    elif model.lower() == 'qwen_70b'or model.lower() == 'qwen-plus':
+    elif model.lower() == 'qwen_70b' or model.lower() == 'qwen-plus':
         if model_config is not None:
             pass
         else:
@@ -318,8 +314,6 @@ def fill_in_variables(variables, template_text):
 
 def call_qwen_with_message_with_retry(messages,
                                       model_config=DefaultModelConfig, **kwargs):
-
-
     cnt = 0
     error_message = ""
     # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
@@ -344,48 +338,7 @@ def call_qwen_with_message_with_retry(messages,
 
 
 def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs):
-    request_id = kwargs.get('request_id')
 
-    if "temperature" in model_config.keys():
-        temperature = model_config['temperature']
-    else:
-        temperature = 0.85
-    response = dashscope.Generation.call(
-        model_config['model'],
-        # dashscope.Generation.Models.qwen_max,
-        messages=messages,
-        # set the random seed, optional, default to 1234 if not set
-        seed=model_config['seed'],
-        result_format='message',  # set the result to be "message" format.
-        temperature=temperature,
-
-    )
-    if response.status_code == HTTPStatus.OK:
-        # print(response)
-        return True, response
-    else:
-        return (False,
-                'Request id: %s, Status code: %s, error code: %s, error message: %s' % (
-                    response.request_id, response.status_code,
-                    response.code, response.message
-                ))
-
-
-def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs):
-    # try:
-    #     request_id = kwargs.get('request_id')
-    #     X_DashScope_EUID = kwargs.get('X_DashScope_EUID')
-    #     logger.query_info(request_id=request_id,
-    #                       message='X_DashScope_EUID: {}'.format(X_DashScope_EUID))
-    # except Exception as e:
-    #     request_id = kwargs.get('request_id')
-    #     logger.query_error(
-    #         request_id=request_id,
-    #         message=f"error:  {e} "
-    #     )
-    #     raise ParsingRuntimeError()
-
-    request_id = kwargs.get('request_id')
     X_DashScope_EUID = kwargs.get('X_DashScope_EUID')
 
     if "temperature" in model_config.keys():
@@ -713,6 +666,7 @@ def text_rerank(query, documents, top_n=None):
         print(resp)
         raise Exception(resp)
 
+
 def call_llama_with_messages():
     messages = [{'role': 'system', 'content': 'You are a helpful assistant.'},
                 {'role': 'user', 'content': '介绍下故宫？'}]
@@ -729,12 +683,6 @@ def call_llama_with_messages():
             response.request_id, response.status_code,
             response.code, response.message
         ))
-
-
-
-
-
-
 
 
 if __name__ == '__main__':

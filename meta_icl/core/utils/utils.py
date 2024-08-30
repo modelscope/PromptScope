@@ -250,44 +250,6 @@ def get_single_embedding(query, embedding_model, search_key=None):
         return get_embedding(query, embedding_model=embedding_model)["output"]['embeddings'][0]['embedding']
 
 
-def combine_session(csv_pth, json_sav_dir, group_by_filed, selection_filed=None, prefix="", mapping_filed=None):
-    import pandas as pd
-    import os
-
-    data = pd.read_csv(csv_pth)
-    logger.info(data.keys())
-    sav_dir = json_sav_dir
-
-    grouped = data.groupby(group_by_filed)
-    sessions = []
-    for session_id, group in grouped:
-        tmp = group.to_dict(orient='records')
-        conversations = []
-        # print(tmp)
-        logger.info(len(tmp))
-
-        if selection_filed is not None:
-            if mapping_filed is not None:
-                pass
-            else:
-                mapping_filed = selection_filed
-
-            for item in tmp:
-                empty_dict = {}
-                for key_id in range(len(selection_filed)):
-                    empty_dict[mapping_filed[key_id]] = item[selection_filed[key_id]]
-                conversations.append(empty_dict)
-        else:
-            conversations = tmp
-
-        session_dict = {
-            'session_id': session_id,
-            'conversations': conversations  # List of rows for this session
-        }
-
-        sessions.append(session_dict)
-    sav_json(sessions, os.path.join(sav_dir, f"{prefix}_ver_{get_current_date()}.json"))
-    return sessions
 
 
 def revert_combined_session_2_csv(json_file_path, csv_file_path: str = None):
