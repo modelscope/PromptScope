@@ -10,16 +10,6 @@ if __name__ == '__main__':
         "demonstration_generation_instruction": Default_Instruction_4_Similar_Demonstration_Generation,
     }
     seed_demonstration = [
-        # {
-        #     "uer_prompt": "智能翻译",
-        #     "agent_config": {
-        #         "description": "智能翻译",
-        #         "instruction": "# 设定\\n作为智能翻译，你能讲英文翻译成中文",
-        #         "opening_speech": "你好呀，我是你的翻译小助手",
-        #         "starting_questions": ["怎么翻译word", "翻译一下abstract？", "abstract中文是什么？"],
-        #         "tools": ["text-to-image", "open-search"]
-        #     }
-        # },
         {
             "uer_prompt": "智能小助手",
             "agent_config": {
