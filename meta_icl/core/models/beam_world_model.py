@@ -3,6 +3,7 @@ from meta_icl.algorithm.PromptAgent.test_helper import eval_instruction_with_loa
 from typing import Generic
 from meta_icl.algorithm.PromptAgent.search_algo.base_algo import State, Action
 from meta_icl.algorithm.PromptAgent.search_algo.beam_search import BeamNode
+from meta_icl.core.utils.prompt_handler import PromptHandler
 
 class BeamSearchWorldModel(Generic[State, Action]):
     def __init__(
@@ -20,6 +21,7 @@ class BeamSearchWorldModel(Generic[State, Action]):
         train_batch_size: int = 5,
         test_batch_size: int = 1,
         eval_batch_size: int = 1,
+        prompt_handler: PromptHandler = None,
         **kwargs
         ) -> None:
         
@@ -44,7 +46,8 @@ class BeamSearchWorldModel(Generic[State, Action]):
                                                 base_model=base_model, 
                                                 optim_model=optim_model, 
                                                 num_new_prompts = num_new_prompts,
-                                                prompt_length_limit=prompt_length_limit)
+                                                prompt_length_limit=prompt_length_limit,
+                                                prompt_handler=prompt_handler)
     def _infinite_data_loader(self, data_loader):
         while True:
             for batch in data_loader:
@@ -116,7 +119,7 @@ class BeamSearchWorldModel(Generic[State, Action]):
         metric, eval_output = eval_instruction_with_loader(task=self.task, 
                                            eval_prompt=prompt,
                                            dataloader=self.eval_dataloader,
-                                           model=self.base_model,
+                                           base_model=self.base_model,
                                            )
         correct = eval_output['correct']
         evaludate_output = dict(
