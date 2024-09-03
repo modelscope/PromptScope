@@ -8,7 +8,8 @@ def eval_instruction_with_loader(task, eval_prompt, base_model, dataloader,  tem
     '''
     
     build_forward_prompts_func = task.build_forward_prompts_completion
-    batch_forward_func = base_model.batch_forward_func
+    # batch_forward_func = base_model.batch_forward_func
+    call_func = base_model.call
     
     all_questions = []
     all_labels = []
@@ -20,7 +21,10 @@ def eval_instruction_with_loader(task, eval_prompt, base_model, dataloader,  tem
     pbar = tqdm(dataloader, leave=False)
     for batch in pbar:
         batch_prompts = build_forward_prompts_func(batch['question'], eval_prompt)
-        responses = batch_forward_func(batch_prompts)
+        try:
+            responses = [call_func(prompt=prompt).message.content for prompt in batch_prompts]
+        except:
+            responses = [call_func(prompt=prompt).output.text for prompt in batch_prompts]
         preds = task.batch_clean_responses(responses)
         labels = task.clean_labels(batch['answer'])
         all_preds.extend(preds)
