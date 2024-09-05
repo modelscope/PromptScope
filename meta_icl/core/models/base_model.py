@@ -76,6 +76,8 @@ class BaseModel(metaclass=ABCMeta):
             for i in range(self.max_retries):
                 if self.raise_exception:
                     call_result = self._call(stream=stream, prompt=prompt, messages=messages, **self.kwargs)
+                    # print(hasattr(call_result, 'status_code'))
+                    # print(call_result.status_code)
                     if hasattr(call_result, 'status_code') and call_result.status_code != 200:
                         time.sleep(i * self.retry_interval)
                     else:
@@ -87,6 +89,7 @@ class BaseModel(metaclass=ABCMeta):
                         if hasattr(call_result, 'status_code') and call_result.status_code != 200:
                             time.sleep(i * self.retry_interval)
                         else:
+                            model_response.raw = call_result
                             break
                     except (Exception, openai.OpenAIError) as e:
                         logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i+1}")

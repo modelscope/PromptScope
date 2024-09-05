@@ -24,7 +24,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
     """
     FILE_PATH: str = __file__
 
-    def __init__(self, language: str = "cn", **kwargs):
+    def __init__(self, language = "cn", **kwargs):
         """
         Initializes the IPC Optimization instance with necessary configurations, model setup, 
         and initializes key attributes used throughout the iterative prompt refinement process.
@@ -58,6 +58,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         The method uses the `GenerationModel` class to instantiate these models,
         passing respective configuration parameters for each model's unique role.
         """
+        print(self.model_config)
         self.generation_llm = GenerationModel(**self.model_config.generation)
         self.predictor_llm = GenerationModel(**self.model_config.predictor)
         self.annotator = GenerationModel(**self.model_config.annotator)

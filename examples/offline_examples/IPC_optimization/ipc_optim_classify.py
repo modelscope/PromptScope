@@ -6,7 +6,7 @@ from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from loguru import logger
 from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.offline.instruction_optimization.ipc import IPC_Optimization
+from meta_icl.core.offline.instruction_optimization.ipc import IPCOptimization
 from meta_icl.core.utils.utils import get_current_date
 
 current_file_path = Path(__file__)
@@ -31,7 +31,7 @@ if hasattr(config_params.task_config, 'input_path'):
         kwargs['data'] = data
 
 # Initializing the pipeline
-pipeline = IPC_Optimization()
+pipeline = IPCOptimization()
 best_prompt = pipeline.run(**kwargs)
 
 # res = []
