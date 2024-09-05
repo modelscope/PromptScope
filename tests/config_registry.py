@@ -6,6 +6,11 @@ from meta_icl.core.offline.instruction_optimization.prompt_agent import PromptAg
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.evaluation.evaluator import Eval
+from meta_icl.algorithm.PromptAgent.search_algo.mcts import MCTS
+from meta_icl.algorithm.PromptAgent.search_algo.beam_search import BeamSearch
+from meta_icl.core.models.world_model import WorldModel
+from meta_icl.core.models.beam_world_model import BeamSearchWorldModel
+
 
 
 # class FlexiMock(MagicMock):
@@ -105,21 +110,23 @@ class TestConfigRegistry(unittest.TestCase):
             "Q_end",
             "A_begin",
         })
-
-    @patch('meta_icl.algorithm.base_algorithm.PromptOptimizationWithFeedback.__init__')
-    def test_prompt_agent(self, mock_super_init: MagicMock):
+    @patch('meta_icl.algorithm.PromptAgent.tasks.bigbench.CustomTask')
+    def test_prompt_agent(self, mock_get_task: MagicMock):
         # 测试默认情况下的run方法
         mock_config = load_yaml('configs/prompt_agent.yml')
         CONFIG_REGISTRY.batch_register(mock_config)
         language = "cn"
-        prompt_agent = PromptAgent(language=language)
 
-        mock_super_init.assert_called_once_with(language=language)
+        mock_task = MagicMock()
+        mock_get_task.return_value = mock_task
+        prompt_agent = PromptAgent(language=language)
         
         self.assertIsInstance(prompt_agent.dataset_path, str)
         self.assertIsInstance(prompt_agent.task_config.data_dir, str)
         self.assertIsInstance(prompt_agent.initial_prompt, str)
-        self.assertIsInstance(prompt_agent.search_algo, str)
+        mcts = isinstance(prompt_agent.search_algo, MCTS) and isinstance(prompt_agent.world_model, WorldModel)
+        beam_search = isinstance(prompt_agent.search_algo, BeamSearch) and isinstance(prompt_agent.world_model, BeamSearchWorldModel)
+        self.assertIs(mcts or beam_search, True)
 
 
 # 运行测试
