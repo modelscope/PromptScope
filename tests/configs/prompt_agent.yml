@@ -51,4 +51,3 @@ world_model_config:
     train_shuffle: true
     num_new_prompts: 1 # 3 if beam search
     train_batch_size: 5
-    prompt_length_limit: 200

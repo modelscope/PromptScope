@@ -38,7 +38,10 @@ class GenerationModel(BaseModel):
 
             return gen()
         else:
-            model_response.message.content = call_result.output.text
+            if call_result.output.text:
+                model_response.message.content = call_result.output.text
+            else:
+                model_response.message.content = call_result.output.choices[0].message.content
 
         return model_response
         
@@ -54,7 +57,11 @@ class AioGenerationModel(BaseAsyncModel):
         model_response.message = Message(role=MessageRoleEnum.ASSISTANT, content="")
 
         call_result = model_response.raw
-        model_response.message.content = call_result.output.text
+        if call_result.output.text:
+            model_response.message.content = call_result.output.text
+        else:
+            model_response.message.content = call_result.output.choices[0].message.content
+
 
         return model_response
     

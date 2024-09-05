@@ -831,3 +831,51 @@ def evaluate_single_instruction(
 
 	detailed_results_df.set_index("index_in_raw_dataset", inplace=True)
 	return detailed_results_df
+
+def get_bbh_task_names(bbh_root_folder_path):
+	files = os.listdir(bbh_root_folder_path)
+	task_names = [f.split(".json")[0] for f in files]
+	task_names = [f for f in task_names if "." not in f]
+	return task_names
+
+
+def load_bbh_task_data(
+    task_name: str,
+    base_dir: str,
+    qa_format: bool = True,
+):
+	"""Load BBH raw data from disk.
+
+	The data is available at https://github.com/suzgunmirac/BIG-Bench-Hard.
+
+	Args:
+	task_name (str): which bbh task to load
+	base_dir (str): the directory containing json files for bbh.
+	qa_format (bool): whether to prepend "Q:" and "A:" to raw input and target,
+		respectively
+
+	Returns:
+	data (list): a list of examples, each example is a dict {'input':
+	<question_string>, 'target': <answer_string>}
+	"""
+
+	if task_name not in get_bbh_task_names(base_dir):
+		raise ValueError(
+			f"Task {task_name} not a valid bbh task.  Consult `get_task_names()`"
+			" for a list of valid tasks."
+		)
+
+	task_loc = f"{base_dir}/{task_name}.json"
+	with open(task_loc, "r") as f:
+		data = json.loads(f.readlines()[0])["examples"]
+
+	if qa_format:
+		formatted_examples = []
+		for d in data:
+			# uses BIG-bench formatting
+			formatted_examples.append(
+				{"input": f"{d['input']}", "target": f"{d['target']}"}
+			)
+		data = formatted_examples
+
+	return data

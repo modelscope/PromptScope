@@ -43,7 +43,7 @@ logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_curren
 WORK_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 import numpy as np
-from meta_icl.algorithm.opro.optimization import opt_utils
+from meta_icl.algorithm.opro.evaluation import eval_utils
 import pandas as pd
 
 ROOT_DATA_FOLDER_PATH = os.path.join(WORK_PATH, "data")
@@ -343,7 +343,7 @@ def main():
 			raw_data = pd.concat([raw_data, single_task_df])
 		elif dataset_name == "bbh":
 			task_name = t
-			single_task_list = opt_utils.load_bbh_task_data(
+			single_task_list = eval_utils.load_bbh_task_data(
 				task_name, base_dir=root_data_folder_path
 			)
 			raw_data += single_task_list

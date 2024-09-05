@@ -42,7 +42,7 @@ class OPRO(PromptOptimizationWithFeedback):
 	"""
     FILE_PATH: str = __file__
 
-    def __init__(self, language, **kwargs):
+    def __init__(self, language = "cn", **kwargs):
         """
 		Initializes the OPRO instance with necessary configurations, models, and data structures for
 		tracking optimization progress.
@@ -51,31 +51,30 @@ class OPRO(PromptOptimizationWithFeedback):
 			language (str): The target language for prompt optimization.
 			**kwargs: Additional keyword arguments for configuration overrides.
 		"""
-		super().__init__(language, **kwargs)
-		self.init_config()
-		self.init_model()
-		self.scorer_llm_name = self.model_config.scorer.model_name
-		self.optimizer_llm_name = self.model_config.optim.model_name
-		self.dataset_name = self.basic_config.dataset_name.lower()
-		self.task_name = self.basic_config.task_name
-		self.meta_prompt_type = self.basic_config.meta_prompt_type
-		self.instruction_pos = self.basic_config.instruction_pos
-		self.validation()
-		# the dictionary of the few-shot QA indices in meta-prompt
-		# key: step index; value: the list of few-shot indices in that step
-		self.few_shot_index_list_by_step_dict = dict()
-		self.generated_ins_on_few_shot_results_dict = dict()
-		self.old_ins_on_few_shot_results_dict = dict()
+        super().__init__(language=language, **kwargs)
+        self.init_config()
+        self.init_model()
+        self.scorer_llm_name = self.model_config.scorer.model_name
+        self.optimizer_llm_name = self.model_config.optim.model_name
+        self.dataset_name = self.basic_config.dataset_name.lower()
+        self.task_name = self.basic_config.task_name
+        self.meta_prompt_type = self.basic_config.meta_prompt_type
+        self.instruction_pos = self.basic_config.instruction_pos
+        # the dictionary of the few-shot QA indices in meta-prompt
+        # key: step index; value: the list of few-shot indices in that step
+        self.few_shot_index_list_by_step_dict = dict()
+        self.generated_ins_on_few_shot_results_dict = dict()
+        self.old_ins_on_few_shot_results_dict = dict()
 		# evaluation results every a few steps
 		# format: [(i_step, instruction, detailed_results_df)]
-		self.eval_results = []
-		# all generated instructions, format: [(instruction, score, step_index)]
-		# the instructions that were skipped have score NaN
-		self.old_instructions_and_scores_raw = []
-		# the new instructions, format: [(instruction, score, step_index)]
-		self.old_instructions_and_scores = []
-		self.meta_prompts = []  # format: [(meta_prompt, step_index)]
-		self.instruction_score_dict = dict()  # the dictionary of {instruction: score}
+        self.eval_results = []
+        # all generated instructions, format: [(instruction, score, step_index)]
+        # the instructions that were skipped have score NaN
+        self.old_instructions_and_scores_raw = []
+        # the new instructions, format: [(instruction, score, step_index)]
+        self.old_instructions_and_scores = []
+        self.meta_prompts = []  # format: [(meta_prompt, step_index)]
+        self.instruction_score_dict = dict()  # the dictionary of {instruction: score}
 
         self.detailed_results_df_by_instruction_dict = dict()
         self.wrong_questions_from_start_counter = collections.Counter()
@@ -113,9 +112,9 @@ class OPRO(PromptOptimizationWithFeedback):
 		Returns:
 			None. Configurations are stored as attributes within the instance.
 		"""
-		self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-		self.basic_config = CONFIG_REGISTRY.module_dict['basic_config']
-		self.evolution_config = CONFIG_REGISTRY.module_dict["evolution_config"]
+        self.model_config = CONFIG_REGISTRY.module_dict['model_config']
+        self.basic_config = CONFIG_REGISTRY.module_dict['basic_config']
+        self.evolution_config = CONFIG_REGISTRY.module_dict["evolution_config"]
 
     def update_config(self, config='evolution_config', **kwargs):
         """
@@ -129,80 +128,6 @@ class OPRO(PromptOptimizationWithFeedback):
 			This method uses `__getattribute__` to dynamically access the attribute corresponding to the given `config`.
 		"""
         self.__getattribute__(config).update(**kwargs)
-
-    def validation(self):
-        """
-		Performs validation checks on the current configuration or state.
-		"""
-
-        assert self.dataset_name in {
-            "mmlu",
-            "bbh",
-            "gsm8k",
-        }, "The lower-case dataset name must be one of mmlu, bbh, or gsm8k."
-        if self.dataset_name == "mmlu":
-            assert self.task_name in {
-                "STEM",
-                "humanities",
-                "social sciences",
-                "other (business, health, misc.)",
-            }  # for now only support searching on one MMLU category
-        elif self.dataset_name == "bbh":
-            assert self.task_name in {
-                "boolean_expressions",
-                "causal_judgement",
-                "date_understanding",
-                "disambiguation_qa",
-                "dyck_languages",
-                "formal_fallacies",
-                "geometric_shapes",
-                "hyperbaton",
-                "logical_deduction_five_objects",
-                "logical_deduction_seven_objects",
-                "logical_deduction_three_objects",
-                "movie_recommendation",
-                "multistep_arithmetic_two",
-                "navigate",
-                "object_counting",
-                "penguins_in_a_table",
-                "reasoning_about_colored_objects",
-                "ruin_names",
-                "salient_translation_error_detection",
-                "snarks",
-                "sports_understanding",
-                "temporal_sequences",
-                "tracking_shuffled_objects_five_objects",
-                "tracking_shuffled_objects_seven_objects",
-                "tracking_shuffled_objects_three_objects",
-                "web_of_lies",
-                "word_sorting",
-            }
-        else:
-            assert self.dataset_name == "gsm8k"
-            assert self.task_name in {"train", "test"}
-
-        assert self.scorer_llm_name in QWEN_MODELS
-        assert self.optimizer_llm_name in QWEN_MODELS
-
-        assert self.meta_prompt_type in {
-            "both_instructions_and_exemplars",
-            "instructions_only",
-        }
-
-        assert self.instruction_pos in {
-            "before_Q",
-            "Q_begin",
-            "Q_end",
-            "A_begin",
-        }, (
-            "The instruction position should be either before the question, or at the"
-            " beginning of the question, at the end of the question, or at the"
-            " beginning of the answer."
-        )
-        print(
-            f"scorer: {self.scorer_llm_name}, optimizer: {self.optimizer_llm_name}, dataset:"
-            f" {self.dataset_name}, task: {self.task_name}, instruction_pos: {self.instruction_pos}"
-        )
 
     def run(self):
         """

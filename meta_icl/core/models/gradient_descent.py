@@ -15,6 +15,7 @@ class GradientDescent():
                  print_log = True,
                  logger = None,
                  num_new_prompts = 1,
+                 prompt_length_limit = 200,
                  prompt_handler: PromptHandler = None,):
         self.task = task
         self.base_model = base_model
