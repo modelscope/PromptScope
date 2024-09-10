@@ -15,7 +15,7 @@ if __name__ == '__main__':
         "seed": 1234,
         "temperature": 1
     }
-    seed_demonstration_json_pth = "examples/gsm8k_example/data/seed_demonstration.json"
+    seed_demonstration_json_pth = "examples/gsm8k_example/seed_data/seed_demonstration.json"
     seed_demonstration = load_json_file(seed_demonstration_json_pth)
     diversity_generator = BeamSearchGenerationByDiversity(
         demonstration_save_dir=demonstration_dir,
