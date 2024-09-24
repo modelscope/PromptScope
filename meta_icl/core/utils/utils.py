@@ -48,10 +48,7 @@ def extract_from_markdown_json(text):
     :return results_list: list of dict
     """
     logger.info("[extract_from_markdown_json] input_text: \n{}\n\n".format(text))
-    # pattern = r'```json\n(.*?)```'
-    # match = re.search(pattern, text, re.DOTALL)
 
-    # matches = re.findall(r'```json\n\s+(.+?)\s+```', text, re.DOTALL)
     matches = re.findall(r"```json\n(.*?)\n```", text, re.DOTALL)
     results_list = []
     logger.info("matches: \n{}\n".format(matches))
@@ -251,34 +248,6 @@ def get_single_embedding(query, embedding_model, search_key=None):
 
 
 
-
-def revert_combined_session_2_csv(json_file_path, csv_file_path: str = None):
-    data = load_json_file(json_file_path)
-    dict_key_name = ["session_id"]
-
-    key_list_except_session_id = data[1]['conversations'][0].keys()
-    dict_key_name.extend(key_list_except_session_id)
-    csv_data = {key: [] for key in dict_key_name}
-    for idx in range(len(data)):
-
-        for cov_id in range(len(data[idx]['conversations'])):
-            csv_data['session_id'].append(data[idx]['session_id'])
-            for key in key_list_except_session_id:
-                if key in data[idx]['conversations'][cov_id]:
-                    pass
-                else:
-                    data[idx]['conversations'][cov_id][key] = ""
-                csv_data[key].append(data[idx]['conversations'][cov_id][key])
-    for key in dict_key_name:
-        print(f"key: {key}, length: {len(csv_data[key])}")
-    if csv_file_path is not None:
-        pass
-    else:
-        csv_file_path = json_file_path.replace(".json", ".csv")
-    sav_csv(csv_data, csv_file_path)
-    return csv_data, csv_file_path
-
-
 def convert_json_2_yaml(json_file_path, yaml_file_path):
     with open(json_file_path, 'r') as f:
         data = json.load(f)
@@ -319,7 +288,3 @@ def sav_yaml(data, yaml_file_path):
         logger.info(f"save yaml file to: {yaml_file_path}")
 
 
-# Example usage
-if __name__ == "__main__":
-    json_file_path = "data/app_data/agent_followup_data/real_conversation_data/智能体追问/results/qwen2-7b-instruct_followups_2024-07-18 19:32:23.json"
-    revert_combined_session_2_csv(json_file_path)
