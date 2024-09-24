@@ -14,30 +14,82 @@ from meta_icl.core.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
 
 
 class BaseICL(ABC):
+    """
+    Abstract base class BaseICL, defining interfaces for incontext learning.
+
+    This class specifies abstract methods to standardize the process of obtaining meta prompts, loading demonstration selectors, and retrieving learning results.
+    """
     @abstractmethod
     def get_meta_prompt(self):
+        """
+        Method to get a meta prompt.
+
+        This method should return a meta prompt to initialize the model's state or context.
+        """
         pass
 
     @abstractmethod
     def _load_demonstration_selector(self):
+        """
+        Method to load a demonstration selector.
+
+        This method prepares a demonstration selector used during the incontext learning process to select appropriate demonstrations.
+        """
         pass
 
     @abstractmethod
     def get_meta_prompt(self, query: str, num: int, **kwargs):
+        """
+        Method to get a meta prompt based on a query and number.
+
+        :param query: A string query specifying the content of the meta prompt
+        :param num: The number of meta prompts required
+        :param kwargs: Additional parameters
+
+        This method returns the corresponding meta prompts based on the given query and required number.
+        """
         pass
 
     @abstractmethod
     def get_results(self, **kwargs):
+        """
+        Method to retrieve learning results.
+
+        This method returns the results of the learning process based on previous learning steps. The specific return value and format depend on the implementing subclass.
+        """
         pass
 
 
 class BM25ICL(BaseICL):
+    """
+    The BM25ICL class is an intelligent code assistant based on the BM25 algorithm, inheriting from the BaseICL class.
+
+    When initializing a BM25ICL instance, specify the path to the BM25 index file, the path to the examples file,
+    the list of retriever keywords, and optionally the task configurations and base model.
+
+    """
     def __init__(self,
                  base_model,
                  BM25_index_pth,
                  examples_pth,
                  retriever_key_list,
                  task_configs=None):
+        """
+        The BM25ICL class is an intelligent code assistant based on the BM25 algorithm, inheriting from the BaseICL class.
+
+        When initializing a BM25ICL instance, specify the path to the BM25 index file, the path to the examples file,
+        the list of retriever keywords, and optionally the task configurations and base model.
+
+        :param base_model (GenerationModel): An instance of GenerationModel used for text generation. If None, initialized
+                                          according to the task configuration.
+        :param BM25_index_pth (str): Path to the BM25 index file used for text retrieval.
+        :param examples_pth (str): Path to the examples file used to load demonstration examples.
+        :param retriever_key_list (list): List of keywords used by the retriever to fetch relevant information from examples.
+        :param task_configs (dict): Configuration information for the task. If None, default configurations are used.
+
+        Returns:
+            No return value.
+        """
         self.BM25_index_pth = BM25_index_pth
         self._load_demonstration_list(examples_pth)
         self._load_demonstration_selector()
@@ -58,7 +110,8 @@ class BM25ICL(BaseICL):
     def _load_demonstration_list(self, examples_pth):
         self.example_list = load_file(examples_pth)
 
-    def get_meta_prompt(self, cur_query: dict, formatting_function: [object, ICLPromptHandler] = None, num=3, **kwargs):
+    def get_meta_prompt(self, cur_query: dict, formatting_function: [object, ICLPromptHandler] = None, num=3, **kwargs)\
+            -> List:
         """
         :param cur_query: the query to generate the intention analysis results.
         :param search_key_list: the key to index & search by bm25.
@@ -166,7 +219,7 @@ class EmbeddingICL(BaseICL):
         query = formatting_function(selection_examples, cur_query, configs=self.task_configs)
         return query
 
-    def get_results(self, cur_query: dict, formatting_function, num=3, **kwargs):
+    def get_results(self, cur_query: dict, formatting_function: [object, ICLPromptHandler] = None, num=3, **kwargs):
 
         query = self.get_meta_prompt(cur_query=cur_query,
                                      num=num,
@@ -174,6 +227,5 @@ class EmbeddingICL(BaseICL):
         logger.info(f"query: {query}")
         message = message_formatting(system_prompt='You are a helpful assistant', query=query)
         res = call_llm_with_message(messages=message, model=self.base_model, **kwargs)
-        # res = self.base_model.call(messages=message).message.content
         logger.info(f"res: {res}")
         return res
