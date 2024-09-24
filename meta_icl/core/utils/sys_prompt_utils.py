@@ -324,17 +324,8 @@ def call_qwen_with_message_with_retry(messages,
         logger.info(res)
         return res['output']['choices'][0]['message']['content']
     except Exception as e:
-        # print(traceback.format_exc())
         logger.error("\n\nmessages: {}".format(e))
-        # error_message = e
-        # logger.query_error(
-        #     request_id=request_id,
-        #     message=f"error:  {error_message} "
-        # )
-        # raise (
-        #     f"error:  {error_message} "
-        # )
-    # return 'Failed in generating answer!'
+
 
 
 def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs):
@@ -554,21 +545,6 @@ def embed_with_list_of_str(inputs: List, embedding_model='ds_text_embedding_v1')
                 for emb in resp["output"]['embeddings']:
                     emb['text_index'] += batch_counter
                     result["output"]['embeddings'].append(emb)
-                # result.usage['total_tokens'] += resp.usage['total_tokens']
-
-            # print(resp)
-            # print(resp.json())
-            # if resp.status_code == HTTPStatus.OK:
-            #     if result is None:
-            #         result = resp
-            #     else:
-            #         print(resp.json())
-            #         for emb in resp["output"]['embeddings']:
-            #             emb['text_index'] += batch_counter
-            #             result["output"]['embeddings'].append(emb)
-            #         result.usage['total_tokens'] += resp.usage['total_tokens']
-            # else:
-            #     print(resp)
             batch_counter += len(batch)
             print(f"batch_counter: {batch_counter}")
     else:
@@ -585,61 +561,6 @@ def get_embedding(input_list: list, embedding_model="text_embedding_v1"):
 import json
 import requests
 
-
-def query_rewrite(user_query, conv_history, rewrite_model_name="dashscope-conv-rewrite-14b"):
-    """
-
-    :param user_query: string; user query
-    :param conv_history: list of Dict; conversation history, example:
-    [
-        {
-            "role": "user",
-            "content": "什么是黑梓木"
-        },
-        {
-            "role": "assistant",
-            "content": "黑梓木是一种用材最广的木头，在我国东北地区也称之为臭梧桐，分布比较广泛，产量也大，很多装饰部件都会用黑梓木制作。"
-        }
-    ]
-    :param rewrite_model_name: str, the model to do query rewrite.
-    choices "dashscope-conv-rewrite-14b", "dashscope-conv-rewrite-1.8b"
-    default value is "dashscope-conv-rewrite-14b"
-    :return:
-    """
-
-    assert rewrite_model_name in ["dashscope-conv-rewrite-14b", "dashscope-conv-rewrite-1.8b"]
-
-    # Set the headers as in the curl command
-    headers = {
-        'x-fag-servicename': 'rewriter',
-        'x-fag-appcode': 'msearch',
-        'Content-Type': 'application/json',
-    }
-
-    # Set the payload/data as in the curl command
-    data = {
-        "userId": "1999849738269549",
-        "userType": "customer",
-        "algorithm": "conversation_rewriter",
-        "model": rewrite_model_name,
-        "input": {
-            "query": user_query,
-            "history": conv_history
-        }
-    }
-
-    # Perform the request
-    response = requests.post('http://nlp.aliyuncs.com/rewriter', headers=headers, data=json.dumps(data))
-
-    # Ensure the response was successful
-    if response.status_code == 200:
-        print("Response:")
-        print(response.json())
-        rewrite_query = response.json()
-        return rewrite_query['data']['conversationRewriter'][0]
-    else:
-        print("Error:", response.status_code, response.text)
-        return user_query
 
 
 def text_rerank(query, documents, top_n=None):
@@ -684,74 +605,3 @@ def call_llama_with_messages():
             response.code, response.message
         ))
 
-
-if __name__ == '__main__':
-    call_llama_with_messages()
-
-# def conversation_rewriter():
-#     config = api_models.Config(
-#         access_key_id='xxx',
-#         access_key_secret='xxx',
-#         region_id="cn-beijing")
-#     nlp_client = client.Client(config)
-#     request = models.PostISConvRewriterRequest()
-#     input_str = '{\n' + \
-#                 '    \"query\": \"贵吗\",\n' + \
-#                 '    \"history\": [\n' + \
-#                 '        {\n' + \
-#                 '            \"role\": \"user\",\n' + \
-#                 '            \"content\": \"什么是黑梓木\"\n' + \
-#                 '        },\n' + \
-#                 '        {\n' + \
-#                 '            \"role\": \"assistant\",\n' + \
-#                 '            \"content\": \"黑梓木是一种用材最广的木头，在我国东北地区也称之为臭梧桐，分布比较广泛，产量也大，很多装饰部件都会用黑梓木制作。\"\n' + \
-#                 '        }\n' + \
-#                 '    ]\n' + \
-#                 '}'
-#     request.input = json.loads(input_str)
-#     request.algorithm = 'conversation_rewriter'
-#     response = nlp_client.post_isconv_rewriter(request)
-#     print(json.dumps(response.body.data, ensure_ascii=False))
-
-
-# if __name__ == '__main__':
-#     # query = "贵吗"
-#     query = "你好，课程会过期吗"
-#     history = [
-#         {
-#             "role": "user",
-#             "content": "什么是黑梓木"
-#         },
-#         {
-#             "role": "assistant",
-#             "content": "黑梓木是一种用材最广的木头，在我国东北地区也称之为臭梧桐，分布比较广泛，产量也大，很多装饰部件都会用黑梓木制作。"
-#         }
-#     ]
-#     query = "我的手机号15936532523"
-#     history = [
-#         {
-#             "role": "user",
-#             "content": "课程过了一年后无法看的话，可以延期"
-#         },
-#         {
-#             "role": "assistant",
-#             "content": "可以的，可以延期两次"
-#         }
-#     ]
-#     rewrite_model_name = "dashscope-conv-rewrite-1.8b"
-#     print(query_rewrite(query, history, rewrite_model_name))
-
-
-#
-#
-# if __name__ == '__main__':
-#     # message_formatting(system_prompt='you are a helpful assistant', query='who are you?')
-#     # response = call_qwen_with_stream(message_formatting, model_config=DefaultModelConfig)
-#     # print(response)
-#     # model = "text_embedding_v1"
-#     # model = "pre-bge_small_zh_v1_5-1958"
-#     #
-#     # input = ["hello", "youare "]
-#     # res = get_embedding(input, embedding_model=model)
-#     # print(res.keys())
-#     # print(len(res['output']["embeddings"]))
