@@ -7,11 +7,11 @@ import random
 from typing import Union, List
 
 from meta_icl.core.evaluation.evaluator import Eval
-from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
+from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPCGeneration
 from loguru import logger
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.utils.prompt_handler import PromptHandler
-from meta_icl.core.models.generation_model import GenerationModel
+from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 
@@ -59,9 +59,29 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         passing respective configuration parameters for each model's unique role.
         """
         print(self.model_config)
-        self.generation_llm = GenerationModel(**self.model_config.generation)
-        self.predictor_llm = GenerationModel(**self.model_config.predictor)
-        self.annotator = GenerationModel(**self.model_config.annotator)
+        generation_module_name = self.model_config.generation.get('module_name')
+        if generation_module_name == 'dashscope_generation':
+            self.generation_llm = GenerationModel(**self.model_config.generation)
+        elif generation_module_name == 'openai_generation':
+            self.generation_llm = OpenAIGenerationModel(**self.model_config.generation)
+        elif generation_module_name == 'openai_post':
+            self.generation_llm = OpenAIPostModel(**self.model_config.generation)
+            
+        predictor_module_name = self.model_config.predictor.get('module_name')
+        if predictor_module_name == 'dashscope_generation':
+            self.predictor_llm = GenerationModel(**self.model_config.predictor)
+        elif predictor_module_name == 'openai_generation':
+            self.predictor_llm = OpenAIGenerationModel(**self.model_config.predictor)
+        elif predictor_module_name == 'openai_post':
+            self.predictor_llm = OpenAIPostModel(**self.model_config.predictor)
+
+        annotator_module_name = self.model_config.annotator.get('module_name')
+        if annotator_module_name == 'dashscope_generation':
+            self.annotator_llm = GenerationModel(**self.model_config.annotator)
+        elif annotator_module_name == 'openai_generation':
+            self.annotator_llm = OpenAIGenerationModel(**self.model_config.annotator)
+        elif annotator_module_name == 'openai_post':
+            self.annotator_llm = OpenAIPostModel(**self.model_config.annotator)
 
     def init_config(self):
         """
@@ -143,9 +163,9 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm(samples=[sample[-1] for sample in samples], prompt_handler=self.prompt_handler)
         else:
             logger.info('Running annotator')
-            annotations = self.annotate([sample[1] for sample in samples])
+            annotations = self.annotate([sample[1].strip() if len(sample) > 1 else '' for sample in samples])
             logger.info('Running predictor')
-            predictions = self.predict([sample[1] for sample in samples])
+            predictions = self.predict([sample[1].strip() if len(sample) > 1 else '' for sample in samples])
             logger.info('Calculating Score and Error Analysis')
             eval_kwargs['score'], eval_kwargs['corrects'], eval_kwargs['errors'], eval_kwargs['conf_matrix'] = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
         self.eval.error_analysis(prompt_handler=self.prompt_handler, **eval_kwargs)
@@ -181,7 +201,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             sample_str = "|".join(sample_batch)
             annotate_prompt = self.prompt_handler.annotate.format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
             # print('#############\n', annotate_prompt, '################\n')
-            response = self.annotator.call(prompt=annotate_prompt)
+            response = self.annotator_llm.call(prompt=annotate_prompt)
             try:
                 response_list = [item for item in response.message.content.split("||") if item]
             except:
@@ -211,7 +231,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             sample_str = "|".join(sample_batch)
             prediction_prompt = self.prompt_handler.predict.format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
             # print('#############\n', prediction_prompt, '################\n')
-            response = self.annotator.call(prompt=prediction_prompt)
+            response = self.predictor_llm.call(prompt=prediction_prompt)
             try:
                 response_list = [item for item in response.message.content.split("||") if item]
             except:
@@ -304,8 +324,8 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             List[str]: A list of generated samples, each a possible variation or response to the input prompt.
         """
         batch_input = prompt
-        batch_inputs = IPC_Generation.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
-        samples_batches = IPC_Generation.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
+        batch_inputs = IPCGeneration.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
+        samples_batches = IPCGeneration.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
         try:
             samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
         except:

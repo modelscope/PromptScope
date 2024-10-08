@@ -6,6 +6,7 @@ basic_config:
     instruction_pos: &ins_p Q_begin
     meta_prompt_type: &meta_pt both_instructions_and_exemplars
     dataset_name: &dataset bbh
+    language: cn
 
 model_config:
     scorer:
@@ -55,4 +56,4 @@ evolution_config:
     eval_interval: 3
     verbose: False
     batch_size: *bs
-    semaphore: 1
+    semaphore: 10

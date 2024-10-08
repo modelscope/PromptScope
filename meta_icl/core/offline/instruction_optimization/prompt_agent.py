@@ -9,7 +9,7 @@ from meta_icl.algorithm.PromptAgent.search_algo import get_search_algo
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 from loguru import logger
 from meta_icl.core.models.base_model import MODEL_REGISTRY
-from meta_icl.core.models.generation_model import GenerationModel
+from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
@@ -81,10 +81,22 @@ class PromptAgent(PromptOptimizationWithFeedback):
         based on the configurations provided. It also initializes the logging mechanism for tracking
         the optimization process.
         """
-        self.base_model = GenerationModel(**self.model_config.base)
-        
-        self.optim_model = GenerationModel(**self.model_config.optim)
-        
+        base_module_name = self.model_config.base.get('module_name')
+        if base_module_name == 'dashscope_generation':
+            self.base_model = GenerationModel(**self.model_config.base)
+        elif base_module_name == 'openai_generation':
+            self.base_model = OpenAIGenerationModel(**self.model_config.base)
+        elif base_module_name == 'openai_post':
+            self.base_model = OpenAIPostModel(**self.model_config.base)
+
+        optim_module_name = self.model_config.optim.get('module_name')
+        if optim_module_name == 'dashscope_generation':
+            self.optim_model = GenerationModel(**self.model_config.optim)
+        elif optim_module_name == 'openai_generation':
+            self.optim_model = OpenAIGenerationModel(**self.model_config.optim)
+        elif optim_module_name == 'openai_post':
+            self.optim_model = OpenAIPostModel(**self.model_config.optim)
+                    
         self.world_model = MODEL_REGISTRY.module_dict[self.search_algo](
             task=self.task, 
             logger=logger, 

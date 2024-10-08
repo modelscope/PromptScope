@@ -4,11 +4,11 @@ import concurrent.futures
 
 from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
 from loguru import logger
-from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel
+from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
 from meta_icl.core.utils.utils import load_yaml
 
 
-class IPC_Generation(BaseDemonstrationAugmentation):
+class IPCGeneration(BaseDemonstrationAugmentation):
     """
     The main pipeline for IPC-based demonstration augmentation.
     """
@@ -28,6 +28,8 @@ class IPC_Generation(BaseDemonstrationAugmentation):
             self.generation_llm = GenerationModel(**self.model_config.generation)
         elif self.module_name == 'openai_generation':
             self.generation_llm = OpenAIGenerationModel(**self.model_config.generation)
+        elif self.module_name == 'openai_post':
+            self.generation_llm = OpenAIPostModel(**self.model_config.generation)
         
     def init_config(self):
         """
@@ -90,8 +92,8 @@ class IPC_Generation(BaseDemonstrationAugmentation):
                 samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
             except:
                 samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
-        elif self.module_name == 'openai_generation':
-            samples_lists = [samples_batch.choices[0].message.content.split("||") for samples_batch in samples_batches]
+        elif self.module_name == 'openai_generation' or self.module_name == 'openai_post':
+            samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
 
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
         logger.info(samples_list)

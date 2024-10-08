@@ -1,6 +1,6 @@
 from typing import List, Union, Optional, Any, cast
 import os
-
+import aiohttp
 import dashscope
 from dashscope.aigc.generation import AioGeneration
 from dashscope import Generation
@@ -14,6 +14,9 @@ from meta_icl.core.scheme.message import Message
 from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
 # import dashscope
 import asyncio
+from tqdm.asyncio import tqdm
+import requests
+
 
 class GenerationModel(BaseModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL
@@ -119,3 +122,103 @@ class OpenAIAioGenerationModel(BaseAsyncModel):
         model_response.message.content = call_result.choices[0].message.content
 
         return model_response
+
+class OpenAIPostModel(BaseModel):
+    m_type: ModelEnum = ModelEnum.GENERATION_MODEL
+    MODEL_REGISTRY.register("openai_post", '')
+
+    def _call(self, stream: bool = False, prompt: str = "", messages: List[Message] = [], **kwargs) -> ModelResponse:
+        url = "http://47.88.8.18:8088/api/ask"
+        headers = {
+            "Content-Type": "application/json",
+            # "Authorization": "",
+            "Authorization": "",
+        }
+        if prompt:
+            messages = [
+                {
+                    "role": "system",
+                    "content": kwargs.get("sys_prompt", "You are a helpful assistant")
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                },
+            ]
+        data = {
+            "model": kwargs.get("model", "gpt-4o"),
+            "n": 1,
+            "temperature": kwargs.get("model", 0.2),
+            "top_p": 0.7,
+            "frequency_penalty": 0,
+            "max_tokens": 2048,
+            "presence_penalty": 0,
+            "messages": messages
+            }
+        return requests.request("POST", url, headers=headers, json=data).json()
+        
+    def after_call(self,
+                   model_response: ModelResponse,
+                   stream: bool = False,
+                   **kwargs) -> Union[ModelResponse, ModelResponseGen]:
+        model_response.message = Message(role=MessageRoleEnum.ASSISTANT, content="")
+
+        call_result = model_response.raw
+        if stream:
+            def gen() -> ModelResponseGen:
+                for response in call_result:
+                    response = cast(ChatCompletionChunk, response)
+                    model_response.message.content += response.choices[0].delta.content or ""
+                    model_response.delta = response.choices[0].delta
+                    yield model_response
+
+            return gen()
+        else:
+            model_response.message.content = call_result["data"]["response"]["choices"][0]["message"]["content"]
+
+        return model_response
+class OpenAIAioPostModel(BaseAsyncModel):
+    m_type: ModelEnum = ModelEnum.GENERATION_MODEL
+    MODEL_REGISTRY.register("openai_aio_post", '')
+
+    async def _async_call(self, prompt: str = "", messages: List[Message] = [], **kwargs) -> ModelResponse:
+        url = "http://47.88.8.18:8088/api/ask"
+        headers = {
+            "Content-Type": "application/json",
+            # "Authorization": "",
+            "Authorization": "",
+        }
+        if prompt:
+            messages = [
+                {
+                    "role": "system",
+                    "content": kwargs.get("sys_prompt", "You are a helpful assistant")
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                },
+            ]
+        data = {
+            "model": kwargs.get("model", "gpt-4o"),
+            "n": 1,
+            "temperature": kwargs.get("model", 0.2),
+            "top_p": 0.7,
+            "frequency_penalty": 0,
+            "max_tokens": 2048,
+            "presence_penalty": 0,
+            "messages": messages
+            }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=data, headers=headers) as response:
+                    return await response.json()
+    def after_call(self,
+                   model_response: ModelResponse,
+                   **kwargs) -> ModelResponse:
+        model_response.message = Message(role=MessageRoleEnum.ASSISTANT, content="")
+
+        call_result = model_response.raw
+        model_response.message.content = call_result["data"]["response"]["choices"][0]["message"]["content"]
+
+        return model_response
+    

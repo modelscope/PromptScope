@@ -1,0 +1,52 @@
+# use_wandb: False
+
+basic_config:
+    task_name: bigbench # bigbench | ncbi | ... | or your own task
+    search_algo: mcts # mcts | beam_search
+    print_log: true
+    output_path: dump
+    init_prompt: Answer questions about a table of penguins and their attributes.
+    language: en
+
+task_config:
+    train_size: 4
+    eval_size: 3 # data split for reward calculation
+    test_size: 3 # if test_size is not 0, the optimized nodes will be tested at last.
+    seed: 42 # if need to fixed shuffled dataset
+    data_dir: ./datasets/penguins_in_a_table.json # if data is downloaded
+    # Note: the current supported bigbench tasks are specified by 
+    # data_dir using the same task_name (bigbench), if there is not
+    # specific .py class inplemented in the tasks folder.
+    post_instruction: false # false: prompt + task question | true: task question + prompt
+    language: en
+    
+model_config:
+    base:
+        module_name: 'openai_post'
+        model_name: 'gpt-4o'
+        max_tokens: 2000
+        seed: 1234
+
+    optim:
+        module_name: 'openai_post'
+        model_name: 'gpt-4o'
+        max_tokens: 2000
+        seed: 1234
+
+search_config:
+    iteration_num: 2
+    expand_width: 2 # num of branches of each node
+    depth_limit: 2 # the max depth of mcts
+    # mcts setting
+    min_depth: 2 # min depth of mcts for early stop
+    w_exp: 2.5 # balance exploration and exploitation
+    # beam search setting
+    beam_width: 2
+    output_path: dump
+
+world_model_config:
+    # mcts world model setting
+    train_shuffle: true
+    num_new_prompts: 1 # 3 if beam search
+    train_batch_size: 5
+    prompt_length_limit: 200

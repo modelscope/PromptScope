@@ -47,15 +47,9 @@ from meta_icl.algorithm.opro.evaluation import eval_utils
 import pandas as pd
 
 ROOT_DATA_FOLDER_PATH = os.path.join(WORK_PATH, "data")
-QWEN_MODELS = {"qwen-turbo",
-			   "qwen2-57b-a14b-instruct",
-			   "qwen2-72b-instruct",
-			   "qwen-max",
-			   "qwen-max-0107",
-			   }
 
 def config():
-	config_dir = os.path.join(os.path.dirname(__file__), "opro.yml")
+	config_dir = os.path.join(os.path.dirname(__file__), "opro_cn.yml")
 	args = load_yaml(config_dir)
 	return args
 
@@ -64,6 +58,7 @@ def main():
 	optimizer_llm_name = CONFIG_REGISTRY.module_dict['model_config'].optim.model_name
 	dataset_name = CONFIG_REGISTRY.module_dict['basic_config'].dataset_name.lower()
 	task_name = CONFIG_REGISTRY.module_dict['basic_config'].task_name
+	language = CONFIG_REGISTRY.module_dict['basic_config'].language
 
 	if dataset_name == "mmlu":
 		root_data_folder_path = os.path.join(ROOT_DATA_FOLDER_PATH, "MMLU-data")
@@ -372,7 +367,7 @@ def main():
 		eval_ratio = 0
 	else:
 		assert dataset_name == "bbh"
-		train_ratio = 0.2
+		train_ratio = 0.1
 		eval_ratio = 0
 
   # train-validation-test split
@@ -432,7 +427,7 @@ def main():
 		"save_folder": save_folder,
 	}
 
-	pipeline = OPRO(language="en")
+	pipeline = OPRO(language=language)
 	pipeline.update_config(**additional_kwargs)
 	pipeline.run()
 
