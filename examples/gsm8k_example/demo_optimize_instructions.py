@@ -46,15 +46,6 @@ WORK_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 import numpy as np
 import pandas as pd
 
-# ROOT_DATA_FOLDER_PATH = os.path.join(WORK_PATH, "data")
-QWEN_MODELS = {"qwen-turbo",
-               "qwen2-57b-a14b-instruct",
-               "qwen2-72b-instruct",
-               "qwen-max",
-               "qwen-max-0107",
-               }
-
-
 def config(config_dir=None):
     if config_dir is not None:
         pass
@@ -74,7 +65,8 @@ def run_gsm_opro(gsm_data_pth):
     optimizer_llm_name = CONFIG_REGISTRY.module_dict['model_config'].optim.model_name
     dataset_name = CONFIG_REGISTRY.module_dict['task_config'].dataset_name.lower()
     task_name = CONFIG_REGISTRY.module_dict['basic_config'].task_name
-
+    language = CONFIG_REGISTRY.module_dict['basic_config'].language
+    
     assert dataset_name == "gsm8k"
     root_data_folder_path = gsm_data_pth
 
@@ -178,7 +170,7 @@ def run_gsm_opro(gsm_data_pth):
         "save_folder": save_folder,
     }
 
-    pipeline = OPRO(language="en")
+    pipeline = OPRO(language=language)
     pipeline.update_config(**additional_kwargs)
     pipeline.run()
 

@@ -12,13 +12,13 @@ openai_meta_prompt_old_instruction_part_others:
 
 qwen_meta_prompt_old_instruction_part:
   cn: |
-    我有一些文本及其对应的分数。这些文本按照分数的升序排列，分数较高表示质量更好。
+    我有一些text及其对应的score。这些prompt按照score的升序排列，score较高表示质量更好。
   en: |
     I have some texts along with their corresponding scores. The texts are arranged in ascending order based on their scores, where higher scores indicate better quality.
 
 qwen_meta_prompt_exemplar_part:
   cn: |
-    以下示例展示了如何应用您的文本：您需要在每个输入中用您的文本替换<INS>，然后阅读输入并给出输出。如果您的输出与给定的输出不同，我们认为您的输出是错误的；如果它们相同，我们认为您的输出是正确的。当用上面的旧文本替换<INS>时，我们在以下输入中得到了错误的输出。
+    以下示例展示了如何应用您的text：您需要在每个输入中用您的text替换<INS>，然后阅读输入并给出输出。如果您的输出与给定的输出不同，我们认为您的输出是错误的；如果它们相同，我们认为您的输出是正确的。当用上面的旧text替换<INS>时，我们在以下输入中得到了错误的输出。
   en: |
     The following exemplars show how to apply your text: you replace <INS> in each input with your text, then read the input and give an output. We say your output is wrong if your output is different from the given output, and we say your output is correct if they are the same. When replacing <INS> with an old piece of text above, we get wrong outputs on the following inputs.
 
@@ -46,7 +46,7 @@ qwen_meta_prompt:
   cn: |
 
 
-    将您的新文本写出，与旧文本不同，并且尽可能获得高分，特别关注遵循指示。将文本写在方括号内。
+    将您的新text写出，与旧text不同，并且尽可能获得高分。请注意遵循指令，仅输出新的text，不需要输出示例的替换结果。将text写在方括号内。如：[请逐步分析]。
   en: |
   
   

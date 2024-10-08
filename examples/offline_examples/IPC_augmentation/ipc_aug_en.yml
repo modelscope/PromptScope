@@ -1,11 +1,11 @@
 # use_wandb: False
 
 task_config:
-    language: 'cn'
+    language: 'en'
     output_path: dump
     max_usage: 6000
-    task_description: 助手是一个数学家。
-    instruction: 判断计算算式的结果是否正确，回答是或者否。
+    task_description: Assistant is a mathematician.
+    instruction: Determine whether the result of the calculation is correct. Respond with "yes" or "no".
     samples_per_step: 10
     batch_size: 10
     workers: 5
@@ -28,8 +28,8 @@ task_config:
 
 model_config:
     generation:
-        module_name: 'dashscope_generation'
-        model_name: 'qwen2-57b-a14b-instruct'
+        module_name: 'openai_post'
+        model_name: 'gpt-4o'
         max_tokens: 2000
         seed: 1234
 

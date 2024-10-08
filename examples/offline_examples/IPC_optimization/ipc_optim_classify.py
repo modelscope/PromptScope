@@ -12,15 +12,15 @@ from meta_icl.core.utils.utils import get_current_date
 current_file_path = Path(__file__)
 
 logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_current_date()}.log", rotation="10 MB", level="INFO")
-basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_optim_classify.yml')
+basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_optim_classify_en.yml')
 
 config_params = load_yaml(basic_config_path)
 logger.info(config_params)
 
 CONFIG_REGISTRY.batch_register(config_params)
 
-if not hasattr(LanguageEnum, config_params.task_config.language.upper()):
-    raise NotImplementedError("Only supports 'EN' and 'CN' for now!")
+if not hasattr(LanguageEnum, config_params.task_config.language.lower()):
+    raise NotImplementedError("Only supports 'en' and 'cn' for now!")
 
 kwargs = {}
 if hasattr(config_params.task_config, 'input_path'):
@@ -31,7 +31,7 @@ if hasattr(config_params.task_config, 'input_path'):
         kwargs['data'] = data
 
 # Initializing the pipeline
-pipeline = IPCOptimization()
+pipeline = IPCOptimization(language=config_params.task_config.language)
 best_prompt = pipeline.run(**kwargs)
 
 # res = []

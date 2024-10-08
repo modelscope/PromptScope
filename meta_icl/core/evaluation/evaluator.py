@@ -18,12 +18,25 @@ class Eval:
         :analyzer (optional): A chain that analyze the errors
         :label_schema (optional): The label schema
         """
-        from meta_icl.core.models.generation_model import GenerationModel
+        from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
 
         self.init_config()
-        self.analyzer_llm = GenerationModel(**self.model_config.analyzer)
+        analyzer_module_name = self.model_config.analyzer.get('module_name')
+        if analyzer_module_name == 'dashscope_generation':
+            self.analyzer_llm = GenerationModel(**self.model_config.analyzer)
+        elif analyzer_module_name == 'openai_generation':
+            self.analyzer_llm = OpenAIGenerationModel(**self.model_config.analyzer)
+        elif analyzer_module_name == 'openai_post':
+            self.analyzer_llm = OpenAIPostModel(**self.model_config.analyzer)
+
         if hasattr(self.model_config, 'evaluator'):
-            self.evaluator_llm = GenerationModel(**self.model_config.evaluator)
+            evaluator_module_name = self.model_config.evaluator.get('module_name')
+            if evaluator_module_name == 'dashscope_generation':
+                self.evaluator_llm = GenerationModel(**self.model_config.evaluator)
+            elif evaluator_module_name == 'openai_generation':
+                self.evaluator_llm = OpenAIGenerationModel(**self.model_config.evaluator)
+            elif evaluator_module_name == 'openai_post':
+                self.evaluator_llm = OpenAIPostModel(**self.model_config.evaluator)
 
         self.history = []        
         self.mean_score = None
@@ -53,7 +66,6 @@ class Eval:
             eval_prompt = prompt_handler.eval.format_map(prompt_input)
             # print('#############\n', annotate_prompt, '################\n')
             response = self.evaluator_llm.call(prompt=eval_prompt)
-            import pdb; pdb.set_trace()
             try:
                 response_list = [item for item in response.message.content.split("||") if item]
             except:
