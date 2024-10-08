@@ -65,24 +65,6 @@ _EVALUATE_TEST_FOLD = True
 
 _TASK = "test"
 
-QWEN_MODELS = {"qwen-turbo",
-			   "qwen2-57b-a14b-instruct",
-			   "qwen2-72b-instruct",
-			   "qwen-max",
-			   "qwen-max-allinone",
-         "qwen2-72b",
-         "qwen2-7b-instruct"
-			   }
-
-OPENAI_MODELS = {"gpt",
-			   "qwen2-57b-a14b-instruct",
-			   "qwen2-72b-instruct",
-			   "qwen-max",
-			   "qwen-max-allinone",
-         "qwen2-72b",
-         "qwen2-7b-instruct"
-			   }
-
 def main():
   # set instructions to evaluate
   instructions_to_evaluate = [
@@ -162,8 +144,6 @@ def main():
   else:
     assert dataset_name in {"multiarith", "aqua"}
     assert task_name == "self"
-
-  assert scorer_llm_name in QWEN_MODELS
 
   assert instruction_pos in {
       "before_Q",

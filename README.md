@@ -1,4 +1,11 @@
-# Meta-ICL
+# PromptScope
+
+<p align="center">
+    <br>
+    <img src="resources/teaser.png"/>
+    <br>
+<p>
+<p align="center">
 
 ## Overview
 

@@ -1,7 +1,7 @@
 # use_wandb: False
 
 task_config:
-    language: 'CN'
+    language: 'cn'
     output_path: dump
     input_path: dump
     workers: 5

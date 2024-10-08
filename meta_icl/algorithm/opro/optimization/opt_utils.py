@@ -39,10 +39,13 @@ QWEN_MODELS = {"qwen-turbo",
 			   "qwen-max-0107",
 			   }
 
+OPENAI_MODELS = {"gpt-4o",
+				 "gpt-3.5-turbo", 
+				 "gpt-4",
+			   }
+
 def extract_string_in_square_brackets(input_string):
-	print(input_string)
 	raw_result = re.findall(r"\[.*?\]", input_string)
-	print(raw_result)
 	if raw_result:
 		return raw_result[0][1:-1]
 	else:
@@ -185,7 +188,6 @@ def gen_meta_prompt(
 					" The score ranges from 0 to 100.\n"
 				)
 		else:
-			assert optimizer_llm_name.lower() in QWEN_MODELS
 			meta_prompt_old_instruction_part = (
 				"I have some texts along with their corresponding scores."
 				" The texts are arranged in ascending order based on their scores,"
@@ -203,7 +205,7 @@ def gen_meta_prompt(
 			# add QA pairs if few_shot_qa_pairs == True
 			meta_prompt_exemplar_part = ""
 		if few_shot_qa_pairs:
-			if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+			if optimizer_llm_name.lower() in OPENAI_MODELS:
 				meta_prompt_exemplar_part += "Below are some problems.\n"
 			else:
 				assert optimizer_llm_name.lower() in QWEN_MODELS
@@ -236,14 +238,14 @@ def gen_meta_prompt(
 					elif instruction_pos == "Q_end":
 						meta_prompt_exemplar_part += f"\ninput:\nQ: {question}\n<INS>\nA:"
 					else:  # instruction_pos == "A_begin"
-						if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+						if optimizer_llm_name.lower() in OPENAI_MODELS:
 							meta_prompt_exemplar_part += f"\nQ: {question}\nA: <Start>"
 						else:
 							assert optimizer_llm_name.lower() in QWEN_MODELS
 							meta_prompt_exemplar_part += f"\ninput:\nQ: {question}\nA: <INS>"
 				else:  # when there're no "Q:" and "A:" in the prompt
 					assert instruction_pos in {"Q_begin", "Q_end"}
-					if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+					if optimizer_llm_name.lower() in OPENAI_MODELS:
 						if instruction_pos == "Q_begin":
 							meta_prompt_exemplar_part += f"\nProblem:\n<INS>\n{question}\n"
 						elif instruction_pos == "Q_end":
@@ -255,7 +257,7 @@ def gen_meta_prompt(
 						elif instruction_pos == "Q_end":
 							meta_prompt_exemplar_part += f"\ninput:\n{question}\n<INS>\n"
 
-				if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+				if optimizer_llm_name.lower() in OPENAI_MODELS:
 					meta_prompt_exemplar_part += (
 						f"\nGround truth answer:\n{true_answer}\n"
 					)
@@ -279,7 +281,7 @@ def gen_meta_prompt(
 		else:
 			meta_prompt += meta_prompt_old_instruction_part
 
-		if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+		if optimizer_llm_name.lower() in OPENAI_MODELS:
 			if instruction_pos == "A_begin":
 				meta_prompt += (
 					"\n\nGenerate a starting sentence that is different from all the"
@@ -419,7 +421,7 @@ def gen_meta_prompt_with_ph(
 
 	meta_prompt = ""
 	if meta_prompt_type == "both_instructions_and_exemplars":
-		if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+		if optimizer_llm_name.lower() in OPENAI_MODELS:
 			if instruction_pos == "A_begin":
 				meta_prompt_old_instruction_part = prompt_handler.openai_meta_prompt_old_instruction_part_A_begin
 			else:
@@ -437,9 +439,9 @@ def gen_meta_prompt_with_ph(
 			)
 			meta_prompt_old_instruction_part += old_instructions_and_scores_str
 			# add QA pairs if few_shot_qa_pairs == True
-			meta_prompt_exemplar_part = ""
+		meta_prompt_exemplar_part = ""
 		if few_shot_qa_pairs:
-			if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+			if optimizer_llm_name.lower() in OPENAI_MODELS:
 				meta_prompt_exemplar_part += "Below are some problems.\n"
 			else:
 				assert optimizer_llm_name.lower() in QWEN_MODELS
@@ -464,14 +466,14 @@ def gen_meta_prompt_with_ph(
 					elif instruction_pos == "Q_end":
 						meta_prompt_exemplar_part += f"\ninput:\nQ: {question}\n<INS>\nA:"
 					else:  # instruction_pos == "A_begin"
-						if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+						if optimizer_llm_name.lower() in OPENAI_MODELS:
 							meta_prompt_exemplar_part += f"\nQ: {question}\nA: <Start>"
 						else:
 							assert optimizer_llm_name.lower() in QWEN_MODELS
 							meta_prompt_exemplar_part += f"\ninput:\nQ: {question}\nA: <INS>"
 				else:  # when there're no "Q:" and "A:" in the prompt
 					assert instruction_pos in {"Q_begin", "Q_end"}
-					if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+					if optimizer_llm_name.lower() in OPENAI_MODELS:
 						if instruction_pos == "Q_begin":
 							meta_prompt_exemplar_part += f"\nProblem:\n<INS>\n{question}\n"
 						elif instruction_pos == "Q_end":
@@ -483,7 +485,7 @@ def gen_meta_prompt_with_ph(
 						elif instruction_pos == "Q_end":
 							meta_prompt_exemplar_part += f"\ninput:\n{question}\n<INS>\n"
 
-				if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+				if optimizer_llm_name.lower() in OPENAI_MODELS:
 					meta_prompt_exemplar_part += (
 						f"\nGround truth answer:\n{true_answer}\n"
 					)
@@ -507,7 +509,7 @@ def gen_meta_prompt_with_ph(
 		else:
 			meta_prompt += meta_prompt_old_instruction_part
 
-		if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+		if optimizer_llm_name.lower() in OPENAI_MODELS:
 			if instruction_pos == "A_begin":
 				meta_prompt += prompt_handler.openai_meta_prompt_A_begin
 			else:
@@ -959,7 +961,7 @@ def run_evolution(**kwargs):
 			# keep some samples if the desired number of remaining instructions
 			# is smaller than the total number of decodes in this step.
 				if meta_prompt_type == "both_instructions_and_exemplars":
-					if optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
+					if optimizer_llm_name.lower() in OPENAI_MODELS:
 						raw_outputs = raw_outputs[:remaining_num_instructions_to_generate]
 						if instruction_pos == "A_begin":
 							start_string = "<Start>"

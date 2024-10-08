@@ -2,6 +2,6 @@ from enum import Enum
 
 
 class LanguageEnum(str, Enum):
-    CN = "cn"
+    cn = "cn"
 
-    EN = "en"
+    en = "en"
