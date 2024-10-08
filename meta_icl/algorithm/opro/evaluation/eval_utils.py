@@ -605,7 +605,14 @@ def evaluate_single_instruction(
 	and accuracies. Columns are ['raw_prompt', 'raw_answer', 'parsed_answer',
 	'true_answer', 'accuracy'].
 	"""
-	from meta_icl.core.models.generation_model import AioGenerationModel, OpenAIAioGenerationModel, GenerationModel, OpenAIGenerationModel
+	from meta_icl.core.models.generation_model import (
+		AioGenerationModel, 
+		OpenAIAioGenerationModel, 
+		OpenAIAioPostModel, 
+		GenerationModel, 
+		OpenAIGenerationModel, 
+		OpenAIPostModel
+	)
 
 	assert prediction_treat_as_number == "adaptive" or isinstance(
 		prediction_treat_as_number, bool
@@ -621,7 +628,8 @@ def evaluate_single_instruction(
 		" beginning of the answer."
 	)
 	if evaluate_in_parallel:
-		assert isinstance(scorer_llm, AioGenerationModel), ("Only async models support parallel evaluating")
+		async_models = [AioGenerationModel, OpenAIAioGenerationModel, OpenAIAioPostModel]
+		assert isinstance(scorer_llm, tuple(async_models)), ("Only async models support parallel evaluating")
 
 	num_eval_examples = len(eval_index_all)
 	assert type(is_multiple_choice) in {bool, list}, (

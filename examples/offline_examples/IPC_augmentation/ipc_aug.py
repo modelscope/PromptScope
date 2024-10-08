@@ -6,24 +6,24 @@ from meta_icl.core.utils.utils import load_yaml
 from meta_icl.core.enumeration.language_enum import LanguageEnum
 from loguru import logger
 from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPC_Generation
+from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPCGeneration
 from meta_icl.core.utils.utils import get_current_date
 
 current_file_path = Path(__file__)
 logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_current_date()}.log", rotation="10 MB", level="INFO")
 
-basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_aug_cn.yml')
+basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_aug_en.yml')
 
 config_params = load_yaml(basic_config_path)
 logger.info(config_params)
 
 CONFIG_REGISTRY.batch_register(config_params)
 
-if not hasattr(LanguageEnum, config_params.task_config.language.upper()):
-    raise NotImplementedError("Only supports 'EN' and 'CN' for now!")
+if not hasattr(LanguageEnum, config_params.task_config.language.lower()):
+    raise NotImplementedError("Only supports 'en' and 'cn' for now!")
 
 # Initializing the pipeline
-pipeline = IPC_Generation()
+pipeline = IPCGeneration(language=config_params.task_config.language.lower())
 samples = pipeline.run()
 
 res = []

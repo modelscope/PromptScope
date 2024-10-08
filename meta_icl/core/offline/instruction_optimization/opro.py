@@ -17,18 +17,18 @@ import collections
 import pandas as pd
 
 from loguru import logger
-from meta_icl.core.models.generation_model import AioGenerationModel, GenerationModel
+from meta_icl.core.models.generation_model import (
+    AioGenerationModel, 
+    GenerationModel, 
+    OpenAIAioGenerationModel, 
+    OpenAIAioPostModel, 
+    OpenAIGenerationModel, 
+    OpenAIPostModel
+)
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 from meta_icl.algorithm.opro.evaluation import eval_utils
 from meta_icl.algorithm.opro.optimization import opt_utils
-
-QWEN_MODELS = {"qwen-turbo",
-               "qwen2-57b-a14b-instruct",
-               "qwen2-72b-instruct",
-               "qwen-max-allinone",
-               }
-
 
 class OPRO(PromptOptimizationWithFeedback):
     """
@@ -89,13 +89,37 @@ class OPRO(PromptOptimizationWithFeedback):
 		Initializes the language models used for scoring and optimization based on the configuration.
 		If parallel evaluation is enabled, asynchronous models are initialized; otherwise, synchronous models are used.
 		"""
-        if self.evolution_config.evaluate_in_parallel:
-            self.scorer_llm = AioGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].scorer)
-            self.optim_llm = AioGenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].optim)
-        else:
-            self.scorer_llm = GenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].scorer)
-            self.optim_llm = GenerationModel(**CONFIG_REGISTRY.module_dict['model_config'].optim)
+        scorer_module_name = self.model_config.scorer.get('module_name')
+        optim_module_name = self.model_config.optim.get('module_name')
 
+        if self.evolution_config.evaluate_in_parallel:
+            if scorer_module_name == 'aio_generation':
+                self.scorer_llm = AioGenerationModel(**self.model_config.scorer)
+            elif scorer_module_name == 'openai_aio_generation':
+                self.scorer_llm = OpenAIAioGenerationModel(**self.model_config.scorer)
+            elif scorer_module_name == 'openai_aio_post':
+                self.scorer_llm = OpenAIAioPostModel(**self.model_config.scorer)
+                
+            if optim_module_name == 'aio_generation':
+                self.optim_llm = AioGenerationModel(**self.model_config.optim)
+            elif optim_module_name == 'openai_aio_generation':
+                self.optim_llm = OpenAIAioGenerationModel(**self.model_config.optim)
+            elif optim_module_name == 'openai_aio_post':
+                self.optim_llm = OpenAIAioPostModel(**self.model_config.optim)
+        else:
+            if scorer_module_name == 'dashscope_generation':
+                self.scorer_llm = GenerationModel(**self.model_config.scorer)
+            elif scorer_module_name == 'openai_generation':
+                self.scorer_llm = OpenAIGenerationModel(**self.model_config.scorer)
+            elif scorer_module_name == 'openai_post':
+                self.scorer_llm = OpenAIPostModel(**self.model_config.scorer)
+                
+            if optim_module_name == 'dashscope_generation':
+                self.optim_llm = GenerationModel(**self.model_config.optim)
+            elif optim_module_name == 'openai_generation':
+                self.optim_llm = OpenAIGenerationModel(**self.model_config.optim)
+            elif optim_module_name == 'openai_post':
+                self.optim_llm = OpenAIPostModel(**self.model_config.optim)
     def init_config(self):
         """
 		Initialize configuration settings for the OPRO system by retrieving
@@ -465,67 +489,64 @@ class OPRO(PromptOptimizationWithFeedback):
         )
         generated_instructions_raw = []
 
-        from meta_icl.core.models.generation_model import GenerationModel, AioGenerationModel
-        if isinstance(self.optim_llm, GenerationModel):
+        sync_models = [GenerationModel, OpenAIPostModel, OpenAIGenerationModel]
+        async_models = [AioGenerationModel, OpenAIAioPostModel, OpenAIAioGenerationModel]
+        
+        if isinstance(self.optim_llm, tuple(sync_models)):
             while remaining_num_instructions_to_generate > 0:
                 optimizer_llm_input_text = meta_prompt
                 # generate instructions
                 # print(f"current temperature: {optimizer_llm_temperature_curr}")
                 raw_outputs = self.optim_llm.call(prompt=optimizer_llm_input_text).message.content
                 # print(raw_outputs)
-                # Extract the generated instructions from the optimizer LLM output. Only
-                # keep some samples if the desired number of remaining instructions
-                # is smaller than the total number of decodes in this step.
-                if self.meta_prompt_type == "both_instructions_and_exemplars":
-                    if self.optimizer_llm_name.lower() in {"gpt-3.5-turbo", "gpt-4"}:
-                        raw_outputs = raw_outputs[:remaining_num_instructions_to_generate]
-                        if self.instruction_pos == "A_begin":
-                            start_string = "<Start>"
-                            end_string = "</Start>"
-                        else:
-                            start_string = "<INS>"
-                            end_string = "</INS>"
-                        for raw_output in raw_outputs:
-                            if start_string not in raw_output:
-                                start_index = 0
-                            else:
-                                start_index = raw_output.index(start_string) + len(start_string)
-                            if end_string not in raw_output:
-                                end_index = len(raw_output)
-                            else:
-                                end_index = raw_output.index(end_string)
-                            new_inst = raw_output[start_index:end_index].strip()
-                            generated_instructions_raw.append(new_inst)
-                    else:
-                        assert self.optimizer_llm_name.lower() in QWEN_MODELS
-                        generated_instructions_raw += [
-                            opt_utils.extract_string_in_square_brackets(string)
-                            for string in raw_outputs
-                        ]
-                        generated_instructions_raw.append(raw_outputs[1:-1])
-
-                    # remaining_num_instructions_to_generate -= len(raw_outputs)
-                    remaining_num_instructions_to_generate -= 1
-                else:
-                    assert self.meta_prompt_type == "instructions_only"
-                    max_num_instructions_to_keep_in_each_output = 1
-                    for string in raw_outputs:
-                        generated_instructions_raw += opt_utils.parse_tag_content(string)[
-                                                      :max_num_instructions_to_keep_in_each_output
-                                                      ]
-                    remaining_num_instructions_to_generate -= (
-                            len(raw_outputs)
-                            * max_num_instructions_to_keep_in_each_output
-                    )
-        elif isinstance(self.optim_llm, AioGenerationModel):
+        elif isinstance(self.optim_llm, tuple(async_models)):
             import asyncio
             optimizer_llm_input_text = [meta_prompt for _ in range(num_generated_instructions_in_each_step)]
             raw_outputs = [x.message.content for x in asyncio.run(
                 self.optim_llm.async_call(prompts=optimizer_llm_input_text, temperature=optimizer_llm_temperature))]
-            generated_instructions_raw = [
-                opt_utils.extract_string_in_square_brackets(string)[1:-1]
-                for string in raw_outputs
-            ]
+        # import pdb; pdb.set_trace()
+        # Extract the generated instructions from the optimizer LLM output. Only
+        # keep some samples if the desired number of remaining instructions
+        # is smaller than the total number of decodes in this step.
+        if self.meta_prompt_type == "both_instructions_and_exemplars":
+            if self.optimizer_llm_name.lower() in opt_utils.OPENAI_MODELS:
+                raw_outputs = raw_outputs[:remaining_num_instructions_to_generate]
+                if self.instruction_pos == "A_begin":
+                    start_string = "<Start>"
+                    end_string = "</Start>"
+                else:
+                    start_string = "<INS>"
+                    end_string = "</INS>"
+                for raw_output in raw_outputs:
+                    if start_string not in raw_output:
+                        start_index = 0
+                    else:
+                        start_index = raw_output.index(start_string) + len(start_string)
+                    if end_string not in raw_output:
+                        end_index = len(raw_output)
+                    else:
+                        end_index = raw_output.index(end_string)
+                    new_inst = raw_output[start_index:end_index].strip()
+                    generated_instructions_raw.append(new_inst)
+            else:
+                generated_instructions_raw += [
+                    opt_utils.extract_string_in_square_brackets(string)
+                    for string in raw_outputs
+                ]
+            # remaining_num_instructions_to_generate -= len(raw_outputs)
+            remaining_num_instructions_to_generate -= 1
+        else:
+            assert self.meta_prompt_type == "instructions_only"
+            max_num_instructions_to_keep_in_each_output = 1
+            for string in raw_outputs:
+                generated_instructions_raw += opt_utils.parse_tag_content(string)[
+                                                :max_num_instructions_to_keep_in_each_output
+                                                ]
+            remaining_num_instructions_to_generate -= (
+                    len(raw_outputs)
+                    * max_num_instructions_to_keep_in_each_output
+            )
+        # import pdb; pdb.set_trace()
         generated_instructions_raw = list(
             map(eval_utils.polish_sentence, generated_instructions_raw)
         )
