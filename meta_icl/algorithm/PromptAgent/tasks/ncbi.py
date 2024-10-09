@@ -1,12 +1,13 @@
 # define task prompts for various datasets
-import re
-from .base_task import BaseDataset, BaseTask
-import re
-import string
-import numpy as np
-from collections import defaultdict
 import random
+import re
+from collections import defaultdict
+
+import numpy as np
 from datasets import load_dataset
+
+from .base_task import BaseDataset, BaseTask
+
 
 def split_tag(chunk_tag):
     """
@@ -216,6 +217,7 @@ def evaluate_conll_file(fileIterator):
             pred_seqs.append(cols[-1])
     return evaluate(true_seqs, pred_seqs)
 
+
 class CustomDataLoader:
     def __init__(self, dataset, batch_size, shuffle=False):
         self.dataset = dataset
@@ -224,13 +226,13 @@ class CustomDataLoader:
 
     def __iter__(self):
         indices = list(range(len(self.dataset)))
-        
+
         if self.shuffle:
             import random
             random.shuffle(indices)
-        
+
         for i in range(0, len(indices), self.batch_size):
-            batch_indices = indices[i:i+self.batch_size]
+            batch_indices = indices[i:i + self.batch_size]
             batch_data = [self.dataset[idx] for idx in batch_indices]
             yield self._collate_fn(batch_data)
 
@@ -241,15 +243,15 @@ class CustomDataLoader:
 
     def __len__(self):
         return (len(self.dataset) + self.batch_size - 1) // self.batch_size
-    
+
     # def split_hf_dataset(self, hf_dataset, train_frac, val_frac):
     #     total_samples = len(hf_dataset)
     #     train_end = int(total_samples * train_frac)
     #     val_end = train_end + int(total_samples * val_frac)
-        
+
     #     train_set = hf_dataset[:train_end]
     #     val_set = hf_dataset[train_end:val_end]
-        
+
     #     return train_set, val_set
 
     # def set_datasets(self, hf_datasets, train_frac=0.8, val_frac=0.1):
@@ -263,43 +265,45 @@ class CustomDataLoader:
     #         'eval': hf_datasets['eval']
     #     }
 
+
 class NCBIDataset(BaseDataset):
     def __init__(self, dataset):
         super().__init__(dataset=dataset)
-        
+
+
 class CustomTask(BaseTask):
-    def __init__(self, 
-                 train_size, 
+    def __init__(self,
+                 train_size,
                  eval_size,
-                 test_size=None,  
-                 
-                 task_name = "ncbi",
-                 task_description = "Find the disease entity",
-                 data_dir='',  
-                 seed=42, 
-                 
-                 post_instruction=True, 
+                 test_size=None,
+
+                 task_name="ncbi",
+                 task_description="Find the disease entity",
+                 data_dir='',
+                 seed=42,
+
+                 post_instruction=True,
                  TaskDataset=BaseDataset,
-                 option_num=5, 
+                 option_num=5,
                  **kwargs):
         self.options = {}
         super().__init__(
-                        task_name = task_name,  
-                        task_description = task_description, 
-                        data_dir=data_dir,
-                        seed = seed,
-                        train_size = train_size,
-                        eval_size=eval_size,
-                        test_size = test_size,
-                        post_instruction = post_instruction,
-                        TaskDataset=TaskDataset,
-                        option_num=option_num,
-                        )
-        self.answer_format_prompt= "Output the answer in this format:{entity_1,entity_2,....}. If no disease entities are present, please output an empty list in this format: {}."
-        
+            task_name=task_name,
+            task_description=task_description,
+            data_dir=data_dir,
+            seed=seed,
+            train_size=train_size,
+            eval_size=eval_size,
+            test_size=test_size,
+            post_instruction=post_instruction,
+            TaskDataset=TaskDataset,
+            option_num=option_num,
+        )
+        self.answer_format_prompt = "Output the answer in this format:{entity_1,entity_2,....}. If no disease entities are present, please output an empty list in this format: {}."
+
     def load_task_dataset(self, data_dir):
         return load_dataset("ncbi_disease").filter(lambda example: len(example["ner_tags"]) > 0)
-    
+
     @staticmethod
     def extract_entities(tokens, ner_tags):
         entities = []
@@ -324,36 +328,36 @@ class CustomTask(BaseTask):
             entities.append(" ".join(entity_tokens))
 
         return entities
-    
+
     @staticmethod
     def convert_to_BIO(number_tag):
         # Replace 0 with 'O', 1 with 'B', and 2 with 'I'
         converted_tag = [str(x).replace('0', 'O').replace('1', 'B').replace('2', 'I') for x in number_tag]
-        
+
         # Join the elements with a space
         result = " ".join(converted_tag)
-        
+
         return result
-    
+
     def get_dataloader(self, split, batch_size, shuffle=False):
         if split not in self.dataset:
             raise ValueError(f'Dataset split {split} does not exist.')
 
         dataset = self.dataset[split]
         return CustomDataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-    
+
     def transform_format(self, data_dict):
         transformed_data_dict = {}
-        
+
         for split_name, data_split in data_dict.items():
             print(f"Transforming {split_name} data...")
-            
+
             formatted_data = []
-            
+
             # Check available columns
             available_columns = data_split.column_names
             print(f"Available columns: {available_columns}")
-            
+
             if 'tokens' in available_columns and 'ner_tags' in available_columns:
                 for tokens, ner_tags in zip(data_split['tokens'], data_split['ner_tags']):
                     question = tokens
@@ -366,21 +370,21 @@ class CustomTask(BaseTask):
                 transformed_data_dict[split_name] = formatted_data
             else:
                 print(f"Columns 'tokens' and/or 'ner_tags' not found in {split_name} data_split.")
-        
+
         return transformed_data_dict
 
     def get_random_dataloader(self, size, batch_size, shuffle=False):
         if self.TaskDataset is None:
             self.TaskDataset = BaseDataset
-        
+
         random.shuffle(self.all_train_set)
         dataset = self.build_task_dataset(self.all_train_set[:size], TaskDataset=self.TaskDataset)
-            
+
         return CustomDataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-    
+
     def build_forward_prompts_completion(self, questions, cur_propmt):
         return super().build_forward_prompts_completion(questions, cur_propmt)
-    
+
     def clean_labels(self, answers):
         cleaned_answers = []
 
@@ -414,25 +418,25 @@ class CustomTask(BaseTask):
         for q, p in zip(questions, predictions):
             sent = ' '.join(q).lower()
             predicted_entities = [ent.strip().lower() for ent in p]
-            
+
             post_predicted_ents = self.post_processing(sent, predicted_entities)
             post_predicted_ents.sort(key=len, reverse=True)
-            
+
             bio_pred_seq = ' ' + sent + ' '
             for pred_ent in post_predicted_ents:
                 pred_ent = re.sub('\s+', ' ', pred_ent)
-                
+
                 if pred_ent != '':
                     pred_bios = ['I' for _ in pred_ent.split()]
                     pred_bios[0] = 'B'
                     pred_bios = ' '.join(pred_bios)
                     bio_pred_seq = bio_pred_seq.replace(' ' + pred_ent + ' ', ' ' + pred_bios + ' ')
-            
+
             bio_pred_seq = ' '.join(['O' if (w != 'B' and w != 'I') else w for w in bio_pred_seq.split()])
             bio_pred_seq = bio_pred_seq.strip()
             bio_preds.append(bio_pred_seq)
         return bio_preds
-    
+
     @staticmethod
     def conlleval_eval(true, preds):
         true = [[t[0] + '-X' for t in s.split()] for s in true]
@@ -446,18 +450,18 @@ class CustomTask(BaseTask):
         prec, recall, f1 = evaluate(true, preds)
 
         return f1, prec, recall
-    
+
     def cal_correct(self, preds, labels):
         # Assuming both preds and labels are lists of lists
         if len(preds) != len(labels):
             print("Mismatched length between preds and labels")
             return []
-            
+
         comparison_results = []
         for pred, label in zip(preds, labels):
             # Compare each pair of lists
             comparison_results.append(int(pred == label))
-        
+
         return comparison_results
 
     def cal_metric(self, preds, labels, questions):
@@ -475,34 +479,32 @@ class CustomTask(BaseTask):
     def clean_response(response):
         # regex pattern to capture disease entity phrases enclosed in curly braces
         entity_pattern = re.compile(r'\{(.*?)\}', re.IGNORECASE)
-        
+
         entities = []
         matches = entity_pattern.findall(response)
 
         for match in matches:
             entities.extend([e.strip().lower() for e in match.split(',') if e.strip()])
-                    
+
         return entities
-    
-    
+
     @staticmethod
     def clean_response(response):
         # regex pattern to capture disease entity phrases enclosed in curly braces
         entity_pattern = re.compile(r'\{(.*?)\}', re.IGNORECASE)
-        
+
         entities = []
         matches = entity_pattern.findall(response)
 
         for match in matches:
             # Remove or standardize spaces around slashes and hyphens
             normalized_match = re.sub(r'\s*([/-])\s*', r' \1 ', match)
-            
+
             # Normalize to lowercase and strip whitespace
             entities.extend([e.strip().lower() for e in normalized_match.split(',') if e.strip()])
-                    
+
         return entities
 
-    
     def batch_clean_responses(self, responses):
         if not isinstance(responses, list):
             responses = list(responses)

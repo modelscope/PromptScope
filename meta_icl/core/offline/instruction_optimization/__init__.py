@@ -6,4 +6,3 @@
 #     OUTPUT_PATH = global_config.output_path
 #     WORKERS = global_config.workers
 #     MAX_USAGE = global_config.max_usage
-

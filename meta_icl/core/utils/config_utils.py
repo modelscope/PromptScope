@@ -1,8 +1,9 @@
-from meta_icl.core.utils.utils import load_yaml_file, sav_yaml, sav_json
-from meta_icl.core.utils.sys_prompt_utils import load_json_file
+import yaml
 from easydict import EasyDict as edict
 from loguru import logger
-import yaml
+
+from meta_icl.core.utils.sys_prompt_utils import load_json_file
+from meta_icl.core.utils.utils import sav_yaml, sav_json
 
 
 def whether_yaml_file(config_pth):
@@ -22,7 +23,6 @@ def load_config(config_pth, as_edict=False):
         logger.error(e)
         logger.error(f'failed to load config file. {config_pth} is not a valid config file')
         configs = {}
-
 
     if as_edict:
         configs = edict(configs)

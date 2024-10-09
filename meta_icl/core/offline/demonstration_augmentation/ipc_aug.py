@@ -1,11 +1,17 @@
-import os
-from tqdm import tqdm
+"""
+todo: by jm, unify the interface design of argumentation method.
+1. support the input of the demonstration except loading from the configuration.
+2. support the parameters loading from the init function rather than configuration dict?
+3. What is the difference between the similar argumentation and ipc argumentation?
+4. Little confused by the prompt in ipc_aug.yaml, which is more like a initial proposal prompt?
+"""
 import concurrent.futures
 
-from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
 from loguru import logger
+from tqdm import tqdm
+
 from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
-from meta_icl.core.utils.utils import load_yaml
+from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
 
 
 class IPCGeneration(BaseDemonstrationAugmentation):
@@ -13,6 +19,7 @@ class IPCGeneration(BaseDemonstrationAugmentation):
     The main pipeline for IPC-based demonstration augmentation.
     """
     FILE_PATH: str = __file__
+
     def __init__(self, language: str = "cn", **kwargs):
         """
         Initialize a new instance of the ClassName class.
@@ -30,7 +37,7 @@ class IPCGeneration(BaseDemonstrationAugmentation):
             self.generation_llm = OpenAIGenerationModel(**self.model_config.generation)
         elif self.module_name == 'openai_post':
             self.generation_llm = OpenAIPostModel(**self.model_config.generation)
-        
+
     def init_config(self):
         """
         Initialize the configuration file
@@ -72,13 +79,14 @@ class IPCGeneration(BaseDemonstrationAugmentation):
                 all_results = list(executor.map(answer_with_progress, prompt_generator()))
 
         return all_results
-    
-    def run(self, prompt: str=""):
+
+    def run(self, prompt: str = ""):
         """
         generate samples
         """
-        prompt_input = {'task_description': self.task_config.task_description, 
-                        'instruction': self.task_config.instruction, 
+        # todo: by zy, support the input of the demonstration except loading from the configuration.
+        prompt_input = {'task_description': self.task_config.task_description,
+                        'instruction': self.task_config.instruction,
                         'batch_size': self.task_config.batch_size}
 
         if not prompt:
