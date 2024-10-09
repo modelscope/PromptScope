@@ -24,7 +24,7 @@ def call_llm(prompt, model_name, temperature=1.0):
         # print(response)
         try:
             return response.output.choices[0].message.content
-        except:
+        except Exception:
             return response.output.choices[0].output.text
     else:
         print('Request id: %s, Status code: %s, error code: %s, error message: %s' % (

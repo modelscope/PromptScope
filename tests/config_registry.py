@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch, PropertyMock, Mock
+from unittest.mock import MagicMock, patch
 from meta_icl.core.offline.instruction_optimization.ipc import IPCOptimization
 from meta_icl.core.offline.instruction_optimization.opro import OPRO
 from meta_icl.core.offline.instruction_optimization.prompt_agent import PromptAgent

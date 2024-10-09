@@ -121,7 +121,7 @@ def call_palm_server_from_cloud(
         )
         output_text = completion.result
         return [output_text]
-    except:  # pylint: disable=bare-except
+    except Exception:  # pylint: disable=bare-except
         retry_time = 10  # Adjust the retry time as needed
         print(f"Retrying in {retry_time} seconds...")
         time.sleep(retry_time)

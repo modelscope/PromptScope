@@ -17,7 +17,8 @@ class SimilarDemoAugmentation(BaseDemonstrationAugmentation):
                  n: int) -> List:
         # todo: by jm, implement the run function and return the generate results.
         aug_query_prompt = self.formatting_generation_prompt(seed_demonstration, n)
-        res = call_llm_with_message()
+        res = call_llm_with_message(aug_query_prompt)
+        return res
 
     def register_prompt(self):
         pass

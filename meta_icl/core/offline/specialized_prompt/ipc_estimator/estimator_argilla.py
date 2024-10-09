@@ -28,7 +28,7 @@ class ArgillaEstimator:
                 workspace=opt.workspace
             )
             self.time_interval = opt.time_interval
-        except:
+        except Exception:
             raise Exception("Failed to connect to argilla, check connection details")
 
     @staticmethod
@@ -41,7 +41,7 @@ class ArgillaEstimator:
         try:
             settings = rg.TextClassificationSettings(label_schema=label_schema)
             rg.configure_dataset_settings(name=dataset_name, settings=settings)
-        except:
+        except Exception:
             raise Exception("Failed to create dataset")
 
     @staticmethod
@@ -89,7 +89,7 @@ class ArgillaEstimator:
         current_api = active_client()
         try:
             rg_dataset = current_api.datasets.find_by_name(dataset.name)
-        except:
+        except Exception:
             self.initialize_dataset(dataset.name, dataset.label_schema)
             rg_dataset = current_api.datasets.find_by_name(dataset.name)
         batch_records = dataset[batch_id]

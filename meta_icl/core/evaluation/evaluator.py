@@ -72,7 +72,8 @@ class Eval:
             response = self.evaluator_llm.call(prompt=eval_prompt)
             try:
                 response_list = [item for item in response.message.content.split("||") if item]
-            except:
+            except Exception as e:
+                logger.warning(f"Parse result exception {e}")
                 response_list = [item for item in response.output.text.split("||") if item]
 
             print('#############\n', response_list, '################\n')
@@ -163,8 +164,8 @@ class Eval:
         try:
             logger.info(analysis.message.content)
             kwargs['analysis'] = analysis.message.content
-        except:
-            logger.info(analysis.output.text)
+        except Exception as e:
+            logger.info(analysis.output.text, f"exception {e}")
             kwargs['analysis'] = analysis.output.text
         self.history.append(kwargs)
 

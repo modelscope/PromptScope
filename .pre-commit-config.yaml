@@ -21,12 +21,12 @@ repos:
 #    rev: 6.1.0
 #    hooks:
 #      - id: flake8
-#  - repo: https://github.com/charliermarsh/ruff-pre-commit
-#    rev: v0.1.5
-#    hooks:
-#      - id: ruff
-#        args: [ --fix, --exit-non-zero-on-fix ]
-#        exclude: ".*poetry.lock|.*_static"
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.5
+    hooks:
+      - id: ruff
+        args: [ --fix, --exit-non-zero-on-fix ]
+        exclude: ".*poetry.lock|.*_static|examples/*|meta_icl/algorithm/*"
   - repo: https://github.com/pappasam/toml-sort
     rev: v0.23.1
     hooks:

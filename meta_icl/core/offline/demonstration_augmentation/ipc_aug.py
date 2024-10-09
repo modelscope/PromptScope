@@ -98,7 +98,7 @@ class IPCGeneration(BaseDemonstrationAugmentation):
         if self.module_name == 'dashscope_generation':
             try:
                 samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
-            except:
+            except Exception:
                 samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
         elif self.module_name == 'openai_generation' or self.module_name == 'openai_post':
             samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]

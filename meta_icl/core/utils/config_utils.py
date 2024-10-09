@@ -91,8 +91,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous embedding_pth: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["embedding_pth"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the embedding_pth as: {}".format(embedding_pth))
 
     if retriever_config_name not in configs["icl_configs"].keys():
@@ -104,8 +104,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous embedding_model: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["embedding_model"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the embedding_model as: {}".format(embedding_model))
     configs["icl_configs"][retriever_config_name]["embedding_model"] = embedding_model
 
@@ -113,8 +113,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous search_key: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["search_key"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the embedding_model as: {}".format(embedding_model))
     configs["icl_configs"][retriever_config_name]["search_key"] = search_key
 
@@ -122,8 +122,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous examples_pth: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["examples_pth"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the examples_pth as: {}".format(examples_list_pth))
     configs["icl_configs"][retriever_config_name]["examples_pth"] = examples_list_pth
 

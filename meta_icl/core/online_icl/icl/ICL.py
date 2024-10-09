@@ -38,19 +38,6 @@ class BaseICL(ABC):
         pass
 
     @abstractmethod
-    def get_meta_prompt(self, query: str, num: int, **kwargs):
-        """
-        Method to get a meta prompt based on a query and number.
-
-        :param query: A string query specifying the content of the meta prompt
-        :param num: The number of meta prompts required
-        :param kwargs: Additional parameters
-
-        This method returns the corresponding meta prompts based on the given query and required number.
-        """
-        pass
-
-    @abstractmethod
     def get_results(self, **kwargs):
         """
         Method to retrieve learning results.

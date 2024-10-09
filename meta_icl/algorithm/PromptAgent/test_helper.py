@@ -25,7 +25,7 @@ def eval_instruction_with_loader(task, eval_prompt, base_model, dataloader, temp
         batch_prompts = build_forward_prompts_func(batch['question'], eval_prompt)
         try:
             responses = [call_func(prompt=prompt).message.content for prompt in batch_prompts]
-        except:
+        except Exception:
             responses = [call_func(prompt=prompt).output.text for prompt in batch_prompts]
         preds = task.batch_clean_responses(responses)
         labels = task.clean_labels(batch['answer'])
