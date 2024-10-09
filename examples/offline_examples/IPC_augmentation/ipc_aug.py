@@ -1,16 +1,18 @@
+import json
 import os
 from pathlib import Path
-import json
 
-from meta_icl.core.utils.utils import load_yaml
-from meta_icl.core.enumeration.language_enum import LanguageEnum
 from loguru import logger
+
 from meta_icl import CONFIG_REGISTRY
+from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPCGeneration
 from meta_icl.core.utils.utils import get_current_date
+from meta_icl.core.utils.utils import load_yaml
 
 current_file_path = Path(__file__)
-logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_current_date()}.log", rotation="10 MB", level="INFO")
+logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_current_date()}.log", rotation="10 MB",
+           level="INFO")
 
 basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_aug_en.yml')
 
