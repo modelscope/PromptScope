@@ -40,7 +40,7 @@ We propose that an effective prompt structure consists of three key components: 
 <p align="center">
 
 On top of that, we provide:
-- Examples for similar and diversity demonstration generation.
+- [Examples](examples/offline_examples/demo_augmentation_examples/) for similar and diversity demonstration generation.
 - [Examples](examples/offline_examples/example.md) for instruction optimization with IPC, OPRO and PromptAgent.
 - [Example](examples/gsm8k_example) for an end-to-end prompt optimization workflow on GSM-8K benchmark, with both demonstration augmentation and instruction optimization.
 
