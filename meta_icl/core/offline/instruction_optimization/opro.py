@@ -316,22 +316,22 @@ class OPRO(PromptOptimizationWithFeedback):
         """
 		Generates new instructions based on different selection criteria for few-shot examples.
 
-		This function dynamically adjusts the few-shot examples presented to the model during the 
-		instruction refinement process. It supports various strategies for selecting these examples, 
-		intended to improve the model's understanding and performance on tasks by focusing on areas 
+		This function dynamically adjusts the few-shot examples presented to the model during the
+		instruction refinement process. It supports various strategies for selecting these examples,
+		intended to improve the model's understanding and performance on tasks by focusing on areas
 		of weakness or through random exposure for diversity.
 
 		Conditions covered:
-		- 'accumulative_most_frequent': Selects questions that have been answered incorrectly most frequently 
+		- 'accumulative_most_frequent': Selects questions that have been answered incorrectly most frequently
 		  since the start, either all or a sampled subset depending on their total count.
-		- 'current_most_frequent': Chooses questions that are frequently missed under the current set of 
+		- 'current_most_frequent': Chooses questions that are frequently missed under the current set of
 		  instructions, ensuring diversity if not enough unique questions meet the threshold.
 		- 'constant': Picks a constant set of few-shot questions randomly but fixed across iterations.
 		- 'random': Randomly selects questions for each iteration, introducing variability.
 
 		Args:
 			few_shot_qa_pairs (bool): Flag indicating whether to use few-shot QA pairs in instruction generation.
-			few_shot_selection_criteria (str): The strategy for picking few-shot examples ('accumulative_most_frequent', 
+			few_shot_selection_criteria (str): The strategy for picking few-shot examples ('accumulative_most_frequent',
 										  'current_most_frequent', 'constant', 'random').
 			Other variables used (not passed as arguments):
 				self.wrong_questions_from_start_counter: A counter tracking the frequency of incorrect answers.

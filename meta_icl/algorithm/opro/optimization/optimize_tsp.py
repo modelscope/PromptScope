@@ -256,7 +256,7 @@ def main(_):
             max_num_pairs=100,
     ):
         """Generate the meta-prompt for optimization.
-    
+
         Args:
          old_value_pairs_set (set): the set of old traces.
          X (np.array): the 1D array of x values.
@@ -264,7 +264,7 @@ def main(_):
          num_decimals (int): the number of decimals in the
            meta-prompt.
          max_num_pairs (int): the maximum number of exemplars in the meta-prompt.
-    
+
         Returns:
           meta_prompt (str): the generated meta-prompt.
         """

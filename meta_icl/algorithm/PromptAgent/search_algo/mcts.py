@@ -28,7 +28,7 @@ class MCTSNode(Generic[State, Action]):
         A node in the MCTS search tree
 
         :param prompt: the current state
-        :param action: the action of the last optimization step, 
+        :param action: the action of the last optimization step,
             i.e., the state transition prompt from parent node to current node
         :param parent: the parent node, None if root of the tree
         """
@@ -178,7 +178,7 @@ class MCTS(SearchAlgo, Generic[State, Action]):
 
     def _select(self, node: MCTSNode) -> list[MCTSNode]:
         """
-        Selection: 
+        Selection:
             From root node, keep selecting child node based on UCT
         """
 
@@ -196,7 +196,7 @@ class MCTS(SearchAlgo, Generic[State, Action]):
 
     def _expand(self, node: MCTSNode):
         """
-        Expansion: 
+        Expansion:
             Sample batches of data and perform state transition on the given node.
             Generate new child nodes and calculate their temporary reward.
         """

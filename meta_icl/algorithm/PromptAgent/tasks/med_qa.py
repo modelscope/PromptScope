@@ -40,12 +40,12 @@ class CustomTask(BaseTask):
     #     new_dataset = dict(train=[], test=[])
     #     for example in dataset['train']:
     #         question_str = question_format.format(
-    #             question=example['question'], 
+    #             question=example['question'],
     #             )
     #         new_dataset['train'].append(dict(question=question_str, answer=answer_dict[example['label']]))
     #     for example in dataset['test']:
     #         question_str = question_format.format(
-    #             question=example['question'], 
+    #             question=example['question'],
     #             )
     #         new_dataset['test'].append(dict(question=question_str, answer=answer_dict[example['label']]))
 

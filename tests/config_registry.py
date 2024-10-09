@@ -20,10 +20,10 @@ from meta_icl.core.models.beam_world_model import BeamSearchWorldModel
 
 #     def get(self, x, default=None):
 #         return getattr(self, x, default)
-    
+
 class TestConfigRegistry(unittest.TestCase):
     def setUp(self):
-        pass       
+        pass
 
     @patch('meta_icl.algorithm.base_algorithm.PromptOptimizationWithFeedback.__init__')
     def test_ipc(self, mock_super_init: MagicMock):
@@ -120,7 +120,7 @@ class TestConfigRegistry(unittest.TestCase):
         mock_task = MagicMock()
         mock_get_task.return_value = mock_task
         prompt_agent = PromptAgent(language=language)
-        
+
         self.assertIsInstance(prompt_agent.dataset_path, str)
         self.assertIsInstance(prompt_agent.task_config.data_dir, str)
         self.assertIsInstance(prompt_agent.initial_prompt, str)

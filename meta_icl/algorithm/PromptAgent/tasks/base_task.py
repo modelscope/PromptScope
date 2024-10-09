@@ -65,12 +65,12 @@ class BaseTask():
         """
         <Task Specific>
         This is a default function for loading task dataset from json files. It can be re-implemented in the task.py files.
-        
+
         The output dataset can be either a list of question answer pairs or a dict with a default train-test split:
-            all examples: 
+            all examples:
                 [{'question':question, 'answer':answer}]
             or
-            default split: 
+            default split:
                 {'train':[{'question':question, 'answer':answer}], 'test':[{'question':question, 'answer':answer}]}
         """
         dataset = self._load_json_file(data_dir)
@@ -91,7 +91,7 @@ class BaseTask():
     def transform_format(self, dataset):
         """
         <task specific>
-        This function is to transform the dataset's format that fits the pred_model (e.g. question + options). 
+        This function is to transform the dataset's format that fits the pred_model (e.g. question + options).
         It can be re-implemented in the task.py files.
         """
         return dataset
