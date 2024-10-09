@@ -35,17 +35,3 @@ repos:
     hooks:
       - id: nb-clean
         args: [ --preserve-cell-outputs, --remove-empty-cells ]
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
-    hooks:
-      - id: codespell
-        additional_dependencies: [ tomli ]
-        exclude: |
-          poetry.lock|
-          (\/.*?\.[\w:]+)/pyproject.toml|
-          (\/.*?\.[\w:]+)/poetry.lock
-        args:
-          [
-            "--ignore-words-list",
-            "astroid,gallary,momento,narl,ot,rouge,nin,gere,asend,ans,thur",
-          ]
