@@ -12,7 +12,7 @@ Welcome to PromptScope! In the ever-evolving landscape of artificial intelligenc
 
 <p align="center">
     <br>
-    <img src="resources/diagram_2.png"/>
+    <img src="resources/diagram.png"/>
     <br>
 <p>
 <p align="center">
@@ -30,7 +30,19 @@ Note: This project is currently in active development, it's recommended to insta
 
 ## 🚀 Getting Started
 
-We provide (1) examples for similar and diversity demonstration generation. (2) [examples](examples/offline_examples/example.md) for prompt optimization with IPC, OPRO and PromptAgent.
+We propose that an effective prompt structure consists of three key components: the instruction, which outlines the task description; the demonstration, which provides ideal input-output examples; and the query, which specifies the particular question being posed. This tripartite framework facilitates a clearer understanding of the task at hand, enhances the quality of the model's responses, and ultimately improves overall performance in various applications.
+
+<p align="center">
+    <br>
+    <img src="resources/prompt.png"/>
+    <br>
+<p>
+<p align="center">
+
+On top of that, we provide:
+- Examples for similar and diversity demonstration generation.
+- [Examples](examples/offline_examples/example.md) for instruction optimization with IPC, OPRO and PromptAgent.
+- [Example](examples/gsm8k_example) for an end-to-end prompt optimization workflow on GSM-8K benchmark, with both demonstration augmentation and instruction optimization.
 
 ## 🖋 Contributing
 
