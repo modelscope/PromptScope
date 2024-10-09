@@ -19,12 +19,12 @@ task_config:
     num_extra_sample: 5
     patience: 10
     min_delta: 0.1
-    
+
 eval_config:
     label_schema: ["1","2","3","4","5"]
     func_name: accuracy
     num_errors_per_label: 5
-    
+
 model_config:
     generation:
         module_name: 'openai_post'

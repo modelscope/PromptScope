@@ -18,7 +18,7 @@ task_config:
     num_extra_sample: 5
     patience: 10
     min_delta: 0.1
-    
+
 eval_config:
     label_schema: ["Yes", "No"]
     func_name: accuracy

@@ -15,8 +15,8 @@ from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerat
 
 class PromptAgent(PromptOptimizationWithFeedback):
     """
-    PromptAgent (PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization) 
-    is designed to optimize prompts for language models, by initializing tasks, configuring settings, 
+    PromptAgent (PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization)
+    is designed to optimize prompts for language models, by initializing tasks, configuring settings,
     selecting search algorithms and models, logging progress, and determining the most effective prompt through iterative refinement.
     """
     FILE_PATH: str = __file__
@@ -64,7 +64,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         from the global CONFIG_REGISTRY. This sets up the basic, task-specific, model, search,
         and world model configurations required for the agent's operation.
 
-        The configurations are retrieved from a registry module which centralizes the access to 
+        The configurations are retrieved from a registry module which centralizes the access to
         different parts of the setup, ensuring modularity and easier management of settings.
         """
         self.basic_config = CONFIG_REGISTRY.module_dict["basic_config"]
@@ -150,7 +150,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
 
     def step(self):
         """
-        Executes a single step in the optimization process which includes searching for the best path 
+        Executes a single step in the optimization process which includes searching for the best path
         and updating prompts based on error analysis.
         """
         logger.info('Searching Path')

@@ -17,16 +17,16 @@ from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPCGenerati
 
 class IPCOptimization(PromptOptimizationWithFeedback):
     """
-    This class implements the Intent-based Prompt Calibration (IPC) algorithm (Intent-based Prompt Calibration: Enhancing prompt optimization with synthetic boundary cases). 
-    It is designed to refine instructional prompts for language models by iteratively 
-    generating adversarial samples, evaluating them, updating the prompts based on feedback, 
+    This class implements the Intent-based Prompt Calibration (IPC) algorithm (Intent-based Prompt Calibration: Enhancing prompt optimization with synthetic boundary cases).
+    It is designed to refine instructional prompts for language models by iteratively
+    generating adversarial samples, evaluating them, updating the prompts based on feedback,
     and repeating the process to enhance prompt effectiveness over multiple iterations.
     """
     FILE_PATH: str = __file__
 
     def __init__(self, language="cn", **kwargs):
         """
-        Initializes the IPC Optimization instance with necessary configurations, model setup, 
+        Initializes the IPC Optimization instance with necessary configurations, model setup,
         and initializes key attributes used throughout the iterative prompt refinement process.
 
         Args:
@@ -85,9 +85,9 @@ class IPCOptimization(PromptOptimizationWithFeedback):
     def init_config(self):
         """
         Initializes the configuration for the IPC_Optimization process by fetching necessary configurations from the registry.
-        
-        This method sets up configurations for tasks, models, rankers, and evaluation, ensuring all components have their 
-        respective settings ready before the optimization pipeline begins. If the class has an 'eval' attribute, its configuration 
+
+        This method sets up configurations for tasks, models, rankers, and evaluation, ensuring all components have their
+        respective settings ready before the optimization pipeline begins. If the class has an 'eval' attribute, its configuration
         is also initialized.
         """
         self.task_config = CONFIG_REGISTRY.module_dict['task_config']
@@ -100,14 +100,14 @@ class IPCOptimization(PromptOptimizationWithFeedback):
     def run(self, **kwargs):
         """
         Executes the main optimization loop of the IPC Optimization process for a specified number of steps.
-        
+
         Args:
             **kwargs: Additional keyword arguments that can modify the behavior of the optimization, including:
                 - mode (str, optional): If set to 'ranking', adjusts input handling for ranking tasks.
                 - ranking_prompt (str, optional): Custom evaluation instruction when ranking prompts.
-        
-        The method iterates for 'num_steps', potentially modifying inputs based on 'mode', updating the evaluation 
-        instruction with 'ranking_prompt', and checks for stop criteria after each step. Finally, it returns the best 
+
+        The method iterates for 'num_steps', potentially modifying inputs based on 'mode', updating the evaluation
+        instruction with 'ranking_prompt', and checks for stop criteria after each step. Finally, it returns the best
         refined instructional prompt post-optimization.
         """
         # Run the optimization pipeline for num_steps
@@ -184,19 +184,19 @@ class IPCOptimization(PromptOptimizationWithFeedback):
 
     def annotate(self, samples: list[str]):
         """
-        Annotates a list of text samples using a Large Language Model (LLM) (Argilla to be implemented), 
+        Annotates a list of text samples using a Large Language Model (LLM) (Argilla to be implemented),
         following the instructions and batch size configurations set in `task_config`.
-        
-        The method divides the input samples into batches, constructs an annotation prompt 
-        for each batch, sends these prompts to the annotator (LLM), processes the responses 
-        to extract annotations, and finally aggregates these into a list of dictionaries 
+
+        The method divides the input samples into batches, constructs an annotation prompt
+        for each batch, sends these prompts to the annotator (LLM), processes the responses
+        to extract annotations, and finally aggregates these into a list of dictionaries
         containing IDs, questions, and corresponding annotations.
-        
+
         Args:
             samples (list[str]): A list of strings, where each string is a sample to be annotated.
-        
+
         Returns:
-        list[dict]: A list of dictionaries. Each dictionary contains keys 'ID', '问题' (Question), 
+        list[dict]: A list of dictionaries. Each dictionary contains keys 'ID', '问题' (Question),
                     and '标注' (Annotation), representing the annotated data.
         """
         samples_batches = [samples[i:i + self.task_config.batch_size] for i in
@@ -279,7 +279,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         """
         Updates the current prompt by generating a new prompt suggestion based on historical data and task description.
         It also estimates the score of the previous prompt and prepares a set of challenging samples for the updated prompt.
-        
+
         Args:
             mode (str): Specifies the mode of operation for prompt generation, e.g., 'generation' or other modes defined.
 
@@ -396,7 +396,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         """
         Determines if the optimization process should stop based on predefined criteria.
         The algorithm stops when:
-        1. The improvement in score has not exceeded a minimum threshold over a certain number of consecutive steps ('patient' steps), 
+        1. The improvement in score has not exceeded a minimum threshold over a certain number of consecutive steps ('patient' steps),
            after an initial warmup period.
         2. Optionally, checks if resource usage exceeds a set limit, but this check is currently disabled.
 
@@ -461,9 +461,9 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         """
         Loads the pre-trained state of the IPC_Optimization instance from a specified directory.
 
-        This method reads the 'history.pkl' file located within the given path, which contains essential 
-        information about the past optimization process, including the history of evaluations, the current 
-        batch identifier, the active prompt being refined, a description of the task, and details about 
+        This method reads the 'history.pkl' file located within the given path, which contains essential
+        information about the past optimization process, including the history of evaluations, the current
+        batch identifier, the active prompt being refined, a description of the task, and details about
         the patience configuration for the algorithm's learning strategy.
 
         Args:
@@ -490,14 +490,14 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         """
         Modifies the input prompt and task description for the ranker by utilizing LLM-generated modifications.
 
-        This method takes the initial instruction and task description from the task configuration, formats them 
-        into prompts for an LLM to modify, calls the LLM to generate these modifications, and then updates the 
-        task configuration with these new, refined inputs. It handles both successful structured responses 
-        (with `.message.content`) and fallback scenarios where the response structure might differ 
+        This method takes the initial instruction and task description from the task configuration, formats them
+        into prompts for an LLM to modify, calls the LLM to generate these modifications, and then updates the
+        task configuration with these new, refined inputs. It handles both successful structured responses
+        (with `.message.content`) and fallback scenarios where the response structure might differ
         (using `.output.text`).
 
         Raises:
-            Any exceptions raised during the LLM call attempts are caught internally and handled by falling back 
+            Any exceptions raised during the LLM call attempts are caught internally and handled by falling back
             to a different attribute extraction method.
 
         Logs:

@@ -174,7 +174,7 @@ step_adv_sample_classification:
 
     ## 常见失败的示例，每个样本后面都跟着模型预测和真实情况（ground truth）。
     {history}
-    
+
     以下是根据这些失败案例优化后的指令：
     ## 指令：
     {prompt}
@@ -244,7 +244,7 @@ step_adv_sample_generation:
 
     ## 常见失败的示例，每个样本后面都跟着模型预测和真实情况（ground truth）。
     {history}
-    
+
     以下是根据这些失败案例优化后的指令：
     ## 指令：
     {prompt}
@@ -676,7 +676,7 @@ ipc_ranker_prompt_mod:
 
     User prompt: {prompt}
 
-    Evaluation prompt: 
+    Evaluation prompt:
 
 ipc_ranker_description_mod:
   cn: |
@@ -691,7 +691,7 @@ ipc_ranker_description_mod:
 
 
     ##########
-    
+
     现在请根据用户提示词生成评价提示词：
     任务描述：{task_description}
     评价提示词：

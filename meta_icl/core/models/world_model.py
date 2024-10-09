@@ -114,7 +114,7 @@ class WorldModel(Generic[State, Action]):
 
     def step(self, node: MCTSNode, batch):
         """
-        Optimization step: 
+        Optimization step:
             Generate new nodes based on the given node and batch of data.
         """
         new_nodes, gradient_descent_output = self._gradient_descent_step(node=node, batch=batch)
@@ -176,7 +176,7 @@ class WorldModel(Generic[State, Action]):
     def eval_instruction_with_loader(self, task, eval_prompt, dataloader, record_outputs=True):
         """
         Evaluate eval_prompt on the given dataloader.
-        Output: 
+        Output:
             metric: task specific evaluation metric, e.g. Accuracy
             eval_output: the input question and predictions for each example in the dataloader
         """
