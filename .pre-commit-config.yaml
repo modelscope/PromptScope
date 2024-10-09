@@ -8,6 +8,7 @@ repos:
       - id: check-toml
       - id: check-docstring-first
       - id: check-json
+        exclude: (examples/offline_examples/IPC_augmentation/dump/samples\.json|meta_icl/algorithm/data/AQuA-data/AQuA\.json)
       - id: detect-private-key
       - id: trailing-whitespace
         exclude: (README\.md|README_ZH\.md)$
