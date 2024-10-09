@@ -1,11 +1,12 @@
 from typing import Generic
 
+import numpy as np
 from tqdm import tqdm
 
 from meta_icl.algorithm.PromptAgent.search_algo.base_algo import State, Action
 from meta_icl.algorithm.PromptAgent.search_algo.mcts import MCTSNode
 from meta_icl.core.utils.prompt_handler import PromptHandler
-from .gradient_descent import *
+from .gradient_descent import GradientDescent
 
 
 class WorldModel(Generic[State, Action]):
@@ -75,7 +76,8 @@ class WorldModel(Generic[State, Action]):
                               'eval_dataloader', 'gradient_descent']
         vars_dict = vars(self)
         for var_name in vars_dict:
-            if var_name in ignored_print_vars: continue
+            if var_name in ignored_print_vars:
+                continue
             var_value = vars_dict[var_name]
             self.logger.info(f'{var_name} : {var_value}')
 
@@ -195,7 +197,7 @@ class WorldModel(Generic[State, Action]):
             batch_prompts = build_forward_prompts_func(batch['question'], eval_prompt)
             try:
                 responses = [call_func(prompt=prompt).message.content for prompt in batch_prompts]
-            except:
+            except Exception:
                 responses = [call_func(prompt=prompt).output.text for prompt in batch_prompts]
             preds = task.batch_clean_responses(responses)
             labels = task.clean_labels(batch['answer'])

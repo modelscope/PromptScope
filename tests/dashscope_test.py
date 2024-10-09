@@ -4,7 +4,7 @@ import unittest.mock as mock
 import dashscope
 
 from meta_icl.core.models.generation_model import GenerationModel, AioGenerationModel
-from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
+from meta_icl.core.scheme.model_response import ModelResponse
 
 class TestGenerationModel(unittest.TestCase):
     """Tests for GenerationModel"""

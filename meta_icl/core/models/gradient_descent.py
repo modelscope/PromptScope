@@ -47,7 +47,7 @@ class GradientDescent():
         batch_prompts = self._build_forward_prompts_func(batch['question'], cur_prompt)
         try:
             responses = [self.call_func(prompt=prompt).message.content for prompt in batch_prompts]
-        except:
+        except Exception:
             responses = [self.call_func(prompt=prompt).output.text for prompt in batch_prompts]
 
         for p, r in zip(batch_prompts, responses):
@@ -135,7 +135,7 @@ class GradientDescent():
                             {'role': 'user', 'content': gradient_prompt}]
         try:
             gradient = self.optim_model.call(messages=gradient_message).message.content
-        except:
+        except Exception:
             gradient = self.optim_model.call(messages=gradient_message).output.text
 
         if self.print_log:
@@ -165,7 +165,7 @@ class GradientDescent():
                              {'role': 'user', 'content': optimize_prompt}]
         try:
             response = self.optim_model.call(messages=optimize_messages).message.content
-        except:
+        except Exception:
             response = self.optim_model.call(messages=optimize_messages).output.text
         optimized_prompt = self._clean_optim_response(response)
         if self.print_log:

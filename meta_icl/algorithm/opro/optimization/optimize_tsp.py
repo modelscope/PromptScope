@@ -174,7 +174,7 @@ def main(_):
                 id0 = trace[i]
                 id1 = trace[i + 1]
                 dis += np.sqrt((x[id0] - x[id1]) ** 2 + (y[id0] - y[id1]) ** 2)
-        except:
+        except Exception:
             return -1
         id0 = trace[-1]
         id1 = trace[0]
@@ -302,7 +302,7 @@ def main(_):
             p = p.strip()
             try:
                 p = int(p)
-            except:
+            except Exception:
                 continue
             parsed_list.append(p)
         return parsed_list
@@ -396,7 +396,7 @@ def main(_):
                             continue
                         parsed_outputs.append(parsed_output)
                         raw_outputs.append(string)
-                except:
+                except Exception:
                     pass
         print("\n=================================================")
         print(f"proposed points: {parsed_outputs}")

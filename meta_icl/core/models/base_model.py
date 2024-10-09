@@ -75,7 +75,7 @@ class BaseModel(metaclass=ABCMeta):
             raise ValueError("prompt and messages cannot be both specified")
 
         self.kwargs.update(**kwargs)
-        with Timer(self.__class__.__name__, log_time=False, use_ms=False) as t:
+        with Timer(self.__class__.__name__, log_time=False, use_ms=False):
             for i in range(self.max_retries):
                 if self.raise_exception:
                     call_result = self._call(stream=stream, prompt=prompt, messages=messages, **self.kwargs)
@@ -167,6 +167,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
             async with semaphore:
                 # async with self.limiter:
                 model_response = ModelResponse(m_type=self.m_type)
+                e = None
                 for i in range(self.max_retries):
                     if self.raise_exception:
                         call_output = await self._async_call(prompt=prompt, messages=messages, **self.kwargs)

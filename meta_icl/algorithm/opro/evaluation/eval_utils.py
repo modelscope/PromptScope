@@ -371,7 +371,7 @@ def _prompting_to_get_raw_answers(
         time.sleep(sleep_time)
         try:
             outputs = call_server_func(prompts, server_index=server_index)
-        except:  # pylint: disable=bare-except
+        except Exception:  # pylint: disable=bare-except
             continue
         break
     assert (
@@ -759,7 +759,7 @@ def evaluate_single_instruction(
     def _parse_prediction_with_star(prediction):
         try:
             return re.findall(r"\*\*(.*?)\*\*", prediction)[-1]
-        except:
+        except Exception:
             return "-1"
 
     # pylint: disable=g-long-lambda

@@ -3,9 +3,15 @@ import random
 import time
 from http import HTTPStatus
 from typing import Generator, List
+from typing import Union
+import re
+import json
+import requests
 
 import dashscope
+import numpy as np
 from loguru import logger
+from scipy.spatial.distance import cdist
 
 from meta_icl.core.models.generation_model import GenerationModel
 
@@ -21,10 +27,6 @@ DefaultModelConfig = {
     'result_format': 'message',
     'temperature': 0.85
 }
-
-import numpy as np
-from scipy.spatial.distance import cdist
-from typing import Union
 
 
 def convert_model_name_to_model_config(model_name: Union[str, dict] = None,
@@ -174,7 +176,8 @@ Attention: If both model and model_config are given, the model_config will be us
                 'result_format': 'message'
             }
         if is_stream:
-            return call_qwen_with_stream(messages, model_config=model_config, **kwargs)
+            pass
+            # return call_qwen_with_stream(messages, model_config=model_config, **kwargs)
         else:
             return call_qwen_with_message_with_retry(messages, model_config=model_config, **kwargs)
     elif model.lower() == 'qwen_14b' or model.lower() == 'qwen-turbo':
@@ -239,7 +242,7 @@ Attention: If both model and model_config are given, the model_config will be us
             }
             return call_qwen_with_message_with_retry(messages, model_config=model_config, **kwargs)
 
-        except:
+        except Exception:
             raise ValueError('model: {} is not supported!'.format(model))
 
 
@@ -261,9 +264,6 @@ def load_json_file(json_file_path):
     with open(json_file_path, 'r', encoding='utf-8') as jsonfile:
         data = json.load(jsonfile)
     return data
-
-
-import re
 
 
 def load_txt(instruction_file: str) -> str:
@@ -315,8 +315,8 @@ def fill_in_variables(variables, template_text):
 
 def call_qwen_with_message_with_retry(messages,
                                       model_config=DefaultModelConfig, **kwargs):
-    cnt = 0
-    error_message = ""
+    # cnt = 0
+    # error_message = ""
     # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
     try:
         _, res = call_qwen_with_messages(messages,
@@ -552,10 +552,6 @@ def embed_with_list_of_str(inputs: List, embedding_model='ds_text_embedding_v1')
 
 def get_embedding(input_list: list, embedding_model="text_embedding_v1"):
     return embed_with_list_of_str(input_list, embedding_model=embedding_model)
-
-
-import json
-import requests
 
 
 def text_rerank(query, documents, top_n=None):

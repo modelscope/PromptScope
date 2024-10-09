@@ -211,7 +211,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             response = self.annotator_llm.call(prompt=annotate_prompt)
             try:
                 response_list = [item for item in response.message.content.split("||") if item]
-            except:
+            except Exception:
                 response_list = [item for item in response.output.text.split("||") if item]
             # print('#############\n', response_list, '################\n')
             annotations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "标注": lines[-1]} for lines in
@@ -245,7 +245,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             response = self.predictor_llm.call(prompt=prediction_prompt)
             try:
                 response_list = [item for item in response.message.content.split("||") if item]
-            except:
+            except Exception:
                 response_list = [item for item in response.output.text.split("||") if item]
             # print('#############\n', response_list, '################\n')
             predictions.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "预测": lines[-1]} for lines in
@@ -315,7 +315,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             generate_prompt = self.prompt_handler.prompt_generation.format_map(prompt_input)
         try:
             prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).message.content
-        except:
+        except Exception:
             prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).output.text
         logger.info(prompt_suggestion)
         logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
@@ -341,7 +341,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         samples_batches = IPCGeneration.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
         try:
             samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
-        except:
+        except Exception:
             samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
         logger.info(samples_list)
@@ -513,7 +513,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         try:
             mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).message.content
             mod_description = self.generation_llm.call(prompt=description_mod_prompt).message.content
-        except:
+        except Exception:
             mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).output.text
             mod_description = self.generation_llm.call(prompt=description_mod_prompt).output.text
         logger.info(f"Task description modified for ranking to: \n{mod_description}")

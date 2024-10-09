@@ -13,7 +13,7 @@ def initial_parser(response: dict) -> dict:
     matches = re.findall(pattern, response['text'])
     results = {'samples': []}
     for match in matches:
-        header, content = match[0], match[1]
+        _, content = match[0], match[1]
         results['samples'].append(content.strip())
     return results
 
