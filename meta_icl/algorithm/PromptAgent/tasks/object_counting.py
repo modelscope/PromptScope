@@ -1,7 +1,7 @@
 # define task prompts for various datasets
-from .base_task import BaseDataset, BaseTask
 import re
-import string
+
+from .base_task import BaseDataset, BaseTask
 
 number_to_word_dict = {
     "one": 1,
@@ -27,36 +27,37 @@ number_to_word_dict = {
     "twenty-one": 21
 }
 
+
 class CustomTask(BaseTask):
-    def __init__(self, 
-                 train_size, 
+    def __init__(self,
+                 train_size,
                  eval_size,
-                 test_size=None,  
-                 
-                 task_name = "object_counting",
-                 task_description = "object_counting",
-                 data_dir='',  
-                 seed=None, 
-                 
-                 post_instruction=True, 
+                 test_size=None,
+
+                 task_name="object_counting",
+                 task_description="object_counting",
+                 data_dir='',
+                 seed=None,
+
+                 post_instruction=True,
                  TaskDataset=BaseDataset,
-                 option_num=5, 
+                 option_num=5,
                  **kwargs):
         self.options = {}
         super().__init__(
-                        task_name = task_name,  
-                        task_description = task_description, 
-                        data_dir=data_dir,
-                        seed = seed,
-                        train_size = train_size,
-                        eval_size=eval_size,
-                        test_size = test_size,
-                        post_instruction = post_instruction,
-                        TaskDataset=TaskDataset,
-                        option_num=option_num,
-                        )
+            task_name=task_name,
+            task_description=task_description,
+            data_dir=data_dir,
+            seed=seed,
+            train_size=train_size,
+            eval_size=eval_size,
+            test_size=test_size,
+            post_instruction=post_instruction,
+            TaskDataset=TaskDataset,
+            option_num=option_num,
+        )
         self.answer_format_prompt = ""
-        
+
     def load_task_dataset(self, data_dir):
         '''
             <task specific>
@@ -64,7 +65,7 @@ class CustomTask(BaseTask):
         json_data = self._load_json_file(data_dir)
         self.task_description = json_data['description']
         return json_data
-    
+
     def transform_format(self, data):
         original_examples = data['examples']
 
@@ -79,7 +80,7 @@ class CustomTask(BaseTask):
             }
             examples.append(formatted_example)
         return examples
-    
+
     def clean_response(self, response):
         integer_pattern = r"\d+"
         matches = re.findall(integer_pattern, response)

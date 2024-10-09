@@ -1,17 +1,18 @@
 import os.path
-
-import bm25s
-from meta_icl.core.utils.utils import organize_text_4_embedding, get_current_date
-from meta_icl.core.utils.sys_prompt_utils import load_json_file
-from meta_icl.core.utils.retrieve_utils import STOPWORDS_EN, STOPWORDS_ZH, demonstration_backup
-import Stemmer
-from meta_icl.core.offline.demonstration_storage_preparation.base_storage_builder import BaseStorageBuilder
-from meta_icl.core.utils.config_utils import update_icl_configs_BM25, load_config
-from loguru import logger
 from typing import List
 
+import Stemmer
+import bm25s
+from loguru import logger
 
-def get_demonstration_corpus(examples_list: List, search_key: List)->List:
+from meta_icl.core.offline.demonstration_storage_preparation.base_storage_builder import BaseStorageBuilder
+from meta_icl.core.utils.config_utils import update_icl_configs_BM25, load_config
+from meta_icl.core.utils.retrieve_utils import STOPWORDS_EN, STOPWORDS_ZH, demonstration_backup
+from meta_icl.core.utils.sys_prompt_utils import load_json_file
+from meta_icl.core.utils.utils import organize_text_4_embedding, get_current_date
+
+
+def get_demonstration_corpus(examples_list: List, search_key: List) -> List:
     """
     Generates a demonstration corpus using the provided examples and search keys.
 
@@ -31,6 +32,7 @@ class BM25StorageBuilder(BaseStorageBuilder):
     BM25 Storage Builder class for constructing and managing the generation and updating of BM25 indexes.
 
     """
+
     def __init__(self, storage_build_configs, **kwargs):
         """
         :param storage_build_configs: A dictionary containing storage build configurations such as index paths, example list paths, etc.
@@ -139,7 +141,7 @@ class BM25StorageBuilder(BaseStorageBuilder):
         self.update_icl_config()
 
 
-def prepare_BM25_storage(storage_builder_config_pth: str)->None:
+def prepare_BM25_storage(storage_builder_config_pth: str) -> None:
     """
     Prepares the BM25 storage.
 
@@ -151,4 +153,3 @@ def prepare_BM25_storage(storage_builder_config_pth: str)->None:
     storage_builder_configs = load_config(config_pth=storage_builder_config_pth, as_edict=False)
     embedding_storage_builder = BM25StorageBuilder(storage_builder_configs)
     embedding_storage_builder.build_storage()
-

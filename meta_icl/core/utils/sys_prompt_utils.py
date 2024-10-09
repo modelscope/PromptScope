@@ -1,9 +1,10 @@
+import copy
 import random
+import time
 from http import HTTPStatus
+from typing import Generator, List
+
 import dashscope
-import time, copy
-import random
-from typing import Generator, List, Any
 from loguru import logger
 
 from meta_icl.core.models.generation_model import GenerationModel
@@ -327,9 +328,7 @@ def call_qwen_with_message_with_retry(messages,
         logger.error("\n\nmessages: {}".format(e))
 
 
-
 def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs):
-
     X_DashScope_EUID = kwargs.get('X_DashScope_EUID')
 
     if "temperature" in model_config.keys():
@@ -399,9 +398,6 @@ def call_with_messages():
                 response.request_id, response.status_code,
                 response.code, response.message
             ))
-
-
-import requests
 
 
 def call_gpt_with_message(messages, model_config={'model': 'gpt-4'}):
@@ -562,7 +558,6 @@ import json
 import requests
 
 
-
 def text_rerank(query, documents, top_n=None):
     """
     :param query: str
@@ -604,4 +599,3 @@ def call_llama_with_messages():
             response.request_id, response.status_code,
             response.code, response.message
         ))
-

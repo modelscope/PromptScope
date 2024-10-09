@@ -1,37 +1,39 @@
 # define task prompts for various datasets
-from .base_task import BaseDataset, BaseTask
 import re
 import string
 
+from .base_task import BaseDataset, BaseTask
+
+
 class CustomTask(BaseTask):
-    def __init__(self, 
-                 train_size, 
+    def __init__(self,
+                 train_size,
                  eval_size,
-                 test_size=None,  
-                 
-                 task_name = "bigbench",
-                 task_description = "task from bigbench",
-                 data_dir='',  
-                 seed=None, 
-                 
-                 post_instruction=True, 
+                 test_size=None,
+
+                 task_name="bigbench",
+                 task_description="task from bigbench",
+                 data_dir='',
+                 seed=None,
+
+                 post_instruction=True,
                  TaskDataset=BaseDataset,
-                 option_num=5, 
+                 option_num=5,
                  **kwargs):
         self.options = {}
         super().__init__(
-                        task_name = task_name,  
-                        task_description = task_description, 
-                        data_dir=data_dir,
-                        seed = seed,
-                        train_size = train_size,
-                        eval_size=eval_size,
-                        test_size = test_size,
-                        post_instruction = post_instruction,
-                        TaskDataset=TaskDataset,
-                        option_num=option_num,
-                        )
-        
+            task_name=task_name,
+            task_description=task_description,
+            data_dir=data_dir,
+            seed=seed,
+            train_size=train_size,
+            eval_size=eval_size,
+            test_size=test_size,
+            post_instruction=post_instruction,
+            TaskDataset=TaskDataset,
+            option_num=option_num,
+        )
+
     def load_task_dataset(self, data_dir):
         '''
             <task specific>
@@ -41,7 +43,7 @@ class CustomTask(BaseTask):
         max_example = max(json_data['examples'], key=lambda x: len(x['target_scores']))
         self.option_num = len(max_example['target_scores'])
         return json_data
-    
+
     def transform_format(self, data):
         original_examples = data['examples']
 
@@ -51,28 +53,28 @@ class CustomTask(BaseTask):
             question = example['input']
             if 'task_prefix' in data.keys():
                 task_prefix = data['task_prefix'].strip()
-                question = task_prefix+"\n"+question
-            
+                question = task_prefix + "\n" + question
+
             target_scores = example['target_scores']
-            
+
             # Generating options and answer
             options = list(target_scores.keys())
             answer = [chr(65 + i) for i, option in enumerate(options) if target_scores[option] == 1][0]
             for i, option in enumerate(options):
                 self.options[option.lower()] = f'{chr(65 + i)}'
             options = [f'({chr(65 + i)}) {option}' for i, option in enumerate(options)]
-            options_str = 'Options:\n'+'\n'.join(options)
-            question_str = question+'\n'+options_str+'\n'
-            
+            options_str = 'Options:\n' + '\n'.join(options)
+            question_str = question + '\n' + options_str + '\n'
+
             # Formatting the output
             formatted_example = {
                 'question': question_str,
                 'answer': answer
             }
             examples.append(formatted_example)
-        
+
         return examples
-    
+
     def clean_response(self, response):
         letters = string.ascii_uppercase[:self.option_num] + string.ascii_lowercase[:self.option_num]
         clean_pattern = r"<answer>([\s\S]*?)<\/answer>"

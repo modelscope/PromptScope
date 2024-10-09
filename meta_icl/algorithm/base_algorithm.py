@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod
 from typing import Union
 
-from meta_icl.core.utils.prompt_handler import PromptHandler
 from meta_icl.core.enumeration.language_enum import LanguageEnum
+from meta_icl.core.utils.prompt_handler import PromptHandler
+
+
 class PromptOptimizationWithFeedback(ABC):
     """
     Base Abstract Class for Prompt Optimization with Feedback
@@ -14,7 +16,7 @@ class PromptOptimizationWithFeedback(ABC):
         self.language = language
         self._prompt_handler: Union[PromptHandler, None] = None
         self.kwargs: dict = kwargs
-    
+
     @property
     def prompt_handler(self):
         """
@@ -26,7 +28,7 @@ class PromptOptimizationWithFeedback(ABC):
         if self._prompt_handler is None:
             self._prompt_handler = PromptHandler(self.FILE_PATH, language=self.language, **self.kwargs)
         return self._prompt_handler
-    
+
     @abstractmethod
     def init_model(self):
         pass
@@ -38,7 +40,7 @@ class PromptOptimizationWithFeedback(ABC):
     @abstractmethod
     def run(self):
         pass
-    
+
     @abstractmethod
     def step(self):
         pass
@@ -47,6 +49,7 @@ class PromptOptimizationWithFeedback(ABC):
     def extract_best_prompt(self):
         pass
 
+
 class DemonstrationAugmentation(ABC):
     """
     Base Abstract Class for Prompt Optimization with Feedback
@@ -54,7 +57,7 @@ class DemonstrationAugmentation(ABC):
 
     def __init__(self):
         pass
-    
+
     @abstractmethod
     def init_model(self):
         pass
@@ -70,6 +73,3 @@ class DemonstrationAugmentation(ABC):
     @abstractmethod
     def run(self):
         pass
-
-    
-    

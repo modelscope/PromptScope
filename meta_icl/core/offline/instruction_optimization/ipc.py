@@ -1,19 +1,19 @@
-from pathlib import Path
-import pickle
-import os
 import json
+import os
+import pickle
 # import wandb
 import random
-from typing import Union, List
+from pathlib import Path
+from typing import List
 
-from meta_icl.core.evaluation.evaluator import Eval
-from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPCGeneration
 from loguru import logger
-from meta_icl.core.utils.utils import load_yaml
-from meta_icl.core.utils.prompt_handler import PromptHandler
-from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
+
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
+from meta_icl.core.evaluation.evaluator import Eval
+from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
+from meta_icl.core.offline.demonstration_augmentation.ipc_aug import IPCGeneration
+
 
 class IPCOptimization(PromptOptimizationWithFeedback):
     """
@@ -24,7 +24,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
     """
     FILE_PATH: str = __file__
 
-    def __init__(self, language = "cn", **kwargs):
+    def __init__(self, language="cn", **kwargs):
         """
         Initializes the IPC Optimization instance with necessary configurations, model setup, 
         and initializes key attributes used throughout the iterative prompt refinement process.
@@ -40,15 +40,14 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         super().__init__(language=language, **kwargs)
 
         self.init_config()  # ⭐ Initialize the configuration for optimization
-        self.init_model()   # ⭐ Set up the model used in the optimization process
+        self.init_model()  # ⭐ Set up the model used in the optimization process
         self.patient: int = 0  # Patience counter for optimization steps
         self.samples: List[str] = None  # Placeholder for generated sample texts
         self.cur_step: int = 0  # Tracks the current step in the iterative process
         self.cur_prompt: str = self.task_config.instruction  # Initial prompt instruction
+        # todo: by jm, eval module is only used in ipc optimization?
         self.eval = Eval(FILE_PATH=self.FILE_PATH)  # Instantiate evaluation module with file path
 
-
-        
     def init_model(self):
         """
         Initializes the language models required for the IPC_Optimization process.
@@ -66,7 +65,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             self.generation_llm = OpenAIGenerationModel(**self.model_config.generation)
         elif generation_module_name == 'openai_post':
             self.generation_llm = OpenAIPostModel(**self.model_config.generation)
-            
+
         predictor_module_name = self.model_config.predictor.get('module_name')
         if predictor_module_name == 'dashscope_generation':
             self.predictor_llm = GenerationModel(**self.model_config.predictor)
@@ -122,7 +121,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
                 break
         final_result = self.extract_best_prompt()
         return final_result
-    
+
     def step(self, **kwargs):
         """
         Executes the main iteration step of the IPC optimization process. This involves generating or processing samples,
@@ -146,7 +145,8 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         if not hasattr(kwargs, 'data'):
             if not self.samples:
                 logger.info('Dataset is empty generating initial samples')
-                prompt_input = {'task_description': self.task_config.task_description, 'instruction': self.cur_prompt, 'batch_size': self.task_config.batch_size}
+                prompt_input = {'task_description': self.task_config.task_description, 'instruction': self.cur_prompt,
+                                'batch_size': self.task_config.batch_size}
                 generate_prompt = getattr(self.prompt_handler, prompt_type).format_map(prompt_input)
                 self.samples = self.generate(prompt=generate_prompt)
             else:
@@ -160,21 +160,25 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         if kwargs.get('mode', '') == 'generation':
             logger.info('Calculating Score and Error Analysis')
             self.eval.init_config()
-            eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm(samples=[sample[-1] for sample in samples], prompt_handler=self.prompt_handler)
+            eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm(
+                samples=[sample[-1] for sample in samples], prompt_handler=self.prompt_handler)
         else:
+            # todo: by zy, i have checked the prompt used in annotator and predictor, which are almost the same.
+            #  If we set the same llm for annotator and predictor, I am little confused by this evaluation.
             logger.info('Running annotator')
             annotations = self.annotate([sample[1].strip() if len(sample) > 1 else '' for sample in samples])
             logger.info('Running predictor')
             predictions = self.predict([sample[1].strip() if len(sample) > 1 else '' for sample in samples])
             logger.info('Calculating Score and Error Analysis')
-            eval_kwargs['score'], eval_kwargs['corrects'], eval_kwargs['errors'], eval_kwargs['conf_matrix'] = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
+            eval_kwargs['score'], eval_kwargs['corrects'], eval_kwargs['errors'], eval_kwargs[
+                'conf_matrix'] = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
         self.eval.error_analysis(prompt_handler=self.prompt_handler, **eval_kwargs)
         logger.info('Updating Prompt')
         self.update_cur_prompt(mode)
         if self.stop_criteria():
             logger.info('Stop criteria reached')
             return True
-        self.save_state(mode)     
+        self.save_state(mode)
         self.cur_step += 1
         return False
 
@@ -195,11 +199,14 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         list[dict]: A list of dictionaries. Each dictionary contains keys 'ID', '问题' (Question), 
                     and '标注' (Annotation), representing the annotated data.
         """
-        samples_batches = [samples[i:i + self.task_config.batch_size] for i in range(0, len(samples), self.task_config.batch_size)]
+        samples_batches = [samples[i:i + self.task_config.batch_size] for i in
+                           range(0, len(samples), self.task_config.batch_size)]
         batch, annotations = 0, []
         for sample_batch in samples_batches:
             sample_str = "|".join(sample_batch)
-            annotate_prompt = self.prompt_handler.annotate.format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
+            annotate_prompt = self.prompt_handler.annotate.format(samples=sample_str,
+                                                                  instruction=self.task_config.instruction,
+                                                                  batch_size=self.task_config.batch_size)
             # print('#############\n', annotate_prompt, '################\n')
             response = self.annotator_llm.call(prompt=annotate_prompt)
             try:
@@ -207,11 +214,12 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             except:
                 response_list = [item for item in response.output.text.split("||") if item]
             # print('#############\n', response_list, '################\n')
-            annotations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "标注": lines[-1]} for lines in (sample.split('|') for sample in response_list if sample)])
+            annotations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "标注": lines[-1]} for lines in
+                                (sample.split('|') for sample in response_list if sample)])
             batch += 1
         logger.info(annotations)
         return annotations
-    
+
     def predict(self, samples: list[str]):
         """
         Generates predictions for a list of samples by dividing them into batches,
@@ -225,11 +233,14 @@ class IPCOptimization(PromptOptimizationWithFeedback):
                         for a processed sample.
         """
         # Divide samples into batches based on the configured batch size
-        samples_batches = [samples[i:i + self.task_config.batch_size] for i in range(0, len(samples), self.task_config.batch_size)]
+        samples_batches = [samples[i:i + self.task_config.batch_size] for i in
+                           range(0, len(samples), self.task_config.batch_size)]
         batch, predictions = 0, []
         for sample_batch in samples_batches:
             sample_str = "|".join(sample_batch)
-            prediction_prompt = self.prompt_handler.predict.format(samples=sample_str, instruction=self.task_config.instruction, batch_size=self.task_config.batch_size)
+            prediction_prompt = self.prompt_handler.predict.format(samples=sample_str,
+                                                                   instruction=self.task_config.instruction,
+                                                                   batch_size=self.task_config.batch_size)
             # print('#############\n', prediction_prompt, '################\n')
             response = self.predictor_llm.call(prompt=prediction_prompt)
             try:
@@ -237,7 +248,8 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             except:
                 response_list = [item for item in response.output.text.split("||") if item]
             # print('#############\n', response_list, '################\n')
-            predictions.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "预测": lines[-1]} for lines in (sample.split('|') for sample in response_list if sample)])
+            predictions.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "预测": lines[-1]} for lines in
+                                (sample.split('|') for sample in response_list if sample)])
             batch += 1
         logger.info(predictions)
         return predictions
@@ -259,7 +271,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             self.eval.history[min(self.task_config.warmup - 1, len(self.eval.history) - 1):],
             key=lambda x: x['score'],
             reverse=False)
-        
+
         # Return the prompt and score of the entry with the best score
         return {'prompt': sorted_history[-1]['prompt'], 'score': sorted_history[-1]['score']}
 
@@ -309,7 +321,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
         logger.info(f'Get new prompt:\n{prompt_suggestion}')
         self.cur_prompt = prompt_suggestion
-    
+
     def generate(self, prompt: str):
         """
         Generates a list of samples based on the given prompt using the configured language model.
@@ -324,7 +336,8 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             List[str]: A list of generated samples, each a possible variation or response to the input prompt.
         """
         batch_input = prompt
-        batch_inputs = IPCGeneration.generate_samples_batch(batch_input, self.task_config.samples_per_step, self.task_config.batch_size)
+        batch_inputs = IPCGeneration.generate_samples_batch(batch_input, self.task_config.samples_per_step,
+                                                            self.task_config.batch_size)
         samples_batches = IPCGeneration.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
         try:
             samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
@@ -333,7 +346,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
         logger.info(samples_list)
         return samples_list
-    
+
     def step_generate(self):
         """
         Generates new samples based on updated prompts, incorporating extra samples and historical data when available.
@@ -360,16 +373,17 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         and the actual generation process, which are not shown here.
         """
         if len(self.samples) < self.task_config.max_samples:
-            prompt_input = {'task_description': self.task_config.task_description, 'prompt': self.cur_prompt, 'batch_size': self.task_config.batch_size}
+            prompt_input = {'task_description': self.task_config.task_description, 'prompt': self.cur_prompt,
+                            'batch_size': self.task_config.batch_size}
             random.shuffle(self.samples)
             txt_res = '##\n'
             for sample in self.samples[:self.task_config.num_extra_sample]:
                 txt_res += f"Sample:\n {sample}\n#\n"
             prompt_input['extra_samples'] = txt_res
-            if all([all(len(error_label) == 0 for error_label in t['errors']) for t in self.last_history]): 
+            if all([all(len(error_label) == 0 for error_label in t['errors']) for t in self.last_history]):
                 history_samples = '\n'.join([self.eval.sample_to_text(sample,
-                                                                 num_errors_per_label=self.task_config.num_errors_per_label,
-                                                                 is_score=False) for sample in self.last_history])
+                                                                      num_errors_per_label=self.task_config.num_errors_per_label,
+                                                                      is_score=False) for sample in self.last_history])
                 prompt_input['history'] = history_samples
             else:
                 prompt_input['history'] = 'No previous errors information'
@@ -377,7 +391,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             new_samples = self.generate(prompt=generate_prompt)
             self.samples.extend(new_samples)
             logger.info(self.samples)
-    
+
     def stop_criteria(self):
         """
         Determines if the optimization process should stop based on predefined criteria.
@@ -394,7 +408,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         if len(self.eval.history) <= self.task_config.warmup:
             self.patient = 0
             return False
-        
+
         if len(self.eval.history) == 1:
             max_score = 0
         else:
@@ -495,6 +509,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         prompt_input = {'task_description': self.task_config.task_description}
         description_mod_prompt = self.prompt_handler.ipc_ranker_description_mod.format_map(prompt_input)
 
+        # todo: by zy, unify the llm call interface.
         try:
             mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).message.content
             mod_description = self.generation_llm.call(prompt=description_mod_prompt).message.content

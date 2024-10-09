@@ -1,9 +1,12 @@
-from optimization_pipeline import IPC
-from meta_icl.core.utils.ipc_config import modify_input_for_ranker, validate_generation_config, override_config
 import argparse
 import os
+
+from meta_icl.core.utils.ipc_config import modify_input_for_ranker, override_config
+
 from meta_icl.core.offline.specialized_prompt.utils import prompt_rewrite, prompt_evaluation, generate_query
-import json
+from optimization_pipeline import IPC
+
+
 # General Training Parameters
 
 def main():
@@ -28,7 +31,6 @@ def main():
     ranker_config_path = os.path.join(basic_config_path, f'ipc_rank_{opt.language.lower()}.yml')
     basic_config_path = os.path.join(basic_config_path, f'ipc_default_{opt.language.lower()}.yml')
 
-
     ranker_config_params = override_config(ranker_config_path, config_file=basic_config_path)
 
     if opt.task_description == '':
@@ -48,7 +50,7 @@ def main():
 
     if (ranker_pipeline.cur_prompt is None) or (ranker_pipeline.task_description is None):
         ranker_mod_prompt, ranker_mod_task_desc = modify_input_for_ranker(ranker_config_params, task_description,
-                                                                        initial_prompt)
+                                                                          initial_prompt)
         ranker_pipeline.cur_prompt = ranker_mod_prompt
         ranker_pipeline.task_description = ranker_mod_task_desc
 
@@ -65,6 +67,7 @@ def main():
     print("Saving")
     with open('results.txt', 'a+') as f:
         f.write(f'{evaluation}\n')
+
 
 if __name__ == '__main__':
     main()

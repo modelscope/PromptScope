@@ -130,7 +130,8 @@ MULTILINGUAL_QUESTION_DELIMITER = {
         'Q':
             '\u0e42\u0e08\u0e17\u0e22\u0e4c: ',
         'A':
-            '\u0e04\u0e33\u0e15\u0e2d\u0e1a\u0e17\u0e35\u0e25\u0e30\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19: ',  # pylint: disable=g-line-too-long
+            '\u0e04\u0e33\u0e15\u0e2d\u0e1a\u0e17\u0e35\u0e25\u0e30\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19: ',
+        # pylint: disable=g-line-too-long
         'Direct A':
             '\u0e04\u0e33\u0e15\u0e2d\u0e1a\u0e17\u0e35: ',
     },
@@ -142,47 +143,47 @@ MULTILINGUAL_QUESTION_DELIMITER = {
 }
 initial_keys = list(MULTILINGUAL_QUESTION_DELIMITER.keys())
 for language in initial_keys:
-  if language == 'en':
-    continue
-  MULTILINGUAL_QUESTION_DELIMITER[f'{language}-en'] = (
-      MULTILINGUAL_QUESTION_DELIMITER['en']
-  )
+    if language == 'en':
+        continue
+    MULTILINGUAL_QUESTION_DELIMITER[f'{language}-en'] = (
+        MULTILINGUAL_QUESTION_DELIMITER['en']
+    )
 
 LANGUAGES = list(MULTILINGUAL_QUESTION_DELIMITER.keys())
 NEXT_QUESTION_DELIMITERS = [
-    d['Q'] for d in MULTILINGUAL_QUESTION_DELIMITER.values()
-] + ['Q:']
+                               d['Q'] for d in MULTILINGUAL_QUESTION_DELIMITER.values()
+                           ] + ['Q:']
 
 
 def _is_float(s):
-  try:
-    float(s)
-    return True
-  except ValueError:
-    return False
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 
 def remove_punctuation_from_string(input_string):
-  output_string = input_string.translate(
-      str.maketrans('', '', string.punctuation)
-  )
-  return output_string
+    output_string = input_string.translate(
+        str.maketrans('', '', string.punctuation)
+    )
+    return output_string
 
 
 def _extract_bracketed_choice_from_string(prediction):
-  """Extract bracketed ABCD...XYZ choices there's exactly one bracketed choice.
+    """Extract bracketed ABCD...XYZ choices there's exactly one bracketed choice.
 
-  Args:
-    prediction (str): the unprocessed prediction.
+    Args:
+      prediction (str): the unprocessed prediction.
 
-  Returns:
-    prediction (str): the processed prediction.
-  """
-  prediction = prediction.lower()
-  choice_in_pred_all = [item in prediction for item in bracketed_letters_list]
-  if sum(choice_in_pred_all) == 1:
-    prediction = re.findall(r'\(.*?\)', prediction)[0]
-  return prediction
+    Returns:
+      prediction (str): the processed prediction.
+    """
+    prediction = prediction.lower()
+    choice_in_pred_all = [item in prediction for item in bracketed_letters_list]
+    if sum(choice_in_pred_all) == 1:
+        prediction = re.findall(r'\(.*?\)', prediction)[0]
+    return prediction
 
 
 def get_normalized_prediction(prediction: str,
@@ -190,304 +191,304 @@ def get_normalized_prediction(prediction: str,
                               treat_as_number: bool,
                               num_decimals: int = 0,
                               treat_as_bool: bool = False) -> str:
-  """Returns a normalized prediction for use in `number_included_accuracy`.
+    """Returns a normalized prediction for use in `number_included_accuracy`.
 
-  Args:
-    prediction: The original model prediction.
-    treat_as_number: Whether to treat the prediction as a number (and perform
-      additional post-processing relevant to numbers, such as stripping of units
-      or normalization of thousand separators, etc.).
-    num_decimals: Number of decimal places to which to round the answer. Only
-      applicable when treat_as_number==True.
-    treat_as_bool: Whether to treat the prediction as a Boolean object. Only set
-      it to True when the target is Boolean. The parser will then convert an 0/1
-      answer to False/True.
+    Args:
+      prediction: The original model prediction.
+      treat_as_number: Whether to treat the prediction as a number (and perform
+        additional post-processing relevant to numbers, such as stripping of units
+        or normalization of thousand separators, etc.).
+      num_decimals: Number of decimal places to which to round the answer. Only
+        applicable when treat_as_number==True.
+      treat_as_bool: Whether to treat the prediction as a Boolean object. Only set
+        it to True when the target is Boolean. The parser will then convert an 0/1
+        answer to False/True.
 
-  Returns:
-    A normalized answer string that can be directly compared with the normalized
-    golden answer in order to determine the `number_included_accuracy`.
-  """
-  prediction_parsed = prediction.lower().strip()
-  FINAL_ANSWER_BEHIND_PATTERNS = (  # pylint: disable=invalid-name
-      FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY  # pylint: disable=g-long-ternary
-      if any(
-          [item in prediction for item in FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY]
-      )
-      else FINAL_ANSWER_BEHIND_PATTERNS_SECONDARY
-  )
-  DELIMITERS_FOR_ANSWER_BEHIND = (  # pylint: disable=invalid-name
-      [d['A'] for d in MULTILINGUAL_QUESTION_DELIMITER.values()]
-      + [GSM8K_ANSWER]
-      + FINAL_ANSWER_BEHIND_PATTERNS
-  )
-  DELIMITERS_FOR_ANSWER_AHEAD = FINAL_ANSWER_AHEAD_PATTERNS   # pylint: disable=invalid-name
+    Returns:
+      A normalized answer string that can be directly compared with the normalized
+      golden answer in order to determine the `number_included_accuracy`.
+    """
+    prediction_parsed = prediction.lower().strip()
+    FINAL_ANSWER_BEHIND_PATTERNS = (  # pylint: disable=invalid-name
+        FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY  # pylint: disable=g-long-ternary
+        if any(
+            [item in prediction for item in FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY]
+        )
+        else FINAL_ANSWER_BEHIND_PATTERNS_SECONDARY
+    )
+    DELIMITERS_FOR_ANSWER_BEHIND = (  # pylint: disable=invalid-name
+            [d['A'] for d in MULTILINGUAL_QUESTION_DELIMITER.values()]
+            + [GSM8K_ANSWER]
+            + FINAL_ANSWER_BEHIND_PATTERNS
+    )
+    DELIMITERS_FOR_ANSWER_AHEAD = FINAL_ANSWER_AHEAD_PATTERNS  # pylint: disable=invalid-name
 
-  # If the model tries to keep generating a new question, remove that additional
-  # text.
-  for next_question_delimiter in NEXT_QUESTION_DELIMITERS:
-    prediction_parsed = prediction_parsed.split(
-        next_question_delimiter.strip().lower()
-    )[0]
+    # If the model tries to keep generating a new question, remove that additional
+    # text.
+    for next_question_delimiter in NEXT_QUESTION_DELIMITERS:
+        prediction_parsed = prediction_parsed.split(
+            next_question_delimiter.strip().lower()
+        )[0]
 
-  answer_indicated = False
-  for answer_delimiter in DELIMITERS_FOR_ANSWER_BEHIND:
-    if answer_delimiter.lower() in prediction_parsed:
-      prediction_parsed = prediction_parsed.split(answer_delimiter.lower())[-1]
-      answer_indicated = True
+    answer_indicated = False
+    for answer_delimiter in DELIMITERS_FOR_ANSWER_BEHIND:
+        if answer_delimiter.lower() in prediction_parsed:
+            prediction_parsed = prediction_parsed.split(answer_delimiter.lower())[-1]
+            answer_indicated = True
 
-  for answer_delimiter in DELIMITERS_FOR_ANSWER_AHEAD:
-    if answer_delimiter.lower() in prediction_parsed:
-      prediction_parsed = prediction_parsed.split(answer_delimiter.lower())[0]
-      answer_indicated = True
+    for answer_delimiter in DELIMITERS_FOR_ANSWER_AHEAD:
+        if answer_delimiter.lower() in prediction_parsed:
+            prediction_parsed = prediction_parsed.split(answer_delimiter.lower())[0]
+            answer_indicated = True
 
-  prediction_parsed = prediction_parsed.strip()
-
-  # Specific handling for a case that appears in one of the chain-of-thought
-  # ablation experiments, where the rationale comes after final answer.
-  prediction_parsed = prediction_parsed.split('this is the solution:')[0]
-
-  # Remove trailing period.
-  while prediction_parsed and prediction_parsed.endswith('.'):
-    prediction_parsed = prediction_parsed[:-1]
-
-  # Hacky fix for byte strings.
-  while prediction_parsed and prediction_parsed.endswith('\''):
-    prediction_parsed = prediction_parsed[:-1]
-
-  # extract the bracketed choices: "(A) apple" -> "(a)"
-  prediction_parsed = _extract_bracketed_choice_from_string(prediction_parsed)
-
-  def _parse_without_treating_as_number(prediction_parsed):
-    prediction_parsed = prediction_parsed.split('.')[0]
-    return prediction_parsed
-
-  def _parse_with_treating_as_number(prediction_parsed):
-    prediction_parsed = prediction_parsed.split('=')[-1]
-    for c in ['$', ',', '%', '€', '£']:
-      prediction_parsed = prediction_parsed.replace(c, '')
-    prediction_parsed = prediction_parsed.split(':')[0]
     prediction_parsed = prediction_parsed.strip()
 
-    # 'eight' -> '8'.
-    for word, num in _WORD_TO_NUM.items():
-      if word in prediction_parsed:
-        prediction_parsed = prediction_parsed.replace(word, str(num))
+    # Specific handling for a case that appears in one of the chain-of-thought
+    # ablation experiments, where the rationale comes after final answer.
+    prediction_parsed = prediction_parsed.split('this is the solution:')[0]
 
-    corrected_answer = False
-
-    if not corrected_answer:  # If no calculator errors were made.
-      # '5600 pounds' -> '5600'; 'the 6th' -> '6'.
-      if answer_indicated:
-        # Take the first token that has numerical values.
-        parts = prediction_parsed.split(' ')
-      else:
-        # Take the last token that has numerical values.
-        parts = list(reversed(prediction_parsed.split(' ')))
-
-      prediction_parsed = parts[0]  # Default
-      for part in parts:
-        if not part.isalpha():  # Filter out non-alphabetic tokens.
-          prediction_parsed = part
-          break
-
-      # '156kgs' -> 156. '823-yard' -> 823.
-      while prediction_parsed and prediction_parsed[-1].isalpha():
-        prediction_parsed = prediction_parsed[:-1]
-      if prediction_parsed and prediction_parsed[-1] == '-':
+    # Remove trailing period.
+    while prediction_parsed and prediction_parsed.endswith('.'):
         prediction_parsed = prediction_parsed[:-1]
 
-    if _is_float(prediction_parsed):
-      prediction_parsed_float = round(float(prediction_parsed), num_decimals)
-      prediction_parsed = '{:.{num_decimals}f}'.format(
-          prediction_parsed_float, num_decimals=num_decimals)
+    # Hacky fix for byte strings.
+    while prediction_parsed and prediction_parsed.endswith('\''):
+        prediction_parsed = prediction_parsed[:-1]
+
+    # extract the bracketed choices: "(A) apple" -> "(a)"
+    prediction_parsed = _extract_bracketed_choice_from_string(prediction_parsed)
+
+    def _parse_without_treating_as_number(prediction_parsed):
+        prediction_parsed = prediction_parsed.split('.')[0]
+        return prediction_parsed
+
+    def _parse_with_treating_as_number(prediction_parsed):
+        prediction_parsed = prediction_parsed.split('=')[-1]
+        for c in ['$', ',', '%', '€', '£']:
+            prediction_parsed = prediction_parsed.replace(c, '')
+        prediction_parsed = prediction_parsed.split(':')[0]
+        prediction_parsed = prediction_parsed.strip()
+
+        # 'eight' -> '8'.
+        for word, num in _WORD_TO_NUM.items():
+            if word in prediction_parsed:
+                prediction_parsed = prediction_parsed.replace(word, str(num))
+
+        corrected_answer = False
+
+        if not corrected_answer:  # If no calculator errors were made.
+            # '5600 pounds' -> '5600'; 'the 6th' -> '6'.
+            if answer_indicated:
+                # Take the first token that has numerical values.
+                parts = prediction_parsed.split(' ')
+            else:
+                # Take the last token that has numerical values.
+                parts = list(reversed(prediction_parsed.split(' ')))
+
+            prediction_parsed = parts[0]  # Default
+            for part in parts:
+                if not part.isalpha():  # Filter out non-alphabetic tokens.
+                    prediction_parsed = part
+                    break
+
+            # '156kgs' -> 156. '823-yard' -> 823.
+            while prediction_parsed and prediction_parsed[-1].isalpha():
+                prediction_parsed = prediction_parsed[:-1]
+            if prediction_parsed and prediction_parsed[-1] == '-':
+                prediction_parsed = prediction_parsed[:-1]
+
+        if _is_float(prediction_parsed):
+            prediction_parsed_float = round(float(prediction_parsed), num_decimals)
+            prediction_parsed = '{:.{num_decimals}f}'.format(
+                prediction_parsed_float, num_decimals=num_decimals)
+        else:
+            if re.search(r'(\d+)(?!.*\d)', prediction_parsed):
+                prediction_parsed = re.search(r'(\d+)(?!.*\d)', prediction_parsed)[0]
+        return prediction_parsed
+
+    # If not expecting a Boolean result
+    if not treat_as_bool:
+        # If not expecting a number, then return the extracted answer as-is.
+        if not treat_as_number:
+            # String predictions may try to continue the sentence.
+            prediction_parsed = _parse_without_treating_as_number(prediction_parsed)
+
+        else:  # If expecting a number, do post-processing.
+            prediction_parsed = _parse_with_treating_as_number(prediction_parsed)
     else:
-      if re.search(r'(\d+)(?!.*\d)', prediction_parsed):
-        prediction_parsed = re.search(r'(\d+)(?!.*\d)', prediction_parsed)[0]
+        prediction_parsed_as_not_number = _parse_without_treating_as_number(
+            prediction_parsed
+        )
+        prediction_parsed_as_number = _parse_with_treating_as_number(
+            prediction_parsed
+        )
+        if not any(
+                [prediction_parsed_as_not_number in item for item in BOOLEAN_SYMBOLS]
+        ):
+            if prediction_parsed_as_number in {'0', '1'}:
+                prediction_parsed = str(bool(int(prediction_parsed_as_number))).lower()
+            if prediction_parsed_as_not_number in {'0', '1'}:
+                prediction_parsed = str(
+                    bool(int(prediction_parsed_as_not_number))
+                ).lower()
+        else:
+            prediction_parsed = prediction_parsed_as_not_number
+        # remove punctuations like ":" and then strip
+        prediction_parsed = remove_punctuation_from_string(
+            prediction_parsed
+        ).strip()
+
     return prediction_parsed
-
-  # If not expecting a Boolean result
-  if not treat_as_bool:
-    # If not expecting a number, then return the extracted answer as-is.
-    if not treat_as_number:
-      # String predictions may try to continue the sentence.
-      prediction_parsed = _parse_without_treating_as_number(prediction_parsed)
-
-    else:  # If expecting a number, do post-processing.
-      prediction_parsed = _parse_with_treating_as_number(prediction_parsed)
-  else:
-    prediction_parsed_as_not_number = _parse_without_treating_as_number(
-        prediction_parsed
-    )
-    prediction_parsed_as_number = _parse_with_treating_as_number(
-        prediction_parsed
-    )
-    if not any(
-        [prediction_parsed_as_not_number in item for item in BOOLEAN_SYMBOLS]
-    ):
-      if prediction_parsed_as_number in {'0', '1'}:
-        prediction_parsed = str(bool(int(prediction_parsed_as_number))).lower()
-      if prediction_parsed_as_not_number in {'0', '1'}:
-        prediction_parsed = str(
-            bool(int(prediction_parsed_as_not_number))
-        ).lower()
-    else:
-      prediction_parsed = prediction_parsed_as_not_number
-    # remove punctuations like ":" and then strip
-    prediction_parsed = remove_punctuation_from_string(
-        prediction_parsed
-    ).strip()
-
-  return prediction_parsed
 
 
 @dataclasses.dataclass
 class NormalizationResult:
-  """Bundle of return values of get_normalized_target_and_prediction.
+    """Bundle of return values of get_normalized_target_and_prediction.
 
-  Attributes:
-    target: Normalized target string, suitable for direct comparison with the
-      normalized prediction.
-    prediction: Normalized prediction string, suitable for direct comparison
-      with the normalized target.
-    treat_as_number: Whether it was determined to treat the prediction as a
-      number (and perform additional post-processing relevant to numbers, such
-      as stripping of units or normalization of thousand separators, etc.).
-    num_decimals: Number of decimal places to which it was determined to round
-      the answer. Only relevant when treat_as_number==True.
-  """
-  target: str
-  prediction: str
-  treat_as_number: bool
-  num_decimals: int
+    Attributes:
+      target: Normalized target string, suitable for direct comparison with the
+        normalized prediction.
+      prediction: Normalized prediction string, suitable for direct comparison
+        with the normalized target.
+      treat_as_number: Whether it was determined to treat the prediction as a
+        number (and perform additional post-processing relevant to numbers, such
+        as stripping of units or normalization of thousand separators, etc.).
+      num_decimals: Number of decimal places to which it was determined to round
+        the answer. Only relevant when treat_as_number==True.
+    """
+    target: str
+    prediction: str
+    treat_as_number: bool
+    num_decimals: int
 
 
 def get_normalized_target_and_prediction(
-    target: str,
-    prediction: str
-    ) -> NormalizationResult:
-  """Returns a normalized target and prediction for `number_included_accuracy`.
+        target: str,
+        prediction: str
+) -> NormalizationResult:
+    """Returns a normalized target and prediction for `number_included_accuracy`.
 
-  Args:
-    target: Target (i.e., golden answer). The function will automatically
-      perform light normalization on the target, such as stripping off any
-      answer indication prefixes like "The answer is".
-    prediction: Original model prediction. The function will automatically
-      normalize the prediction by stripping off trailing punctuation and any
-      answer indication prefixes like "The answer is". If the target is numeric,
-      will further strip units and round to the same precision as the target.
+    Args:
+      target: Target (i.e., golden answer). The function will automatically
+        perform light normalization on the target, such as stripping off any
+        answer indication prefixes like "The answer is".
+      prediction: Original model prediction. The function will automatically
+        normalize the prediction by stripping off trailing punctuation and any
+        answer indication prefixes like "The answer is". If the target is numeric,
+        will further strip units and round to the same precision as the target.
 
-  Returns:
-    The normalized target and prediction, along with related information
-    indicating the types of normalization that were performed.
-  """
+    Returns:
+      The normalized target and prediction, along with related information
+      indicating the types of normalization that were performed.
+    """
 
-  def _any_list_item_in_string(test_list, test_string):
-    return any(item in test_string for item in test_list)
+    def _any_list_item_in_string(test_list, test_string):
+        return any(item in test_string for item in test_list)
 
-  primary_after_patterns_in_target = _any_list_item_in_string(
-      FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY, target
-  )
-  secondary_after_patterns_in_target = _any_list_item_in_string(
-      FINAL_ANSWER_BEHIND_PATTERNS_SECONDARY, target
-  )
-  target = target.lower()
-  if (
-      primary_after_patterns_in_target
-      or (
-          secondary_after_patterns_in_target
-          and not primary_after_patterns_in_target
-      )
-      or _any_list_item_in_string(FINAL_ANSWER_AHEAD_PATTERNS, target)
-      or GSM8K_ANSWER in target
-  ):
-    if primary_after_patterns_in_target:
-      target = re.split(
-          r'|'.join(FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY), target
-      )[-1]
-    elif (
-        secondary_after_patterns_in_target
-        and not primary_after_patterns_in_target
-    ):
-      target = re.split(
-          r'|'.join(FINAL_ANSWER_BEHIND_PATTERNS_SECONDARY), target
-      )[-1]
-    target = re.split(r'|'.join(FINAL_ANSWER_AHEAD_PATTERNS), target)[0]
-    target = target.split(GSM8K_ANSWER)[-1]
+    primary_after_patterns_in_target = _any_list_item_in_string(
+        FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY, target
+    )
+    secondary_after_patterns_in_target = _any_list_item_in_string(
+        FINAL_ANSWER_BEHIND_PATTERNS_SECONDARY, target
+    )
+    target = target.lower()
     if (
-        target
-        and target[-1] in [';', ',', '.']
-        and _is_float(target[:-1])
+            primary_after_patterns_in_target
+            or (
+            secondary_after_patterns_in_target
+            and not primary_after_patterns_in_target
+    )
+            or _any_list_item_in_string(FINAL_ANSWER_AHEAD_PATTERNS, target)
+            or GSM8K_ANSWER in target
     ):
-      target = target[:-1]
+        if primary_after_patterns_in_target:
+            target = re.split(
+                r'|'.join(FINAL_ANSWER_BEHIND_PATTERNS_PRIMARY), target
+            )[-1]
+        elif (
+                secondary_after_patterns_in_target
+                and not primary_after_patterns_in_target
+        ):
+            target = re.split(
+                r'|'.join(FINAL_ANSWER_BEHIND_PATTERNS_SECONDARY), target
+            )[-1]
+        target = re.split(r'|'.join(FINAL_ANSWER_AHEAD_PATTERNS), target)[0]
+        target = target.split(GSM8K_ANSWER)[-1]
+        if (
+                target
+                and target[-1] in [';', ',', '.']
+                and _is_float(target[:-1])
+        ):
+            target = target[:-1]
 
-  treat_as_number = _is_float(target)
-  if treat_as_number and '.' in target:
-    num_decimals = len(target.split('.')[-1])
-  else:
-    num_decimals = 0
+    treat_as_number = _is_float(target)
+    if treat_as_number and '.' in target:
+        num_decimals = len(target.split('.')[-1])
+    else:
+        num_decimals = 0
 
-  normalized_prediction = get_normalized_prediction(
-      prediction,
-      treat_as_number=treat_as_number,
-      num_decimals=num_decimals)
+    normalized_prediction = get_normalized_prediction(
+        prediction,
+        treat_as_number=treat_as_number,
+        num_decimals=num_decimals)
 
-  return NormalizationResult(
-      target=target,
-      prediction=normalized_prediction,
-      treat_as_number=treat_as_number,
-      num_decimals=num_decimals)
+    return NormalizationResult(
+        target=target,
+        prediction=normalized_prediction,
+        treat_as_number=treat_as_number,
+        num_decimals=num_decimals)
 
 
 def number_included_accuracy_list(
-    targets: Sequence[str],
-    predictions: Sequence[str],
+        targets: Sequence[str],
+        predictions: Sequence[str],
 ) -> List[bool]:
-  """Returns a list of booleans for if the target is anywhere in the prediction.
+    """Returns a list of booleans for if the target is anywhere in the prediction.
 
-  Args:
-    targets: Targets (i.e., golden answers).
-    predictions: Original model predictions (before normalization).
-  """
+    Args:
+      targets: Targets (i.e., golden answers).
+      predictions: Original model predictions (before normalization).
+    """
 
-  correct_list = []
-  for prediction, target in zip(predictions, targets):
-    normalization_result = get_normalized_target_and_prediction(
-        target=target, prediction=prediction)
+    correct_list = []
+    for prediction, target in zip(predictions, targets):
+        normalization_result = get_normalized_target_and_prediction(
+            target=target, prediction=prediction)
 
-    # If answer is not a number, then look for exact match.
-    if not normalization_result.treat_as_number:
-      correct_list.append(
-          normalization_result.target == normalization_result.prediction)
+        # If answer is not a number, then look for exact match.
+        if not normalization_result.treat_as_number:
+            correct_list.append(
+                normalization_result.target == normalization_result.prediction)
 
-    else:  # If the target is a number, then compare numerically.
-      correct = False  # pylint: disable=unused-variable
-      try:
-        prediction_parsed_float = round(
-            float(normalization_result.prediction),
-            normalization_result.num_decimals)
-        correct = (
-            abs(prediction_parsed_float - float(normalization_result.target)) <=
-            1e-5)
-      except ValueError:
-        correct = False
-      except IndexError:
-        correct = False
-      correct_list.append(correct)
-  return correct_list
+        else:  # If the target is a number, then compare numerically.
+            correct = False  # pylint: disable=unused-variable
+            try:
+                prediction_parsed_float = round(
+                    float(normalization_result.prediction),
+                    normalization_result.num_decimals)
+                correct = (
+                        abs(prediction_parsed_float - float(normalization_result.target)) <=
+                        1e-5)
+            except ValueError:
+                correct = False
+            except IndexError:
+                correct = False
+            correct_list.append(correct)
+    return correct_list
 
 
 def number_included_accuracy(targets: Sequence[str],
                              predictions: Sequence[str]) -> Dict[str, float]:
-  """Special accuracy for if the target is anywhere in the prediction."""
+    """Special accuracy for if the target is anywhere in the prediction."""
 
-  correct_list = number_included_accuracy_list(targets, predictions)
+    correct_list = number_included_accuracy_list(targets, predictions)
 
-  correct_list_with_calc = number_included_accuracy_list(
-      targets, predictions)
+    correct_list_with_calc = number_included_accuracy_list(
+        targets, predictions)
 
-  return {
-      'accuracy':
-          sum(correct_list) / len(correct_list) * 100,
-      'accuracy_with_calc':
-          sum(correct_list_with_calc) / len(correct_list_with_calc) * 100
-  }
+    return {
+        'accuracy':
+            sum(correct_list) / len(correct_list) * 100,
+        'accuracy_with_calc':
+            sum(correct_list_with_calc) / len(correct_list_with_calc) * 100
+    }

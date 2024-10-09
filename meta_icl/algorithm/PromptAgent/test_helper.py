@@ -1,23 +1,25 @@
 from tqdm import tqdm
+
+
 # from meta_icl.algorithm.PromptAgent.tasks import *
 # from meta_icl.algorithm.PromptAgent.utils import *
 
-def eval_instruction_with_loader(task, eval_prompt, base_model, dataloader,  temperature=0, record_outputs=True):
+def eval_instruction_with_loader(task, eval_prompt, base_model, dataloader, temperature=0, record_outputs=True):
     '''
         evaluate cur_prompt on task testing dataset
     '''
-    
+
     build_forward_prompts_func = task.build_forward_prompts_completion
     # batch_forward_func = base_model.batch_forward_func
     call_func = base_model.call
-    
+
     all_questions = []
     all_labels = []
     all_preds = []
     all_prompts = []
     all_responses = []
     eval_output = {}
-    
+
     pbar = tqdm(dataloader, leave=False)
     for batch in pbar:
         batch_prompts = build_forward_prompts_func(batch['question'], eval_prompt)
@@ -38,13 +40,12 @@ def eval_instruction_with_loader(task, eval_prompt, base_model, dataloader,  tem
             pbar.set_postfix_str(f"Test Metric: {metric:.4f}")
         else:
             pbar.set_postfix_str(f"Test Metrics: {metric}")
-    
+
     if record_outputs:
-        eval_output['model_inputs'] =  all_prompts
-        eval_output['model_responses'] =  all_responses
-        eval_output['preds'] =  all_preds
-        eval_output['labels'] =  all_labels
-    eval_output['correct'] =  task.cal_correct(all_preds, all_labels)    
+        eval_output['model_inputs'] = all_prompts
+        eval_output['model_responses'] = all_responses
+        eval_output['preds'] = all_preds
+        eval_output['labels'] = all_labels
+    eval_output['correct'] = task.cal_correct(all_preds, all_labels)
     metric = task.cal_metric(all_preds, all_labels, all_questions)
     return metric, eval_output
-    
