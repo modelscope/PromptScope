@@ -1,10 +1,12 @@
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class CustomFormatter(logging.Formatter):
     """Logging colored formatter, adapted from
     https://stackoverflow.com/a/56944256/3638629"""
+
     def __init__(self, fmt):
         super().__init__()
         grey = '\x1b[38;21m'

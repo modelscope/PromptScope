@@ -4,7 +4,7 @@ import unittest.mock as mock
 import dashscope
 
 from meta_icl.core.models.generation_model import GenerationModel, AioGenerationModel
-from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
+from meta_icl.core.scheme.model_response import ModelResponse
 
 class TestGenerationModel(unittest.TestCase):
     """Tests for GenerationModel"""
@@ -18,7 +18,7 @@ class TestGenerationModel(unittest.TestCase):
             "seed": 1234,
         }
         self.generation_model = GenerationModel(**config)
-        
+
     @patch("meta_icl.core.models.generation_model.GenerationModel._call")
     def test_llm_prompt(self, mock_generation_call: MagicMock):
         # Set up the mock response for a successful API call
@@ -76,7 +76,7 @@ class TestGenerationModel(unittest.TestCase):
             "total_tokens": 8,
         }
         mock_response.output.choices = [dashscope.api_entities.dashscope_response.Choice(
-            finish_reason='stop', 
+            finish_reason='stop',
             message={'role': 'assistant', 'content': 'Hello!'})]
         mock_response.output.text = ''
         mock_generation_call.return_value = mock_response
@@ -154,14 +154,14 @@ class TestAioGenerationModel(unittest.IsolatedAsyncioTestCase):
                 **{"max_tokens": 2000,
                     "top_k": 1,
                     "seed": 1234},
-                    ) 
+                    )
             for prompt in prompts
             ], any_order=True
         )
 
         with self.assertRaises(ValueError) as cm:
             await self.aio_generation_model.async_call(
-                prompts=["Hello!", "Hi!", "How are you?"], 
+                prompts=["Hello!", "Hi!", "How are you?"],
                 list_of_messages=[[{'role': 'system', 'content': 'You are a helpful assistant.'},
                 {'role': 'user', 'content': 'Hello!'}],
                 [{'role': 'system', 'content': 'You are a helpful assistant.'},
@@ -187,7 +187,7 @@ class TestAioGenerationModel(unittest.IsolatedAsyncioTestCase):
         }
         mock_response.output.text = ''
         mock_response.output.choices = [dashscope.api_entities.dashscope_response.Choice(
-            finish_reason='stop', 
+            finish_reason='stop',
             message={'role': 'assistant', 'content': 'Hello!'})]
         mock_generation_call.return_value = mock_response
         mock_generation_call.return_value = mock_response
@@ -211,14 +211,14 @@ class TestAioGenerationModel(unittest.IsolatedAsyncioTestCase):
                 **{"max_tokens": 2000,
                     "top_k": 1,
                     "seed": 1234},
-                    ) 
+                    )
             for messages in list_of_messages
             ], any_order=True
         )
 
         with self.assertRaises(ValueError) as cm:
             await self.aio_generation_model.async_call(
-                prompts=["Hello!", "Hi!", "How are you?"], 
+                prompts=["Hello!", "Hi!", "How are you?"],
                 list_of_messages=[[{'role': 'system', 'content': 'You are a helpful assistant.'},
                 {'role': 'user', 'content': 'Hello!'}],
                 [{'role': 'system', 'content': 'You are a helpful assistant.'},

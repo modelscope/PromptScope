@@ -19,19 +19,19 @@ task_config:
     num_extra_sample: 5
     patience: 10
     min_delta: 0.1
-    
+
 eval_config:
     label_schema: ["1","2","3","4","5"]
     func_name: ranking
     num_errors_per_label: 5
-    instruction: 
+    instruction:
     batch_size: 1
     error_threshold: '4'
 
 ranker_config:
     instruction: 请帮我写一个环保报告。
     label_schema: ["1","2","3","4","5"]
-    
+
 model_config:
     generation:
         module_name: 'dashscope_generation'
@@ -68,7 +68,7 @@ model_config:
         clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
-    
+
     evaluator:
         module_name: 'dashscope_generation'
         model_name: 'qwen2-57b-a14b-instruct'

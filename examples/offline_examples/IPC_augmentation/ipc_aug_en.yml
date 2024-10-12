@@ -9,7 +9,7 @@ task_config:
     samples_per_step: 10
     batch_size: 10
     workers: 5
-   
+
 # dataset:
 #     name: 'dataset'
 #     records_path: null

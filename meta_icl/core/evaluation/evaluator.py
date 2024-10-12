@@ -1,16 +1,18 @@
-from sklearn.metrics import confusion_matrix
-import os
-from typing import List
-from loguru import logger
-from meta_icl.core.utils.prompt_handler import PromptHandler
-from meta_icl.core.enumeration.language_enum import LanguageEnum
 import random
+from typing import List
+
+from loguru import logger
+from sklearn.metrics import confusion_matrix
+
+from meta_icl.core.utils.prompt_handler import PromptHandler
+
 
 class Eval:
     """
     The Eval class is responsible to calculate the score and the large errors
     """
-    def __init__(self, 
+
+    def __init__(self,
                  **kwargs):
         """
         Initialize a new instance of the Eval class.
@@ -38,9 +40,10 @@ class Eval:
             elif evaluator_module_name == 'openai_post':
                 self.evaluator_llm = OpenAIPostModel(**self.model_config.evaluator)
 
-        self.history = []        
+        self.history = []
         self.mean_score = None
         self.eval_instruction = None
+
     def init_config(self):
         from meta_icl import CONFIG_REGISTRY
         self.eval_config = CONFIG_REGISTRY.module_dict['eval_config']
@@ -52,7 +55,8 @@ class Eval:
         if not samples:
             logger.warning("No samples to evaluate, direct return")
         print('samples', samples)
-        samples_batches = [samples[i:i + self.eval_config.batch_size] for i in range(0, len(samples), self.eval_config.batch_size)]
+        samples_batches = [samples[i:i + self.eval_config.batch_size] for i in
+                           range(0, len(samples), self.eval_config.batch_size)]
         print('samples_batches', samples_batches)
         batch, evaluations = 0, []
         prompt_input = {
@@ -68,17 +72,20 @@ class Eval:
             response = self.evaluator_llm.call(prompt=eval_prompt)
             try:
                 response_list = [item for item in response.message.content.split("||") if item]
-            except:
+            except Exception as e:
+                logger.warning(f"Parse result exception {e}")
                 response_list = [item for item in response.output.text.split("||") if item]
 
             print('#############\n', response_list, '################\n')
-            evaluations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1].strip(), "评估": lines[-1].strip()} for lines in (sample.split('|') for sample in response_list if sample)])
-        
+            evaluations.extend(
+                [{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1].strip(), "评估": lines[-1].strip()} for lines in
+                 (sample.split('|') for sample in response_list if sample)])
+
         logger.info(evaluations)
         errors = self.extract_errors(evaluations, self.eval_config.error_threshold)
         mean_score = self.cal_mean_score(evaluations)
         return mean_score, errors
-    
+
     @staticmethod
     def eval_accuracy(annotations, predictions, label_schema):
         prediction_dict = {item['ID']: item['预测'] for item in predictions}
@@ -102,11 +109,11 @@ class Eval:
                     error_sample[item_dict[annotation]].append(item_copy)
             anno_only.append(annotation)
             pred_only.append(prediction)
-        
+
         accuracy = correct / total if total > 0 else 0
         conf_matrix = confusion_matrix(anno_only, pred_only, labels=label_schema)
         return accuracy, correct_sample, error_sample, conf_matrix
-    
+
     @staticmethod
     def extract_errors(evaluations, threshold):
         """
@@ -114,11 +121,11 @@ class Eval:
         :return: records that contains the errors
         """
         return [[item for item in evaluations if item.get('评估', '0') < threshold]]
-    
+
     @staticmethod
     def cal_mean_score(evaluations):
         return sum([int(item['评估']) for item in evaluations]) / len(evaluations)
-    
+
     def error_to_str(self, errors, num_errors_per_label):
         txt_res = ''
         if self.eval_config.func_name == 'accuracy':
@@ -153,16 +160,15 @@ class Eval:
         self.mean_score = kwargs['score']
         logger.info(kwargs)
 
-        
         analysis = self.analyzer_llm.call(prompt=analyze_prompt)
         try:
             logger.info(analysis.message.content)
             kwargs['analysis'] = analysis.message.content
-        except:
-            logger.info(analysis.output.text)
+        except Exception as e:
+            logger.info(analysis.output.text, f"exception {e}")
             kwargs['analysis'] = analysis.output.text
         self.history.append(kwargs)
-        
+
     def sample_to_text(self, sample: dict, num_errors_per_label: int = 0, is_score: bool = True) -> str:
         """
         Return a string that organize the information of from the step run for the meta-prompt
@@ -175,10 +181,10 @@ class Eval:
             return f"####\n##Prompt Score: {sample['score']:.2f}\n##Prompt:\n{sample['prompt']}\n#################\n"
         else:
             return f"####\n##Prompt:\n{sample['prompt']}\n{self.error_to_str(sample['errors'], num_errors_per_label)}####\n "
-        
+
     def get_max_score(self, warmup=0):
         """
         Return the maximum 'mean score' (with respect to all history epochs, starting form warmup, up to last) and the epoch index of the maximum score
         :return: The epoch index of the maximum score, and the maximum score
         """
-        return max(self.history[warmup-1:-1], key=lambda x:x['score'])['score']
+        return max(self.history[warmup - 1:-1], key=lambda x: x['score'])['score']

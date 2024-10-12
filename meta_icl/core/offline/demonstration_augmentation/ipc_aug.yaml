@@ -1,4 +1,4 @@
-representative_sample: 
+representative_sample:
   cn: |
     请你根据任务描述和任务指南生成任务样例，该样例应包含一个问题和一个答案。
     ## 要求:

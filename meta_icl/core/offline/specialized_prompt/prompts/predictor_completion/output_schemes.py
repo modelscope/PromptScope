@@ -14,6 +14,7 @@ def prediction_parser(response: dict) -> dict:
     predictions = [{'id': int(match[0]), 'prediction': match[1]} for match in matches]
     return {'results': predictions}
 
+
 def prediction_generation_parser(response: dict) -> dict:
     """
     Parse the response from the LLM chain
@@ -24,6 +25,7 @@ def prediction_generation_parser(response: dict) -> dict:
     matches = pattern.findall(response['output']['text'])
     predictions = [{'id': int(match[0]), 'prediction': match[1].strip()} for match in matches]
     return {'results': predictions}
+
 
 # def prediction_chinese_parser(response: dict) -> dict:
 #     """

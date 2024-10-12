@@ -1,20 +1,20 @@
-from meta_icl.core.offline.demonstration_storage_preparation.storage_builder_4_bm25 import BaseStorageBuilder
-from meta_icl.core.utils.utils import (get_current_date,
-                                       convert_xlsx_2_json,
-                                       convert_json_2_xlx,
-                                       organize_text_4_embedding,
-                                       sav_yaml, load_yaml_file)
-from meta_icl.core.utils.config_utils import load_config, update_icl_configs_embedding
-from meta_icl.core.utils.sys_prompt_utils import load_json_file, get_embedding
 import os
+
 import numpy as np
+
+from meta_icl.core.offline.demonstration_storage_preparation.storage_builder_4_bm25 import BaseStorageBuilder
+from meta_icl.core.utils.config_utils import load_config, update_icl_configs_embedding
 from meta_icl.core.utils.retrieve_utils import demonstration_backup
+from meta_icl.core.utils.sys_prompt_utils import load_json_file, get_embedding
+from meta_icl.core.utils.utils import (get_current_date,
+                                       organize_text_4_embedding)
 
 
 class EmbeddingStorageBuilder(BaseStorageBuilder):
     """
     Embedding storage builder class for constructing storage solutions based on provided configurations.
     """
+
     def __init__(self, storage_build_configs, sav_type='npy', **kwargs):
         """
         :param storage_build_configs: Dictionary containing configuration parameters required for building the storage solution.
@@ -86,7 +86,6 @@ class EmbeddingStorageBuilder(BaseStorageBuilder):
             pass
         else:
             cur_time = get_current_date()
-
 
         # Process embeddings based on the save type
         if self.sav_type == 'npy':

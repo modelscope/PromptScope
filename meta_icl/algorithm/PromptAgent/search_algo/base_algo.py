@@ -1,20 +1,21 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar
-import numpy as np
 
 State = TypeVar("State")
 Action = TypeVar("Action")
 Trace = tuple[list[State], list[Action]]
+
+
 class SearchAlgo(ABC):
-    def __init__(self, 
+    def __init__(self,
                  task,
-                 world_model, 
+                 world_model,
                  action_agent,
-                 logger=None, 
-                 seed=0, 
+                 logger=None,
+                 seed=0,
                  print_log=True,
                  test_every_step=True,
-                 depth_limit = None,
+                 depth_limit=None,
                  ) -> None:
         self.task = task
         self.world_model = world_model
@@ -29,12 +30,11 @@ class SearchAlgo(ABC):
     @abstractmethod
     def search(self):
         pass
-    
+
     def get_states(self):
         return self.states
-        
+
     def process_all_correct_batch(self):
         self.logger.info(f'\n-----------------------------------------------------')
         self.logger.info('all correct: skip updating cur_prompt')
         self.logger.info(f'\n-----------------------------------------------------\n')
-

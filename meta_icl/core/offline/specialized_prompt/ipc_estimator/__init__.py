@@ -1,9 +1,9 @@
 import pandas as pd
+from meta_icl.core.utils.ipc_base_dataset import DatasetBase
 
 from .estimator_argilla import ArgillaEstimator
 from .estimator_llm import LLMEstimator
 from .estimator_llm_batch import LLMBatchEstimator
-from meta_icl.core.utils.ipc_base_dataset import DatasetBase
 
 
 class DummyEstimator:
@@ -25,6 +25,7 @@ class DummyEstimator:
         Dummy function to mimic the apply method, returns an empty dataframe
         """
         return pd.DataFrame()
+
 
 def give_estimator(opt):
     if opt.method == 'argilla':
