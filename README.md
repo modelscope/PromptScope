@@ -44,24 +44,6 @@ On top of that, we provide:
 - [Examples](examples/offline_examples/example.md) for instruction optimization with IPC, OPRO and PromptAgent.
 - [Example](examples/gsm8k_example) for an end-to-end prompt optimization workflow on GSM-8K benchmark, with both demonstration augmentation and instruction optimization.
 
-## 🖋 Contributing
-
-Contributions are always welcomed!
-
-We provide a developer version with additional pre-commit hooks to perform
-checks compared to the official version:
-
-```bash
-# For windows
-pip install -e .[dev]
-# For mac
-pip install -e .\[dev\]
-
-# Install pre-commit hooks
-pre-commit install
-```
-
-
 ## 💡 Contribute
 
 Contributions are always encouraged!
