@@ -1,6 +1,6 @@
 # Prompt Optimization
 
-Prompt optimization is a process of improving the quality of prompts by applying various techniques. Currently, we support three popular methods used for prompt optimization: 
+Prompt optimization is a process of improving the quality of prompts by applying various techniques. Currently, we support three popular methods used for prompt optimization:
 - Large language models as optimizers (OPRO). [[Paper](https://arxiv.org/abs/2309.03409)][[Code](https://github.com/google-deepmind/opro)]
 - Intent-based Prompt Calibration: Enhancing prompt optimization with synthetic boundary cases (IPC). [[Paper](https://arxiv.org/abs/2402.03099)][[Code](https://github.com/Eladlev/AutoPrompt)]
 - PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization
@@ -18,14 +18,14 @@ class PromptOptimizationWithFeedback(ABC):
         self.language = language
         self._prompt_handler: Union[PromptHandler, None] = None
         self.kwargs: dict = kwargs
-    
+
     @property
     def prompt_handler(self):
         if self._prompt_handler is None:
             self._prompt_handler = PromptHandler(
                 self.FILE_PATH, language=self.language, **self.kwargs)
         return self._prompt_handler
-    
+
     @abstractmethod
     def init_model(self):
         pass
@@ -37,7 +37,7 @@ class PromptOptimizationWithFeedback(ABC):
     @abstractmethod
     def run(self):
         pass
-    
+
     @abstractmethod
     def step(self):
         pass
@@ -54,7 +54,7 @@ OPRO (Optimization by PROmpting) is a system designed to iteratively refine and 
 Run `python examples/offline_examples/OPRO/optimize_instructions.py` to optimize a prompt. The configuration file `opro.yml` located in the same directory is employed.
 
 ```python
-The meaning of some parameters are: 
+The meaning of some parameters are:
     - task_name (str): the name of task within the above dataset to search for instructions on.
     - instruction_pos (str): where to put the instruction, one of {'before_QA','Q_begin', 'Q_end', 'A_begin'}.
     - meta_prompt_type (str): the type of meta-prompt: whether to have both previous instructions and dataset exemplars (often for fine-tuned optimizers), or to have only previous instructions (often for pre-trained optimizers).
@@ -68,7 +68,7 @@ The meaning of some parameters are:
     - few_shot_qa_pairs (bool): whether to have few-shot QA pairs in the meta prompt.
     - num_score_buckets (np.inf or int): the number of score buckets when we convert float accuracies to integers. Default to np.inf for not bucketizing.
     - max_num_instructions (int): the maximum number of instructions in the meta prompt.
-    - meta_prompt_instructions_before_exemplars (bool): whether the instruction-score pairs are before the exemplars from the dataset.  
+    - meta_prompt_instructions_before_exemplars (bool): whether the instruction-score pairs are before the exemplars from the dataset.
 ```
 
 ### IPC
@@ -81,13 +81,13 @@ Intent-based Prompt Calibration (IPC) is designed to refine instructional prompt
 
 ### PromptAgent
 
-PromptAgent is a system designed to optimize prompts for language models. It uses a strategic planning approach to optimize prompts by iteratively selecting the best action from a set of actions based on the current state of the system. The search algorithm is chosen from MCTS and beamsearch. 
+PromptAgent is a system designed to optimize prompts for language models. It uses a strategic planning approach to optimize prompts by iteratively selecting the best action from a set of actions based on the current state of the system. The search algorithm is chosen from MCTS and beamsearch.
 
 Run `python examples/offline_examples/PromptAgent/prompt_agent.py` to optimize a prompt. The configuration file `prompt_agent.yml` located in the same directory is employed.
 
 
 
-    
+
 
 
 

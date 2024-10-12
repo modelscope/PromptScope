@@ -1,7 +1,9 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 from sklearn.metrics import confusion_matrix
+
 from meta_icl.core.offline.specialized_prompt.evaluation import eval_utils as utils
+
 
 class Eval:
     """
@@ -61,7 +63,6 @@ class Eval:
         max_idx += warmup
         return max_idx, self.history[max_idx]['score']
 
-
     def large_error_to_str(self, error_df: pd.DataFrame, num_large_errors_per_label: int) -> str:
         """
         Return a string that contains the large errors
@@ -110,7 +111,7 @@ class Eval:
         conf_matrix = None
         large_error_to_str = self.large_error_to_str(self.errors, self.num_errors)
         prompt_input = {'task_description': task_description, 'accuracy': self.mean_score, 'prompt': prompt,
-                                         'failure_cases': large_error_to_str}
+                        'failure_cases': large_error_to_str}
         if self.score_function_name == 'accuracy':
             print(self.dataset['annotation'], self.dataset['prediction'])
             conf_matrix = confusion_matrix(self.dataset['annotation'],

@@ -1,19 +1,22 @@
+import asyncio
 import inspect
 import time
 from abc import abstractmethod, ABCMeta
 from typing import Any, Union, List
-import asyncio
-from tqdm.asyncio import tqdm
-import openai
 
-from meta_icl.core.scheme.message import Message
-from meta_icl.core.enumeration.model_enum import ModelEnum
-from meta_icl.core.utils.registry import Registry
-from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
-from meta_icl.core.utils.timer import Timer
+import openai
 from loguru import logger
+from tqdm.asyncio import tqdm
+
+from meta_icl.core.enumeration.model_enum import ModelEnum
+from meta_icl.core.scheme.message import Message
+from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
+from meta_icl.core.utils.registry import Registry
+from meta_icl.core.utils.timer import Timer
 
 MODEL_REGISTRY = Registry("models")
+
+
 class BaseModel(metaclass=ABCMeta):
     m_type: Union[ModelEnum, None] = None
 
@@ -70,9 +73,9 @@ class BaseModel(metaclass=ABCMeta):
         model_response = ModelResponse(m_type=self.m_type)
         if prompt and messages:
             raise ValueError("prompt and messages cannot be both specified")
-        
+
         self.kwargs.update(**kwargs)
-        with Timer(self.__class__.__name__, log_time=False, use_ms=False) as t:
+        with Timer(self.__class__.__name__, log_time=False, use_ms=False):
             for i in range(self.max_retries):
                 if self.raise_exception:
                     call_result = self._call(stream=stream, prompt=prompt, messages=messages, **self.kwargs)
@@ -92,16 +95,17 @@ class BaseModel(metaclass=ABCMeta):
                             model_response.raw = call_result
                             break
                     except (Exception, openai.OpenAIError) as e:
-                        logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i+1}")
+                        logger.info(f"call model={self.model_name} failed! details={e.args}, fail times={i + 1}")
 
             if not model_response.raw:
                 logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
 
         return self.after_call(stream=stream, model_response=model_response, **kwargs)
-    
+
     @abstractmethod
     def after_call(self, model_response: ModelResponse, **kwargs) -> Union[ModelResponse, ModelResponseGen]:
         pass
+
 
 class BaseAsyncModel(metaclass=ABCMeta):
     m_type: Union[ModelEnum, None] = None
@@ -127,7 +131,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
 
         self.data = {}
         self._call_module: Any = None
-        
+
     @property
     def call_module(self):
         if self._call_module is None:
@@ -149,41 +153,49 @@ class BaseAsyncModel(metaclass=ABCMeta):
         :param kwargs:
         :return:
         """
-    async def async_call(self, prompts: List[str] = [], list_of_messages: List[List[Message]] = [], semaphore: int = 10, **kwargs) -> dict:
+
+    async def async_call(self, prompts: List[str] = [], list_of_messages: List[List[Message]] = [], semaphore: int = 10,
+                         **kwargs) -> dict:
         semaphore = asyncio.Semaphore(semaphore)
         self.kwargs.update(**kwargs)
         # print(self.kwargs)
         if prompts and list_of_messages:
             raise ValueError("prompt and messages cannot be both specified")
+
         async def task(index, prompt: str = "", messages: List[Message] = [], **kwargs):
-            
+
             async with semaphore:
-            # async with self.limiter:
+                # async with self.limiter:
                 model_response = ModelResponse(m_type=self.m_type)
+                e = None
                 for i in range(self.max_retries):
                     if self.raise_exception:
-                        call_output = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
+                        call_output = await self._async_call(prompt=prompt, messages=messages, **self.kwargs)
                         if hasattr(call_output, 'status_code') and call_output.status_code != 200:
-                            logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                            logger.info(
+                                f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i + 1}")
                             asyncio.sleep(self.retry_interval)
                         else:
                             model_response.raw = call_output
                             break
                     else:
                         try:
-                            call_output = await self._async_call(prompt=prompt, messages = messages, **self.kwargs)
+                            call_output = await self._async_call(prompt=prompt, messages=messages, **self.kwargs)
                             if hasattr(call_output, 'status_code') and call_output.status_code != 200:
-                                logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                                logger.info(
+                                    f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i + 1}")
                                 asyncio.sleep(self.retry_interval)
                             else:
                                 model_response.raw = call_output
                                 break
                         except (Exception, openai.OpenAIError) as e:
-                            logger.info(f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i+1}")
+                            logger.info(
+                                f"async_call model={self.model_name} failed! index={index}, details={e.args}, fail times={i + 1}")
                             await asyncio.sleep(self.retry_interval)
 
                 if not model_response.raw:
-                    logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!", stacklevel=2)
+                    logger.warning(f"Called {self.model_name} {self.max_retries} times, max retries reached!",
+                                   stacklevel=2)
 
                 return {"response": self.after_call(model_response=model_response, **kwargs), "index": index}
 
@@ -194,7 +206,6 @@ class BaseAsyncModel(metaclass=ABCMeta):
         else:
             return
 
-        
         # for _ in model_responses:
         #     pbar.update(1)
         model_responses = []
@@ -202,7 +213,7 @@ class BaseAsyncModel(metaclass=ABCMeta):
             # As each task completes, the progress bar will be updated
             value = await result
             model_responses.append(value)
-    # return await asyncio.gather(*responses)
+        # return await asyncio.gather(*responses)
         # pbar.close()
         model_responses = sorted(model_responses, key=lambda x: x["index"])
 

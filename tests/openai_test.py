@@ -67,7 +67,7 @@ class TestOpenAIGenerationModel(unittest.TestCase):
             "prompt and messages cannot be both specified",
             str(cm.exception)
         )
-    
+
     @patch("meta_icl.core.models.generation_model.OpenAIGenerationModel._call")
     def test_openai_llm_messages(self, mock_generation_call: MagicMock):
         mock_response = MagicMock()
@@ -166,14 +166,14 @@ class TestOpenAIAioGenerationModel(unittest.IsolatedAsyncioTestCase):
                 **{"max_tokens": 200,
                     "top_k": 1,
                     "seed": 1234},
-                    ) 
+                    )
             for prompt in prompts
             ], any_order=True
         )
 
         with self.assertRaises(ValueError) as cm:
             await self.openai_async_llm.async_call(
-                prompts=["Hello!", "Hi!", "How are you?"], 
+                prompts=["Hello!", "Hi!", "How are you?"],
                 list_of_messages=[[{'role': 'system', 'content': 'You are a helpful assistant.'},
                                    {'role': 'user', 'content': 'Hello!'}],
                                    [{'role': 'system', 'content': 'You are a helpful assistant.'},
@@ -226,14 +226,14 @@ class TestOpenAIAioGenerationModel(unittest.IsolatedAsyncioTestCase):
                 **{"max_tokens": 200,
                     "top_k": 1,
                     "seed": 1234},
-                    ) 
+                    )
             for messages in list_of_messages
             ], any_order=True
         )
 
         with self.assertRaises(ValueError) as cm:
             await self.openai_async_llm.async_call(
-                prompts=["Hello!", "Hi!", "How are you?"], 
+                prompts=["Hello!", "Hi!", "How are you?"],
                 list_of_messages=[[{'role': 'system', 'content': 'You are a helpful assistant.'},
                 {'role': 'user', 'content': 'Hello!'}],
                 [{'role': 'system', 'content': 'You are a helpful assistant.'},
@@ -245,7 +245,7 @@ class TestOpenAIAioGenerationModel(unittest.IsolatedAsyncioTestCase):
             "prompt and messages cannot be both specified",
             str(cm.exception)
         )
-        
+
 if __name__ == '__main__':
     # unittest.main()
     openai_async_config = {

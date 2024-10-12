@@ -19,19 +19,19 @@ task_config:
     num_extra_sample: 5
     patience: 10
     min_delta: 0.1
-    
+
 eval_config:
     label_schema: ["1","2","3","4","5"]
     func_name: ranking
     num_errors_per_label: 5
-    instruction: 
+    instruction:
     batch_size: 1
     error_threshold: '4'
 
 ranker_config:
     instruction: Please write an environmental report.
     label_schema: ["1","2","3","4","5"]
-    
+
 model_config:
     generation:
         module_name: 'openai_post'
@@ -65,7 +65,7 @@ model_config:
         model_name: 'gpt-4o'
         max_tokens: 2000
         seed: 1234
-    
+
     evaluator:
         module_name: 'openai_post'
         model_name: 'gpt-4o'

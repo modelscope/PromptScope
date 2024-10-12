@@ -1,4 +1,6 @@
 from abc import ABC
+
+
 class BaseStorageBuilder(ABC):
     """
     Abstract base class for defining the interface of storage builders.

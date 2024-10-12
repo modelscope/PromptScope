@@ -1,15 +1,17 @@
-import pandas as pd
-
-from meta_icl.core.offline.specialized_prompt.evaluation.evaluator_langchain import Eval
-from meta_icl.core.utils.ipc_base_dataset import DatasetBase
-from meta_icl.core.utils.llm_chain import MetaChain
-from ipc_estimator import give_estimator
-from pathlib import Path
-import pickle
-import os
 import json
 import logging
+import os
+import pickle
+from pathlib import Path
+
+import pandas as pd
 import wandb
+from meta_icl.core.utils.ipc_base_dataset import DatasetBase
+from meta_icl.core.utils.llm_chain import MetaChain
+
+from ipc_estimator import give_estimator
+from meta_icl.core.offline.specialized_prompt.evaluation.evaluator_langchain import Eval
+
 
 class IPC:
     """
@@ -107,8 +109,8 @@ class IPC:
                                     reverse=False)
             last_history = sorted_history[-self.config.meta_prompts.history_length:]
         history_prompt = '\n'.join([self.eval.sample_to_text(sample,
-                                                        num_errors_per_label=self.config.meta_prompts.num_err_prompt,
-                                                        is_score=True) for sample in last_history])
+                                                             num_errors_per_label=self.config.meta_prompts.num_err_prompt,
+                                                             is_score=True) for sample in last_history])
         prompt_input = {"history": history_prompt, "task_description": self.task_description,
                         'error_analysis': last_history[-1]['analysis']}
         if 'label_schema' in self.config.dataset.keys():
@@ -129,8 +131,8 @@ class IPC:
 
             if sum([len(t['errors']) for t in last_history]) > 0:
                 history_samples = '\n'.join([self.eval.sample_to_text(sample,
-                                                                 num_errors_per_label=self.config.meta_prompts.num_err_samples,
-                                                                 is_score=False) for sample in last_history])
+                                                                      num_errors_per_label=self.config.meta_prompts.num_err_samples,
+                                                                      is_score=False) for sample in last_history])
                 for batch in batch_inputs:
                     extra_samples = self.dataset.sample_records()
                     extra_samples_text = DatasetBase.samples_to_text(extra_samples)
@@ -144,7 +146,7 @@ class IPC:
                     batch['extra_samples'] = extra_samples_text
 
             samples_batches = self.meta_chain.step_samples.batch_invoke(batch_inputs,
-                                                                         self.config.meta_prompts.num_workers)
+                                                                        self.config.meta_prompts.num_workers)
             # samples_batches = self.meta_chain.step_samples_chinese.batch_invoke(batch_inputs,
             #                                                                 self.config.meta_prompts.num_workers)
             new_samples = [element for sublist in samples_batches for element in sublist['samples']]
@@ -164,7 +166,7 @@ class IPC:
         if len(self.eval.history) <= self.config.meta_prompts.warmup:
             self.patient = 0
             return False
-        min_batch_id, max_score = self.eval.get_max_score(self.config.meta_prompts.warmup-1)
+        min_batch_id, max_score = self.eval.get_max_score(self.config.meta_prompts.warmup - 1)
         if max_score - self.eval.history[-1]['score'] > -self.config.stop_criteria.min_delta:
             self.patient += 1
         else:

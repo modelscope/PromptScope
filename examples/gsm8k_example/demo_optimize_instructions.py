@@ -24,17 +24,16 @@ Step 3: check if the model configs (like batch size) are the same as the actual 
 Step 4: run
 """
 
-import os
-import sys
-import argparse
 import datetime
+import os
 from pathlib import Path
 
-from meta_icl.core.utils.utils import load_yaml
 from loguru import logger
+
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.core.offline.instruction_optimization.opro import OPRO
 from meta_icl.core.utils.utils import get_current_date
+from meta_icl.core.utils.utils import load_yaml
 
 current_file_path = Path(__file__)
 
@@ -45,6 +44,7 @@ WORK_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 import numpy as np
 import pandas as pd
+
 
 def config(config_dir=None):
     if config_dir is not None:
@@ -66,7 +66,7 @@ def run_gsm_opro(gsm_data_pth):
     dataset_name = CONFIG_REGISTRY.module_dict['task_config'].dataset_name.lower()
     task_name = CONFIG_REGISTRY.module_dict['basic_config'].task_name
     language = CONFIG_REGISTRY.module_dict['basic_config'].language
-    
+
     assert dataset_name == "gsm8k"
     root_data_folder_path = gsm_data_pth
 

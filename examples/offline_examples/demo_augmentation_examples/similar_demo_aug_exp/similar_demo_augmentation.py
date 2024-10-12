@@ -1,8 +1,10 @@
-from meta_icl.core.offline.demonstration_augmentation.prompt.demo_augmentation_prompt import (
-    Default_Instruction_4_Similar_Demonstration_Generation, Default_Instruction_4_Diverse_Demonstration_Generation)
-from meta_icl.core.offline.demonstration_augmentation.generate_similar_demo import SimilarDemoAugmentation
-from loguru import logger
 import json
+
+from loguru import logger
+
+from meta_icl.core.offline.demonstration_augmentation.generate_similar_demo import SimilarDemoAugmentation
+from meta_icl.core.offline.demonstration_augmentation.prompt.demo_augmentation_prompt import (
+    Default_Instruction_4_Similar_Demonstration_Generation)
 from meta_icl.core.utils.sys_prompt_utils import call_llm_with_message
 
 if __name__ == '__main__':

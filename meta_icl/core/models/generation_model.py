@@ -1,9 +1,10 @@
-from typing import List, Union, Optional, Any, cast
-import os
+from typing import List, Union, cast
+
 import aiohttp
-import dashscope
-from dashscope.aigc.generation import AioGeneration
+# import dashscope
+import requests
 from dashscope import Generation
+from dashscope.aigc.generation import AioGeneration
 from openai import OpenAI, AsyncOpenAI
 from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 
@@ -12,10 +13,6 @@ from meta_icl.core.enumeration.model_enum import ModelEnum
 from meta_icl.core.models.base_model import BaseModel, BaseAsyncModel, MODEL_REGISTRY
 from meta_icl.core.scheme.message import Message
 from meta_icl.core.scheme.model_response import ModelResponse, ModelResponseGen
-# import dashscope
-import asyncio
-from tqdm.asyncio import tqdm
-import requests
 
 
 class GenerationModel(BaseModel):
@@ -47,13 +44,15 @@ class GenerationModel(BaseModel):
                 model_response.message.content = call_result.output.choices[0].message.content
 
         return model_response
-        
+
+
 class AioGenerationModel(BaseAsyncModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL
     MODEL_REGISTRY.register("aio_generation", AioGeneration)
+
     async def _async_call(self, prompt: str = "", messages: List[Message] = [], **kwargs) -> ModelResponse:
         return await self.call_module.call(model=self.model_name, prompt=prompt, messages=messages, **kwargs)
-    
+
     def after_call(self,
                    model_response: ModelResponse,
                    **kwargs) -> ModelResponse:
@@ -65,21 +64,24 @@ class AioGenerationModel(BaseAsyncModel):
         else:
             model_response.message.content = call_result.output.choices[0].message.content
 
-
         return model_response
-    
+
+
 class OpenAIGenerationModel(BaseModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL
     MODEL_REGISTRY.register("openai_generation", OpenAI)
+
     def __wrap_message(self, prompt, sys_prompt="You are a helpful assistant"):
         return [{"role": "system", "content": sys_prompt},
                 {"role": "user", "content": prompt}
                 ]
+
     def _call(self, stream: bool = False, prompt: str = "", messages: List[Message] = [], **kwargs) -> ModelResponse:
         if prompt:
             messages = self.__wrap_message(prompt)
-        return self.call_module.chat.completions.create(stream=stream, model=self.model_name, messages=messages, **kwargs)
-    
+        return self.call_module.chat.completions.create(stream=stream, model=self.model_name, messages=messages,
+                                                        **kwargs)
+
     def after_call(self,
                    model_response: ModelResponse,
                    stream: bool = False,
@@ -100,19 +102,22 @@ class OpenAIGenerationModel(BaseModel):
             model_response.message.content = call_result.choices[0].message.content
 
         return model_response
-    
+
+
 class OpenAIAioGenerationModel(BaseAsyncModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL
     MODEL_REGISTRY.register("openai_aio_generation", AsyncOpenAI)
+
     def __wrap_message(self, prompt, sys_prompt="You are a helpful assistant"):
         return [{"role": "system", "content": sys_prompt},
                 {"role": "user", "content": prompt}
                 ]
+
     async def _async_call(self, prompt: str = "", messages: List[Message] = [], **kwargs) -> ModelResponse:
         if prompt:
             messages = self.__wrap_message(prompt)
         return await self.call_module.chat.completions.create(model=self.model_name, messages=messages, **kwargs)
-    
+
     def after_call(self,
                    model_response: ModelResponse,
                    **kwargs) -> ModelResponse:
@@ -122,6 +127,7 @@ class OpenAIAioGenerationModel(BaseAsyncModel):
         model_response.message.content = call_result.choices[0].message.content
 
         return model_response
+
 
 class OpenAIPostModel(BaseModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL
@@ -154,9 +160,9 @@ class OpenAIPostModel(BaseModel):
             "max_tokens": 2048,
             "presence_penalty": 0,
             "messages": messages
-            }
+        }
         return requests.request("POST", url, headers=headers, json=data).json()
-        
+
     def after_call(self,
                    model_response: ModelResponse,
                    stream: bool = False,
@@ -177,6 +183,8 @@ class OpenAIPostModel(BaseModel):
             model_response.message.content = call_result["data"]["response"]["choices"][0]["message"]["content"]
 
         return model_response
+
+
 class OpenAIAioPostModel(BaseAsyncModel):
     m_type: ModelEnum = ModelEnum.GENERATION_MODEL
     MODEL_REGISTRY.register("openai_aio_post", '')
@@ -208,10 +216,11 @@ class OpenAIAioPostModel(BaseAsyncModel):
             "max_tokens": 2048,
             "presence_penalty": 0,
             "messages": messages
-            }
+        }
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data, headers=headers) as response:
-                    return await response.json()
+                return await response.json()
+
     def after_call(self,
                    model_response: ModelResponse,
                    **kwargs) -> ModelResponse:
@@ -221,4 +230,3 @@ class OpenAIAioPostModel(BaseAsyncModel):
         model_response.message.content = call_result["data"]["response"]["choices"][0]["message"]["content"]
 
         return model_response
-    

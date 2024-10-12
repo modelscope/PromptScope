@@ -1,16 +1,15 @@
-from typing import List, Dict
 from abc import ABC, abstractmethod
+from typing import List
 
-from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_method
+from loguru import logger
+
+from meta_icl import CONFIG_REGISTRY
+from meta_icl.core.models.generation_model import GenerationModel
+from meta_icl.core.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
+from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
 from meta_icl.core.utils.sys_prompt_utils import (message_formatting,
                                                   call_llm_with_message)
 from meta_icl.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
-from meta_icl.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
-from meta_icl.core.models.generation_model import GenerationModel
-from loguru import logger
-import time
-from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
 
 
 class BaseICL(ABC):
@@ -19,6 +18,7 @@ class BaseICL(ABC):
 
     This class specifies abstract methods to standardize the process of obtaining meta prompts, loading demonstration selectors, and retrieving learning results.
     """
+
     @abstractmethod
     def get_meta_prompt(self):
         """
@@ -34,19 +34,6 @@ class BaseICL(ABC):
         Method to load a demonstration selector.
 
         This method prepares a demonstration selector used during the incontext learning process to select appropriate demonstrations.
-        """
-        pass
-
-    @abstractmethod
-    def get_meta_prompt(self, query: str, num: int, **kwargs):
-        """
-        Method to get a meta prompt based on a query and number.
-
-        :param query: A string query specifying the content of the meta prompt
-        :param num: The number of meta prompts required
-        :param kwargs: Additional parameters
-
-        This method returns the corresponding meta prompts based on the given query and required number.
         """
         pass
 
@@ -68,6 +55,7 @@ class BM25ICL(BaseICL):
     the list of retriever keywords, and optionally the task configurations and base model.
 
     """
+
     def __init__(self,
                  base_model,
                  BM25_index_pth,
@@ -110,7 +98,7 @@ class BM25ICL(BaseICL):
     def _load_demonstration_list(self, examples_pth):
         self.example_list = load_file(examples_pth)
 
-    def get_meta_prompt(self, cur_query: dict, formatting_function: [object, ICLPromptHandler] = None, num=3, **kwargs)\
+    def get_meta_prompt(self, cur_query: dict, formatting_function: [object, ICLPromptHandler] = None, num=3, **kwargs) \
             -> List:
         """
         :param cur_query: the query to generate the intention analysis results.

@@ -1,22 +1,29 @@
-from abc import ABC, abstractmethod
-
-from meta_icl.core.utils.sys_prompt_utils import check_dir, sav_json
-from meta_icl.core.utils.utils import get_current_date
-import json, os
-from typing import List, Any
-import numpy as np
-
-from loguru import logger
-from meta_icl.core.models.generation_model import GenerationModel
-from meta_icl.core.utils.utils import extract_from_markdown_json
-from meta_icl.core.utils.sys_prompt_utils import (call_llm_with_message, message_formatting, text_rerank,
-                                                  convert_model_name_to_model_config)
-from meta_icl.core.utils.demontration_utils import demo_augmentation_by_llm_prompt_org
-from loguru import logger
+"""
+todo: by zy
+1. Replace the text rank with other similarity function.
+2. Argumentation is conducted in a single round or in a self-instruction manner?
+3. max_depth = number of generate samples?
+4. Unify the interface of `run` function.
+"""
+import json
+import os
+from abc import abstractmethod
+from typing import Any
 from typing import Union, Dict, List
-from meta_icl.core.utils.prompt_handler import PromptHandler
+
+import numpy as np
+from loguru import logger
+
 from meta_icl.core.enumeration.language_enum import LanguageEnum
+from meta_icl.core.models.generation_model import GenerationModel
 from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
+from meta_icl.core.utils.demontration_utils import demo_augmentation_by_llm_prompt_org
+from meta_icl.core.utils.prompt_handler import PromptHandler
+from meta_icl.core.utils.sys_prompt_utils import (call_llm_with_message, text_rerank,
+                                                  convert_model_name_to_model_config)
+from meta_icl.core.utils.sys_prompt_utils import check_dir, sav_json
+from meta_icl.core.utils.utils import extract_from_markdown_json
+from meta_icl.core.utils.utils import get_current_date
 
 
 class BaseAugmentationByBeamSearch(BaseDemonstrationAugmentation):
@@ -56,7 +63,6 @@ class BaseAugmentationByBeamSearch(BaseDemonstrationAugmentation):
         pass
 
 
-
 class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     FILE_PATH: str = __file__
     """
@@ -64,6 +70,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     """
     # Class variable defining the file path for potential file operations or debugging information
     FILE_PATH: str = __file__
+
     def __init__(self,
                  demonstration_save_dir: int,
                  num_expand: int,
@@ -113,7 +120,8 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         self.class_name = class_name
         self.prompt_file = prompt_file
         self.prompt_dict = prompt_dict
-        self._prompt_handler=prompt_handler
+        self._prompt_handler = prompt_handler
+
     @property
     def demonstration_generation_instruction(self):
         if self._demonstration_generation_instruction is not None:
@@ -133,7 +141,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         pass
 
     @property
-    def prompt_handler(self)->PromptHandler:
+    def prompt_handler(self) -> PromptHandler:
         """
             Retrieves or initializes the PromptHandler instance for this class.
 
@@ -166,7 +174,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     def run(self, seed_demonstrations: Union[str, List[str], Dict, Any],
             max_steps: int,
             beam_width: int,
-            n: int=5) -> str:
+            n: int = 5) -> str:
         """
         Runs the code generation algorithm based on provided demonstrations.
         This method uses a beam search algorithm to generate code. Given seed demonstrations,
@@ -184,14 +192,15 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         :return The file path where the generated code is saved.
 
         """
-
+        # todo: by zy, the input parameter `n` is not used.
+        #   return the generate results?
         # Execute the beam search code generation process
         self.beam_search_generation(max_steps=max_steps,
                                     beam_width=beam_width,
                                     seed_demonstrations=seed_demonstrations)
         return self.sav_file_path
 
-    def _renew_all_state(self)->None:
+    def _renew_all_state(self) -> None:
         """
         Clear and reinitialize the all_states list.
 
@@ -200,7 +209,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         """
         self.all_states = []
 
-    def _update_demonstration_file_name(self, prefix: str, date:str, model_name:str)->None:
+    def _update_demonstration_file_name(self, prefix: str, date: str, model_name: str) -> None:
         """
         Update the demonstration file name and path.
 
@@ -256,7 +265,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
 
         sav_json(data=self.all_states, json_file_path=json_file_path)
 
-    def expand_fn(self, state: List)->List:
+    def expand_fn(self, state: List) -> List:
         """
         Produces new states from the current state.
 
@@ -304,7 +313,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
                                        model_name=None,
                                        num_generated_examples=1,
                                        demonstration_requirements=None,
-                                       model_config=None)->List:
+                                       model_config=None) -> List:
         """
         Generates similar demonstrations based on the provided text and instructions using a specified model.
 
@@ -344,7 +353,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         # Extract the required demonstration data from the generated results and return
         return extract_from_markdown_json(results)
 
-    def score_fn(self, state: List)->float:
+    def score_fn(self, state: List) -> float:
         """
         Calculate the score for a given state.
 
@@ -362,6 +371,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         state_copy = [json.dumps(item, ensure_ascii=False) for item in state]
 
         # Call the text_rerank function to rerank documents based on the query and get the results
+        # todo: by zy, add similarity function in the future.
         text_rerank_results = text_rerank(query=state_copy[-1], documents=state_copy[:-1])
         logger.info(text_rerank_results)
 
@@ -381,7 +391,7 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
     def beam_search_generation(self,
                                max_steps: int,
                                beam_width: int,
-                               seed_demonstrations: Union[str, List[str]])->List:
+                               seed_demonstrations: Union[str, List[str]]) -> List:
         """
         Performs beam search generation.
 
@@ -432,7 +442,6 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
                     logger.info("next_score: {}".format(next_score))
                     # Append the new state and its score to the candidate list
                     candidates.append([next_state, next_score])
-
 
             logger.info(candidates)
             logger.info("length of candidates: {}".format(len(candidates)))

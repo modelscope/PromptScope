@@ -1,19 +1,16 @@
-from typing import List, Dict, Any
 from abc import ABC, abstractmethod
-
-from meta_icl.core.utils.utils import sample_elements_and_ids, random_selection_method
-from meta_icl.core.utils.sys_prompt_utils import (get_embedding, find_top_k_embeddings,
-                                                  message_formatting,
-                                                  call_llm_with_message)
-from meta_icl.core.utils.utils import load_file
+from typing import List, Dict, Any
 
 import bm25s
+
+from meta_icl.core.utils.sys_prompt_utils import (find_top_k_embeddings)
 
 
 class BaseRetriever(ABC):
     """
     Defines an abstract base class `BaseRetriever` that should be implemented by retriever classes.
     """
+
     def __init__(self):
         pass
 
@@ -55,6 +52,7 @@ class BM25Retriever(BaseRetriever):
     If `bm25_index_pth` is provided, it loads the precomputed index. Additionally, it initializes the stemmer based
     on the `stemmer_algo` parameter in `kwargs`.
     """
+
     def __init__(self, example_list=None, bm25_index_pth=None, **kwargs):
         # Initialize example_list, ensuring that either example_list or bm25_index_pth is provided
         self.example_list = example_list
@@ -112,6 +110,7 @@ class CosineSimilarityRetriever(BaseRetriever):
     A retriever class that uses cosine similarity to find the most similar examples.
     Inherits from BaseRetriever.
     """
+
     def __init__(self, embeddings: List, example_list=None):
         """
         Initializes the CosineSimilarityRetriever class.
@@ -151,6 +150,7 @@ class CosineSimilarityRetriever(BaseRetriever):
         else:
             ValueError("example_list is None, please provide the example list!")
 
+
 class FaissRetriever(BaseRetriever):
     def __init__(self, index: Any, example_list=None):
         self.index = index
@@ -165,10 +165,10 @@ class FaissRetriever(BaseRetriever):
         :return: {"selection_idx": list, "selection_score": list}
         """
         import numpy as np
-        D, I = self.index.search(np.array(query_embedding).reshape(1, -1), num)
-        return {"selection_idx": I[0],
-                "selection_score": [1/x for x in D]}
-    
+        scores, index = self.index.search(np.array(query_embedding).reshape(1, -1), num)
+        return {"selection_idx": index[0],
+                "selection_score": [1 / x for x in scores]}
+
     def get_examples(self, selection_ids: List) -> List:
         """
 

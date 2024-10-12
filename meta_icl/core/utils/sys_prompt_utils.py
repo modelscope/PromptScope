@@ -1,10 +1,17 @@
+import copy
 import random
+import time
 from http import HTTPStatus
+from typing import Generator, List
+from typing import Union
+import re
+import json
+import requests
+
 import dashscope
-import time, copy
-import random
-from typing import Generator, List, Any
+import numpy as np
 from loguru import logger
+from scipy.spatial.distance import cdist
 
 from meta_icl.core.models.generation_model import GenerationModel
 
@@ -20,10 +27,6 @@ DefaultModelConfig = {
     'result_format': 'message',
     'temperature': 0.85
 }
-
-import numpy as np
-from scipy.spatial.distance import cdist
-from typing import Union
 
 
 def convert_model_name_to_model_config(model_name: Union[str, dict] = None,
@@ -173,7 +176,8 @@ Attention: If both model and model_config are given, the model_config will be us
                 'result_format': 'message'
             }
         if is_stream:
-            return call_qwen_with_stream(messages, model_config=model_config, **kwargs)
+            pass
+            # return call_qwen_with_stream(messages, model_config=model_config, **kwargs)
         else:
             return call_qwen_with_message_with_retry(messages, model_config=model_config, **kwargs)
     elif model.lower() == 'qwen_14b' or model.lower() == 'qwen-turbo':
@@ -238,7 +242,7 @@ Attention: If both model and model_config are given, the model_config will be us
             }
             return call_qwen_with_message_with_retry(messages, model_config=model_config, **kwargs)
 
-        except:
+        except Exception:
             raise ValueError('model: {} is not supported!'.format(model))
 
 
@@ -260,9 +264,6 @@ def load_json_file(json_file_path):
     with open(json_file_path, 'r', encoding='utf-8') as jsonfile:
         data = json.load(jsonfile)
     return data
-
-
-import re
 
 
 def load_txt(instruction_file: str) -> str:
@@ -314,8 +315,8 @@ def fill_in_variables(variables, template_text):
 
 def call_qwen_with_message_with_retry(messages,
                                       model_config=DefaultModelConfig, **kwargs):
-    cnt = 0
-    error_message = ""
+    # cnt = 0
+    # error_message = ""
     # print('*' * 10 + '\nworking on id: {}, \ninput: {}\n'.format(id, prompt_temp[id]))
     try:
         _, res = call_qwen_with_messages(messages,
@@ -327,9 +328,7 @@ def call_qwen_with_message_with_retry(messages,
         logger.error("\n\nmessages: {}".format(e))
 
 
-
 def call_qwen_with_messages(messages, model_config=DefaultModelConfig, **kwargs):
-
     X_DashScope_EUID = kwargs.get('X_DashScope_EUID')
 
     if "temperature" in model_config.keys():
@@ -399,9 +398,6 @@ def call_with_messages():
                 response.request_id, response.status_code,
                 response.code, response.message
             ))
-
-
-import requests
 
 
 def call_gpt_with_message(messages, model_config={'model': 'gpt-4'}):
@@ -558,11 +554,6 @@ def get_embedding(input_list: list, embedding_model="text_embedding_v1"):
     return embed_with_list_of_str(input_list, embedding_model=embedding_model)
 
 
-import json
-import requests
-
-
-
 def text_rerank(query, documents, top_n=None):
     """
     :param query: str
@@ -604,4 +595,3 @@ def call_llama_with_messages():
             response.request_id, response.status_code,
             response.code, response.message
         ))
-
