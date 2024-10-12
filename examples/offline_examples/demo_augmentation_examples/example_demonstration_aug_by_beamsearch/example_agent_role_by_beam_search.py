@@ -1,11 +1,8 @@
-from meta_icl.core.utils.demontration_utils import (beam_search,
-                                                    demonstration_var_score,
-                                                    demonstration_expand)
-from meta_icl.core.utils.sys_prompt_utils import load_json_file, sav_json, check_dir
-from meta_icl.core.utils.utils import get_current_date
-import json, os, copy
 from meta_icl.core.offline.demonstration_augmentation.generation_by_beam_search import GenerationByBeamSearch
-
+from meta_icl.core.utils.demontration_utils import (demonstration_var_score,
+                                                    demonstration_expand)
+from meta_icl.core.utils.sys_prompt_utils import load_json_file, check_dir
+from meta_icl.core.utils.utils import get_current_date
 
 if __name__ == '__main__':
     # generation_config_pth = ("examples/example_demonstration_aug_by_beamsearch"
@@ -25,7 +22,8 @@ if __name__ == '__main__':
     # print("best_state: \n{}\n\n\n".format(best_state))
     # sav_json(data=all_expands, json_file_path=os.path.join(demonstration_dir, sav_file_name))
 
-    generation_config_pth = ("examples/offline_examples/example_demonstration_aug_by_beamsearch/agent_role_followup_beam_search_examples_expansion.json")
+    generation_config_pth = (
+        "examples/offline_examples/example_demonstration_aug_by_beamsearch/agent_role_followup_beam_search_examples_expansion.json")
     demonstration_dir = "logs/agent_role_beam_search_results/"
     check_dir(demonstration_dir)
 

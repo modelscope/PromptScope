@@ -1,12 +1,15 @@
+import os
 import random
 from http import HTTPStatus
-from dashscope import Generation  # 建议dashscope SDK 的版本 >= 1.14.0
+
 import dashscope
 import yaml
-import os
+from dashscope import Generation  # 建议dashscope SDK 的版本 >= 1.14.0
 
 KEY = ""
 dashscope.api_key = KEY
+
+
 def call_llm(prompt, model_name, temperature=1.0):
     messages = [{'role': 'system', 'content': 'You are a helpful assistant.'},
                 {'role': 'user', 'content': prompt}]
@@ -21,13 +24,15 @@ def call_llm(prompt, model_name, temperature=1.0):
         # print(response)
         try:
             return response.output.choices[0].message.content
-        except:
+        except Exception:
             return response.output.choices[0].output.text
     else:
         print('Request id: %s, Status code: %s, error code: %s, error message: %s' % (
             response.request_id, response.status_code,
             response.code, response.message
         ))
+
+
 def prompt_rewrite(query):
     templates = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), 'templates.yaml'), 'r'))
     template_names = ['CLEVER', 'ICIO', 'CRISPE', 'BROKE', 'RASCEF']
@@ -38,6 +43,7 @@ def prompt_rewrite(query):
         # prompt_rewrite(prompt)
         result[name] = call_llm(prompt, "qwen2-57b-a14b-instruct")
     return result
+
 
 def prompt_evaluation(prompts, ranking_prompt, query):
     prompt_templates = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), 'templates.yaml'), 'r'))
@@ -56,6 +62,7 @@ def prompt_evaluation(prompts, ranking_prompt, query):
     response = call_llm(eval_prompt, "qwen2-57b-a14b-instruct", temperature=0.1)
     print(response)
     return response
+
 
 def generate_query(prompt):
     prompt_templates = yaml.safe_load(open(os.path.join(os.path.dirname(__file__), 'templates.yaml'), 'r'))

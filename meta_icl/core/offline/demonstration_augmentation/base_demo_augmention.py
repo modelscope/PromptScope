@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Union, Any, Dict
 
-from meta_icl.core.utils.prompt_handler import PromptHandler
 from meta_icl.core.enumeration.language_enum import LanguageEnum
+from meta_icl.core.utils.prompt_handler import PromptHandler
+
 
 class BaseDemonstrationAugmentation(ABC):
     """
@@ -15,7 +16,7 @@ class BaseDemonstrationAugmentation(ABC):
         self.language = language
         self._prompt_handler: Union[PromptHandler, None] = None
         self.kwargs: dict = kwargs
-    
+
     @property
     def prompt_handler(self):
         """

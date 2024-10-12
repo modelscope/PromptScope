@@ -1,18 +1,21 @@
-import argilla as rg
+import base64
+import json
 import time
+import webbrowser
+
+import argilla as rg
 import pandas as pd
 from argilla.client.singleton import active_client
-from meta_icl.core.utils.ipc_config import Color
 from meta_icl.core.utils.ipc_base_dataset import DatasetBase
-import json
-import webbrowser
-import base64
+from meta_icl.core.utils.ipc_config import Color
+
 
 class ArgillaEstimator:
     """
     The ArgillaEstimator class is responsible to generate the GT for the dataset by using Argilla interface.
     In particular using the text classification mode.
     """
+
     def __init__(self, opt):
         """
         Initialize a new instance of the ArgillaEstimator class.
@@ -25,7 +28,7 @@ class ArgillaEstimator:
                 workspace=opt.workspace
             )
             self.time_interval = opt.time_interval
-        except:
+        except Exception:
             raise Exception("Failed to connect to argilla, check connection details")
 
     @staticmethod
@@ -38,7 +41,7 @@ class ArgillaEstimator:
         try:
             settings = rg.TextClassificationSettings(label_schema=label_schema)
             rg.configure_dataset_settings(name=dataset_name, settings=settings)
-        except:
+        except Exception:
             raise Exception("Failed to create dataset")
 
     @staticmethod
@@ -49,7 +52,7 @@ class ArgillaEstimator:
         :param batch_id: The batch id
         :param batch_records: A dataframe of the batch records
         """
-        #TODO: sort visualization according to batch_id descending
+        # TODO: sort visualization according to batch_id descending
         query = "metadata.batch_id:{}".format(batch_id)
         result = rg.load(name=dataset_name, query=query)
         df = result.to_pandas()
@@ -65,7 +68,7 @@ class ArgillaEstimator:
             config = {'text': row['text'], 'metadata': {"batch_id": row['batch_id'], 'id': row['id']}, "id": row['id']}
             # if not (row[['prediction']].isnull().any()):
             #     config['prediction'] = row['prediction']  # TODO: fix it incorrect type!!!
-            if not(row[['annotation']].isnull().any()):  # TODO: fix it incorrect type!!!
+            if not (row[['annotation']].isnull().any()):  # TODO: fix it incorrect type!!!
                 config['annotation'] = row['annotation']
             record_list.append(rg.TextClassificationRecord(**config))
         rg.log(records=record_list, name=dataset_name)
@@ -86,7 +89,7 @@ class ArgillaEstimator:
         current_api = active_client()
         try:
             rg_dataset = current_api.datasets.find_by_name(dataset.name)
-        except:
+        except Exception:
             self.initialize_dataset(dataset.name, dataset.label_schema)
             rg_dataset = current_api.datasets.find_by_name(dataset.name)
         batch_records = dataset[batch_id]
@@ -112,7 +115,8 @@ class ArgillaEstimator:
             if search_results.total == len(batch_records):
                 result = rg.load(name=dataset.name, query=query)
                 df = result.to_pandas()[['text', 'annotation', 'metadata', 'status']]
-                df["annotation"] = df.apply(lambda x: 'Discarded' if x['status']=='Discarded' else x['annotation'], axis=1)
+                df["annotation"] = df.apply(lambda x: 'Discarded' if x['status'] == 'Discarded' else x['annotation'],
+                                            axis=1)
                 df = df.drop(columns=['status'])
                 df['id'] = df.apply(lambda x: x['metadata']['id'], axis=1)
                 return df

@@ -24,7 +24,7 @@ model_config:
         max_tokens: 2000
         seed: 1234
         temperature: &temp 1
-        
+
 
 evolution_config:
     num_search_steps: 200

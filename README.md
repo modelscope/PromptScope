@@ -61,6 +61,19 @@ pip install -e .\[dev\]
 pre-commit install
 ```
 
+
+## 💡 Contribute
+
+Contributions are always encouraged!
+
+We highly recommend install pre-commit hooks in this repo before committing pull requests.
+These hooks are small house-keeping scripts executed every time you make a git commit,
+which will take care of the formatting and linting automatically.
+```shell
+pip install -e .
+pre-commit install
+```
+
 ## 🏛 License
 
 This framework is licensed under the [Apache License (Version 2.0)](https://github.com/modelscope/modelscope/blob/master/LICENSE). 

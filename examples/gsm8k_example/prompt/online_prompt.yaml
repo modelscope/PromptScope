@@ -1,19 +1,19 @@
 icl_template:
   cn: |
     {instruction}
-    
+
     以下是一些样例：
     {examples}
-    
+
     {query_str}
-    
+
 
   en: |
     {instruction}
-    
+
     Here are some examples:
     {examples}
-    
+
     {query_str}
 instruction:
   cn: 请一步一步地回答下面的数学题。
@@ -21,11 +21,11 @@ instruction:
 example_template:
   cn: |
     问题：{input}
-    
+
     答案：{output}
   en: |
     Question: {input}
-    
+
     Answer: {output}
 
 query_template:

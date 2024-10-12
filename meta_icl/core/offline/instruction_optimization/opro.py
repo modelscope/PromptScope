@@ -11,24 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
-import numpy as np
 import collections
+import os
+
+import numpy as np
 import pandas as pd
 
-from loguru import logger
-from meta_icl.core.models.generation_model import (
-    AioGenerationModel, 
-    GenerationModel, 
-    OpenAIAioGenerationModel, 
-    OpenAIAioPostModel, 
-    OpenAIGenerationModel, 
-    OpenAIPostModel
-)
 from meta_icl import CONFIG_REGISTRY
 from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 from meta_icl.algorithm.opro.evaluation import eval_utils
 from meta_icl.algorithm.opro.optimization import opt_utils
+from meta_icl.core.models.generation_model import (
+    AioGenerationModel,
+    GenerationModel,
+    OpenAIAioGenerationModel,
+    OpenAIAioPostModel,
+    OpenAIGenerationModel,
+    OpenAIPostModel
+)
+
 
 class OPRO(PromptOptimizationWithFeedback):
     """
@@ -42,7 +43,7 @@ class OPRO(PromptOptimizationWithFeedback):
 	"""
     FILE_PATH: str = __file__
 
-    def __init__(self, language = "cn", **kwargs):
+    def __init__(self, language="cn", **kwargs):
         """
 		Initializes the OPRO instance with necessary configurations, models, and data structures for
 		tracking optimization progress.
@@ -65,8 +66,8 @@ class OPRO(PromptOptimizationWithFeedback):
         self.few_shot_index_list_by_step_dict = dict()
         self.generated_ins_on_few_shot_results_dict = dict()
         self.old_ins_on_few_shot_results_dict = dict()
-		# evaluation results every a few steps
-		# format: [(i_step, instruction, detailed_results_df)]
+        # evaluation results every a few steps
+        # format: [(i_step, instruction, detailed_results_df)]
         self.eval_results = []
         # all generated instructions, format: [(instruction, score, step_index)]
         # the instructions that were skipped have score NaN
@@ -99,7 +100,7 @@ class OPRO(PromptOptimizationWithFeedback):
                 self.scorer_llm = OpenAIAioGenerationModel(**self.model_config.scorer)
             elif scorer_module_name == 'openai_aio_post':
                 self.scorer_llm = OpenAIAioPostModel(**self.model_config.scorer)
-                
+
             if optim_module_name == 'aio_generation':
                 self.optim_llm = AioGenerationModel(**self.model_config.optim)
             elif optim_module_name == 'openai_aio_generation':
@@ -113,13 +114,14 @@ class OPRO(PromptOptimizationWithFeedback):
                 self.scorer_llm = OpenAIGenerationModel(**self.model_config.scorer)
             elif scorer_module_name == 'openai_post':
                 self.scorer_llm = OpenAIPostModel(**self.model_config.scorer)
-                
+
             if optim_module_name == 'dashscope_generation':
                 self.optim_llm = GenerationModel(**self.model_config.optim)
             elif optim_module_name == 'openai_generation':
                 self.optim_llm = OpenAIGenerationModel(**self.model_config.optim)
             elif optim_module_name == 'openai_post':
                 self.optim_llm = OpenAIPostModel(**self.model_config.optim)
+
     def init_config(self):
         """
 		Initialize configuration settings for the OPRO system by retrieving
@@ -205,6 +207,7 @@ class OPRO(PromptOptimizationWithFeedback):
         # 	json.dump(dict(self.evolution_config), f, indent=4)
         self.train_index = self.evolution_config.train_index
         self.eval_index = self.evolution_config.eval_index
+        # todo: by jm, how to optimize the prompt for other dataset or general applications.
         if self.dataset_name == "mmlu":
             self.is_multiple_choice = True
             self.is_multiple_choice_eval = True
@@ -313,22 +316,22 @@ class OPRO(PromptOptimizationWithFeedback):
         """
 		Generates new instructions based on different selection criteria for few-shot examples.
 
-		This function dynamically adjusts the few-shot examples presented to the model during the 
-		instruction refinement process. It supports various strategies for selecting these examples, 
-		intended to improve the model's understanding and performance on tasks by focusing on areas 
+		This function dynamically adjusts the few-shot examples presented to the model during the
+		instruction refinement process. It supports various strategies for selecting these examples,
+		intended to improve the model's understanding and performance on tasks by focusing on areas
 		of weakness or through random exposure for diversity.
 
 		Conditions covered:
-		- 'accumulative_most_frequent': Selects questions that have been answered incorrectly most frequently 
+		- 'accumulative_most_frequent': Selects questions that have been answered incorrectly most frequently
 		  since the start, either all or a sampled subset depending on their total count.
-		- 'current_most_frequent': Chooses questions that are frequently missed under the current set of 
+		- 'current_most_frequent': Chooses questions that are frequently missed under the current set of
 		  instructions, ensuring diversity if not enough unique questions meet the threshold.
 		- 'constant': Picks a constant set of few-shot questions randomly but fixed across iterations.
 		- 'random': Randomly selects questions for each iteration, introducing variability.
 
 		Args:
 			few_shot_qa_pairs (bool): Flag indicating whether to use few-shot QA pairs in instruction generation.
-			few_shot_selection_criteria (str): The strategy for picking few-shot examples ('accumulative_most_frequent', 
+			few_shot_selection_criteria (str): The strategy for picking few-shot examples ('accumulative_most_frequent',
 										  'current_most_frequent', 'constant', 'random').
 			Other variables used (not passed as arguments):
 				self.wrong_questions_from_start_counter: A counter tracking the frequency of incorrect answers.
@@ -491,7 +494,7 @@ class OPRO(PromptOptimizationWithFeedback):
 
         sync_models = [GenerationModel, OpenAIPostModel, OpenAIGenerationModel]
         async_models = [AioGenerationModel, OpenAIAioPostModel, OpenAIAioGenerationModel]
-        
+
         if isinstance(self.optim_llm, tuple(sync_models)):
             while remaining_num_instructions_to_generate > 0:
                 optimizer_llm_input_text = meta_prompt
@@ -540,8 +543,8 @@ class OPRO(PromptOptimizationWithFeedback):
             max_num_instructions_to_keep_in_each_output = 1
             for string in raw_outputs:
                 generated_instructions_raw += opt_utils.parse_tag_content(string)[
-                                                :max_num_instructions_to_keep_in_each_output
-                                                ]
+                                              :max_num_instructions_to_keep_in_each_output
+                                              ]
             remaining_num_instructions_to_generate -= (
                     len(raw_outputs)
                     * max_num_instructions_to_keep_in_each_output
@@ -777,6 +780,7 @@ class OPRO(PromptOptimizationWithFeedback):
         print(f"\nsaved all results to\n{save_folder}")
 
     def extract_best_prompt(self):
+        # todo: by jm, return best prompt to align the interface definition.
         """
 		This method is intended to extract the best prompt from the evaluated results.
 		Currently, it is a placeholder and needs implementation.

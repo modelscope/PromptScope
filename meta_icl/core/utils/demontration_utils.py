@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-from meta_icl.core.utils.sys_prompt_utils import (call_llm_with_message, message_formatting, text_rerank,
-                                                  convert_model_name_to_model_config)
-import re, json, os, copy
-import numpy as np
-
-from loguru import logger
+import json
 from typing import Union, Dict, List
 
+from loguru import logger
+
+from meta_icl.core.utils.sys_prompt_utils import (message_formatting)
 
 Default_Instruction_4_Demonstration_Generation = """请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。
 
@@ -24,12 +22,13 @@ ${demonstration}
 请给出${num_generated_examples}个类似样例:
 """
 
+
 # other_requirements = "其他要求：\n1. \"starting_questions\" 是推荐用户问智能体的问题\n2. \"tools\"可选的范围是[\"text-to-image\", \"open-search\", \"code_interpreter\"]"
 
 
 def demo_augmentation_by_llm_prompt_org(
         demonstration_text: Union[str, Dict, List[Dict]],
-        demonstration_generation_instruction: str=None,
+        demonstration_generation_instruction: str = None,
         num_generated_examples=1,
         demonstration_requirements=None
 ):
@@ -65,7 +64,3 @@ def demo_augmentation_by_llm_prompt_org(
     logger.info("prompt: \n{}\n".format(prompt))
     prompt = message_formatting(system_prompt=None, query=prompt)
     return prompt
-
-
-
-
