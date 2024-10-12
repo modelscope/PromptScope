@@ -14,12 +14,12 @@ task_config:
     test_size: 3 # if test_size is not 0, the optimized nodes will be tested at last.
     seed: 42 # if need to fixed shuffled dataset
     data_dir: ./datasets/penguins_in_a_table.json # if data is downloaded
-    # Note: the current supported bigbench tasks are specified by 
+    # Note: the current supported bigbench tasks are specified by
     # data_dir using the same task_name (bigbench), if there is not
     # specific .py class inplemented in the tasks folder.
     post_instruction: false # false: prompt + task question | true: task question + prompt
     language: en
-    
+
 model_config:
     base:
         module_name: 'openai_post'

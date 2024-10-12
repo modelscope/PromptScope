@@ -1,27 +1,27 @@
-import os
 import time
 from datetime import timedelta
-import sys
 
-from meta_icl.algorithm.PromptAgent.utils import get_pacific_time
-from meta_icl.algorithm.PromptAgent.tasks import get_task
-from meta_icl.algorithm.PromptAgent.search_algo import get_search_algo
-from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
 from loguru import logger
+
+from meta_icl import CONFIG_REGISTRY
+from meta_icl.algorithm.PromptAgent.search_algo import get_search_algo
+from meta_icl.algorithm.PromptAgent.tasks import get_task
+from meta_icl.algorithm.PromptAgent.utils import get_pacific_time
+from meta_icl.algorithm.base_algorithm import PromptOptimizationWithFeedback
+from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.models.base_model import MODEL_REGISTRY
 from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
-from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.utils.utils import load_yaml
-from meta_icl.core.enumeration.language_enum import LanguageEnum
+
 
 class PromptAgent(PromptOptimizationWithFeedback):
     """
-    PromptAgent (PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization) 
-    is designed to optimize prompts for language models, by initializing tasks, configuring settings, 
+    PromptAgent (PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization)
+    is designed to optimize prompts for language models, by initializing tasks, configuring settings,
     selecting search algorithms and models, logging progress, and determining the most effective prompt through iterative refinement.
     """
     FILE_PATH: str = __file__
-    def __init__(self, 
+
+    def __init__(self,
                  dataset_path: str = __file__,
                  language: LanguageEnum = "en",
                  **kwargs
@@ -44,7 +44,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         """
         super().__init__(language=language, **kwargs)
         self.init_config()
-        
+
         task_name = self.basic_config.task_name
         self.dataset_path = dataset_path
         self.task_config.data_dir = self.dataset_path
@@ -64,7 +64,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
         from the global CONFIG_REGISTRY. This sets up the basic, task-specific, model, search,
         and world model configurations required for the agent's operation.
 
-        The configurations are retrieved from a registry module which centralizes the access to 
+        The configurations are retrieved from a registry module which centralizes the access to
         different parts of the setup, ensuring modularity and easier management of settings.
         """
         self.basic_config = CONFIG_REGISTRY.module_dict["basic_config"]
@@ -96,23 +96,24 @@ class PromptAgent(PromptOptimizationWithFeedback):
             self.optim_model = OpenAIGenerationModel(**self.model_config.optim)
         elif optim_module_name == 'openai_post':
             self.optim_model = OpenAIPostModel(**self.model_config.optim)
-                    
+
         self.world_model = MODEL_REGISTRY.module_dict[self.search_algo](
-            task=self.task, 
-            logger=logger, 
+            task=self.task,
+            logger=logger,
             base_model=self.base_model,
             optim_model=self.optim_model,
-            prompt_handler=self.prompt_handler, 
+            prompt_handler=self.prompt_handler,
             **self.world_model_config
-            )
-        
+        )
+
         self.search_algo = get_search_algo(self.search_algo)(
-            task=self.task, 
-            world_model=self.world_model, 
+            task=self.task,
+            world_model=self.world_model,
             logger=logger,
             log_dir=self.basic_config.output_path,
             **self.search_config
-            )
+        )
+
     def run(self):
         """
         Orchestrates the search for the best prompt by initializing the search with a given prompt,
@@ -138,24 +139,25 @@ class PromptAgent(PromptOptimizationWithFeedback):
 
         for i in range(iteration_num):
             logger.info(
-            f'---------------------  iteration {i} ------------------------')
+                f'---------------------  iteration {i} ------------------------')
             self.step()
 
         states, result_dict = self.extract_best_prompt()
         end_time = time.time()
-        exe_time = str(timedelta(seconds=end_time-start_time)).split('.')[0]
+        exe_time = str(timedelta(seconds=end_time - start_time)).split('.')[0]
         logger.info(f'\nDone!Excution time: {exe_time}')
         return states, result_dict
 
     def step(self):
         """
-        Executes a single step in the optimization process which includes searching for the best path 
+        Executes a single step in the optimization process which includes searching for the best path
         and updating prompts based on error analysis.
         """
         logger.info('Searching Path')
-        path = self.search_algo.search() # ⭐ Conducts a search for the optimal path
+        path = self.search_algo.search()  # ⭐ Conducts a search for the optimal path
         logger.info('Update Prompt According to Error Analysis')
-        path, cum_rewards = self.update_with_error(path) # ⭐ Refines prompts along the found path using error feedback
+        path, cum_rewards = self.update_with_error(path)  # ⭐ Refines prompts along the found path using error feedback
+
     def update_with_error(self, path):
         """
         Updates nodes within the search algorithm's data structure based on the error from the executed path,
@@ -168,7 +170,7 @@ class PromptAgent(PromptOptimizationWithFeedback):
           A tuple containing the updated path and cumulative rewards from this update step.
         """
         return self.search_algo.update_nodes(path)
-    
+
     def extract_best_prompt(self):
         """
         Retrieves the best prompt discovered by the search algorithm after completing the search process.
@@ -177,6 +179,3 @@ class PromptAgent(PromptOptimizationWithFeedback):
             The most effective prompt generated by the optimization, intended to enhance AI system interactions.
         """
         return self.search_algo.after_search()
-
-
-    

@@ -1,4 +1,3 @@
-
 Default_Instruction_4_Similar_Demonstration_Generation = """请根据提供的样例，给出${num_generated_examples}个与提供的样例相似的样例。
 
 要求：

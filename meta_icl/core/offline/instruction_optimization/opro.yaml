@@ -28,7 +28,7 @@ openai_meta_prompt_A_begin:
 
     生成一个与以上所有<Start>句子不同的起始句，并且其分数高于所有上述<Start>句子。起始句应以<Start>开头，以</Start>结尾。起始句应简洁、有效，并且通常适用于所有上述的问答对。
   en: |
-    
+
 
     Generate a starting sentence that is different from all the <Start> sentences above, and has a higher score than all the <Start> sentences above. The starting sentence should begin with <Start> and end with </Start>. The starting sentence should be concise, effective, and generally applicable to all QA pairs above.
 
@@ -38,8 +38,8 @@ openai_meta_prompt_others:
 
     生成一条与上述所有指令 <INS> 不同且得分高于上述所有指令 <INS> 的指令。该指令应以 <INS> 开头，以 </INS> 结尾。指令应简洁、有效，并且一般适用于上述所有问题。
   en: |
-    
-    
+
+
     Generate an instruction that is different from all the instructions <INS> above, and has a higher score than all the instructions <INS> above. The instruction should begin with <INS> and end with </INS>. The instruction should be concise, effective, and generally applicable to all problems above.
 
 qwen_meta_prompt:
@@ -48,7 +48,7 @@ qwen_meta_prompt:
 
     将您的新text写出，与旧text不同，并且尽可能获得高分。请注意遵循指令，仅输出新的text，不需要输出示例的替换结果。将text写在方括号内。如：[请逐步分析]。
   en: |
-  
-  
-    Write your new text that is different from the old ones and has a score as high as possible, especially focus on instruction following. Write the text in square brackets.			
+
+
+    Write your new text that is different from the old ones and has a score as high as possible, especially focus on instruction following. Write the text in square brackets.
 

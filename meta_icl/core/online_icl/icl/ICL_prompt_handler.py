@@ -1,8 +1,10 @@
-from meta_icl.core.utils.prompt_handler import PromptHandler
-from typing import Union, List, Dict
-from meta_icl.core.enumeration.language_enum import LanguageEnum
 import re
+from typing import Union, List, Dict
+
 from loguru import logger
+
+from meta_icl.core.enumeration.language_enum import LanguageEnum
+from meta_icl.core.utils.prompt_handler import PromptHandler
 
 
 class ICLPromptHandler(PromptHandler):
@@ -12,6 +14,7 @@ class ICLPromptHandler(PromptHandler):
     This class extends `PromptHandler` to generate prompts specific to ICL tasks, including creating prompts based on templates and data instances.
 
     """
+
     def __init__(self,
                  class_path: str,
                  language: Union[LanguageEnum, str],

@@ -1,22 +1,22 @@
 import os
-from pathlib import Path
-import json
 import pickle as pkl
+from pathlib import Path
 
-from meta_icl.core.utils.utils import load_yaml
-from meta_icl.core.enumeration.language_enum import LanguageEnum
 from loguru import logger
+
 from meta_icl import CONFIG_REGISTRY
+from meta_icl.core.enumeration.language_enum import LanguageEnum
 from meta_icl.core.offline.instruction_optimization.ipc import IPCOptimization
 from meta_icl.core.utils.utils import get_current_date
+from meta_icl.core.utils.utils import load_yaml
 
 current_file_path = Path(__file__)
 
-logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_current_date()}.log", rotation="10 MB", level="INFO")
+logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_current_date()}.log", rotation="10 MB",
+           level="INFO")
 
 rank_config_path = os.path.join(os.path.dirname(__file__), 'ipc_ranker_en.yml')
 generate_config_path = os.path.join(os.path.dirname(__file__), 'ipc_optim_generate_en.yml')
-
 
 rank_config_params = load_yaml(rank_config_path)
 generate_config_params = load_yaml(generate_config_path)

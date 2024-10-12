@@ -1,6 +1,6 @@
 # log prompts
 
-forward_log_template: 
+forward_log_template:
   cn: |
     ---------------\t当前状态\t----------------
     当前提示:\n{cur_prompt}
@@ -17,7 +17,7 @@ forward_log_template:
     acc:     {acc}
 
 
-error_string_log_template: 
+error_string_log_template:
   cn: |
     --------------\t错误情况\t-----------------
     {error_string}
@@ -25,7 +25,7 @@ error_string_log_template:
     --------------\terror_string\t-----------------
     {error_string}
 
-correct_string_log_template: 
+correct_string_log_template:
   cn: |
     --------------\t正确情况\t-----------------
     {correct_string}
@@ -157,21 +157,21 @@ optimize_prompt_template:
 
 example_template:
   cn: |
-    <{index}> 
+    <{index}>
     模型输入是：
     {question}
 
-    模型的输出是： 
+    模型的输出是：
     {response}
 
     正确的标签是：{label}
     模型的预测是：{prediction}.
   en: |
-    <{index}> 
+    <{index}>
     The model's input is:
     {question}
 
-    The model's response is: 
+    The model's response is:
     {response}
 
     The correct label is: {label}
@@ -326,7 +326,7 @@ ascend_optimize_prompt_template_single:
     2. 新提示应考虑提示列表，并基于当前提示进行演变。
     3. 每个新提示应以<START>和<END>包装。
     新提示是：
-    
+
   en: |
     I'm writing prompts for a language model designed for a task.
 

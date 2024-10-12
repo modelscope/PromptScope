@@ -1,10 +1,9 @@
-from meta_icl.core.utils.demontration_utils import (
-                                                    demonstration_var_score,
-                                                    demonstration_expand)
-from meta_icl.core.utils import load_json_file, sav_json
-from meta_icl.core.utils import get_current_date
-import json, os, copy
 from meta_icl.core.offline.demonstration_augmentation.generation_by_beam_search import GenerationByBeamSearch
+from meta_icl.core.utils import get_current_date
+from meta_icl.core.utils import load_json_file
+from meta_icl.core.utils.demontration_utils import (
+    demonstration_var_score,
+    demonstration_expand)
 
 if __name__ == '__main__':
     generation_config_pth = "examples/example_demonstration_aug_by_beamsearch/agent_role_followup_beam_search_examples_expansion.json"
@@ -17,6 +16,3 @@ if __name__ == '__main__':
                                        demonstration_expand=demonstration_expand,
                                        demonstration_var_score=demonstration_var_score)
     generator.beam_search(max_steps=3, beam_width=3, expand_config=expand_config)
-
-
-

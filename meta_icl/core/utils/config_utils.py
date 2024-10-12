@@ -1,8 +1,9 @@
-from meta_icl.core.utils.utils import load_yaml_file, sav_yaml, sav_json
-from meta_icl.core.utils.sys_prompt_utils import load_json_file
+import yaml
 from easydict import EasyDict as edict
 from loguru import logger
-import yaml
+
+from meta_icl.core.utils.sys_prompt_utils import load_json_file
+from meta_icl.core.utils.utils import sav_yaml, sav_json
 
 
 def whether_yaml_file(config_pth):
@@ -22,7 +23,6 @@ def load_config(config_pth, as_edict=False):
         logger.error(e)
         logger.error(f'failed to load config file. {config_pth} is not a valid config file')
         configs = {}
-
 
     if as_edict:
         configs = edict(configs)
@@ -91,8 +91,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous embedding_pth: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["embedding_pth"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the embedding_pth as: {}".format(embedding_pth))
 
     if retriever_config_name not in configs["icl_configs"].keys():
@@ -104,8 +104,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous embedding_model: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["embedding_model"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the embedding_model as: {}".format(embedding_model))
     configs["icl_configs"][retriever_config_name]["embedding_model"] = embedding_model
 
@@ -113,8 +113,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous search_key: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["search_key"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the embedding_model as: {}".format(embedding_model))
     configs["icl_configs"][retriever_config_name]["search_key"] = search_key
 
@@ -122,8 +122,8 @@ def update_icl_configs_embedding(config_pth, embedding_pth, embedding_model, exa
         logger.info("previous examples_pth: {}\nupdated to: {}".format(
             config_pth,
             configs["icl_configs"][retriever_config_name]["examples_pth"],
-            embedding_pth))
-    except:
+        ))
+    except Exception:
         logger.info("Specify the examples_pth as: {}".format(examples_list_pth))
     configs["icl_configs"][retriever_config_name]["examples_pth"] = examples_list_pth
 

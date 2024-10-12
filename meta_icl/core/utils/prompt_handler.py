@@ -33,7 +33,7 @@ class PromptHandler(object):
         """
         class_path: Path = Path(class_path)
         self._class_dir: Path = class_path.parent
-        
+
         if class_name:
             self._class_name = class_name
         else:

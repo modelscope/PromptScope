@@ -8,7 +8,7 @@ CLEVER: |
 
   现在请改写以下问题：
   ## 问题：{query}
-  ## 改写后Prompt: 
+  ## 改写后Prompt:
 
 ICIO: |
   请你按照以下模版改写prompt：
@@ -20,7 +20,7 @@ ICIO: |
 
   现在请改写以下问题：
   ## 问题：{query}
-  ## 改写后Prompt: 
+  ## 改写后Prompt:
 
 CRISPE: |
   请你按照以下模版改写prompt：
@@ -36,7 +36,7 @@ CRISPE: |
 
   现在请改写以下问题：
   ## 问题：{query}
-  ## 改写后Prompt: 
+  ## 改写后Prompt:
 
 BROKE: |
   请你按照以下模版改写prompt：
@@ -52,7 +52,7 @@ BROKE: |
 
   现在请改写以下问题：
   ## 问题：{query}
-  ## 改写后Prompt: 
+  ## 改写后Prompt:
 
 RASCEF: |
   请你按照以下模版改写prompt：
@@ -69,7 +69,7 @@ RASCEF: |
 
   现在请改写以下问题：
   ## 问题：{query}
-  ## 改写后Prompt: 
+  ## 改写后Prompt:
 
 Query_Generation: |
   请你按照以下任务描述生成对应的可能问题：
@@ -81,7 +81,7 @@ Query_Generation: |
   现在请生成问题：
   ## 任务描述：{prompt}
   ## 问题:
-  
+
 
 Evaluation: |
   请按照以下模版评价大模型的回答质量：
@@ -89,7 +89,7 @@ Evaluation: |
 
   现在请评价以下五个回答，分别打分，并选出最好的一个。注意，回答间用｜分割，请体现出差异性，避免所有回答打分都相同。
   ## 回答：{answers}
-  
+
   严格按照以下格式输出：
   1. <评价1>
   2. <评价2>

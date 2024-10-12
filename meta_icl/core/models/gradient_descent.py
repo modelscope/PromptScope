@@ -2,21 +2,22 @@
 # https://arxiv.org/abs/2305.03495
 
 import re
+
 import numpy as np
 
-from meta_icl.algorithm.PromptAgent.utils import *
 from meta_icl.core.utils.prompt_handler import PromptHandler
+
 
 class GradientDescent():
     def __init__(self,
                  task,
                  base_model,
                  optim_model,
-                 print_log = True,
-                 logger = None,
-                 num_new_prompts = 1,
-                 prompt_length_limit = 200,
-                 prompt_handler: PromptHandler = None,):
+                 print_log=True,
+                 logger=None,
+                 num_new_prompts=1,
+                 prompt_length_limit=200,
+                 prompt_handler: PromptHandler = None, ):
         self.task = task
         self.base_model = base_model
         self.optim_model = optim_model
@@ -43,12 +44,12 @@ class GradientDescent():
 
     def forward(self, batch, cur_prompt):
         batch_size = len(batch['question'])
-        batch_prompts =self._build_forward_prompts_func(batch['question'], cur_prompt)
+        batch_prompts = self._build_forward_prompts_func(batch['question'], cur_prompt)
         try:
             responses = [self.call_func(prompt=prompt).message.content for prompt in batch_prompts]
-        except:
+        except Exception:
             responses = [self.call_func(prompt=prompt).output.text for prompt in batch_prompts]
-        
+
         for p, r in zip(batch_prompts, responses):
             self.logger.info(f"Input:\n{p}")
             self.logger.info(f"Output:\n{r}")
@@ -131,12 +132,12 @@ class GradientDescent():
         gradient_prompt = gradient_prompt_template.format(cur_prompt=cur_prompt,
                                                           example_string=example_string)
         gradient_message = [{'role': 'system', 'content': 'You are a helpful assistant.'},
-                    {'role': 'user', 'content': gradient_prompt}]
+                            {'role': 'user', 'content': gradient_prompt}]
         try:
             gradient = self.optim_model.call(messages=gradient_message).message.content
-        except:
+        except Exception:
             gradient = self.optim_model.call(messages=gradient_message).output.text
-        
+
         if self.print_log:
             log_str = self.gradient_log_template.format(gradient_prompt=gradient_prompt,
                                                         gradient=gradient)
@@ -161,10 +162,10 @@ class GradientDescent():
             trajectory_prompts=trajectory_prompts,
             steps_per_gradient=steps_per_gradient)
         optimize_messages = [{'role': 'system', 'content': 'You are a helpful assistant.'},
-                    {'role': 'user', 'content': optimize_prompt}]
+                             {'role': 'user', 'content': optimize_prompt}]
         try:
             response = self.optim_model.call(messages=optimize_messages).message.content
-        except:
+        except Exception:
             response = self.optim_model.call(messages=optimize_messages).output.text
         optimized_prompt = self._clean_optim_response(response)
         if self.print_log:
