@@ -24,8 +24,8 @@ if __name__ == '__main__':
         auto_save=True,
         expand_model_config=model_config
     )
-    file_sav_pth = diversity_generator.run(seed_demonstrations=seed_demonstration,
+    demonstration_aug_list = diversity_generator.run(seed_demonstrations=seed_demonstration,
                                            n=10,
                                            max_steps=1,
                                            beam_width=1)
-    logger.info(f"Diversity generation finished, the result is saved in {file_sav_pth}")
+    logger.info(f"Diversity generation finished, the result is {demonstration_aug_list}")
