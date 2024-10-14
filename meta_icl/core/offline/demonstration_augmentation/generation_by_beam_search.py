@@ -198,7 +198,8 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         self.beam_search_generation(max_steps=max_steps,
                                     beam_width=beam_width,
                                     seed_demonstrations=seed_demonstrations)
-        return self.sav_file_path
+        logger.info("demonstration sav path: {}".format(self.sav_file_path))
+        return self.all_states
 
     def _renew_all_state(self) -> None:
         """
