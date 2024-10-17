@@ -1,10 +1,3 @@
-"""
-todo: by jm, unify the interface design of argumentation method.
-1. support the input of the demonstration except loading from the configuration.
-2. support the parameters loading from the init function rather than configuration dict?
-3. What is the difference between the similar argumentation and ipc argumentation?
-4. Little confused by the prompt in ipc_aug.yaml, which is more like a initial proposal prompt?
-"""
 import concurrent.futures
 
 from loguru import logger
@@ -12,7 +5,7 @@ from tqdm import tqdm
 
 from meta_icl.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
 from meta_icl.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
-
+from typing import Union, List, Dict, Any
 
 class IPCGeneration(BaseDemonstrationAugmentation):
     """
@@ -80,17 +73,16 @@ class IPCGeneration(BaseDemonstrationAugmentation):
 
         return all_results
 
-    def run(self, prompt: str = ""):
+    def run(self, seed_demonstrations: Union[str, List[str], Dict, Any]=[],
+            n: int=0, **kwargs) -> List:
         """
         generate samples
         """
-        # todo: by zy, support the input of the demonstration except loading from the configuration.
         prompt_input = {'task_description': self.task_config.task_description,
                         'instruction': self.task_config.instruction,
                         'batch_size': self.task_config.batch_size}
 
-        if not prompt:
-            prompt = self.prompt_handler.representative_sample.format_map(prompt_input)
+        prompt = self.prompt_handler.adv_sample_classification.format_map(prompt_input)
         batch_input = prompt
         batch_inputs = self.generate_samples_batch(batch_input, self.task_config.samples_per_step,
                                                    self.task_config.batch_size)
