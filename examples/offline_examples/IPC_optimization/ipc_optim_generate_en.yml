@@ -56,7 +56,7 @@ model_config:
 
     predictor:
         module_name: 'openai_post'
-        model_name: 'gpt-4o'
+        model_name: 'gpt-4o-mini'
         max_tokens: 2000
         seed: 1234
 
