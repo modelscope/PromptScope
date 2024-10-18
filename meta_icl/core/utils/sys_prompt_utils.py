@@ -15,9 +15,7 @@ from scipy.spatial.distance import cdist
 
 from meta_icl.core.models.generation_model import GenerationModel
 
-KEY = ""
-
-# # KEY = "***REMOVED***"
+KEY = "" # DASHSCOPE KEY HERE
 dashscope.api_key = KEY
 
 DASHSCOPE_MAX_BATCH_SIZE = 25
@@ -516,7 +514,7 @@ def embed_with_list_of_str(inputs: List, embedding_model='ds_text_embedding_v1')
         def test_emb_request(model, text_input):
             url = 'https://poc-dashscope.aliyuncs.com/api/v1/services/embeddings/text-embedding/text-embedding'
             headers = {
-                'Authorization': '',
+                'Authorization': '', ## DASHSCOPE KEY HERE
                 'Content-Type': 'application/json',
             }
             data = {

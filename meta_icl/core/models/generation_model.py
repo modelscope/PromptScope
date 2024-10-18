@@ -137,8 +137,7 @@ class OpenAIPostModel(BaseModel):
         url = "http://47.88.8.18:8088/api/ask"
         headers = {
             "Content-Type": "application/json",
-            # "Authorization": "",
-            "Authorization": "",
+            "Authorization": "", # OPENAI KEY HERE
         }
         if prompt:
             messages = [
@@ -193,8 +192,7 @@ class OpenAIAioPostModel(BaseAsyncModel):
         url = "http://47.88.8.18:8088/api/ask"
         headers = {
             "Content-Type": "application/json",
-            # "Authorization": "",
-            "Authorization": "",
+            "Authorization": "", # OPENAI KEY here
         }
         if prompt:
             messages = [
