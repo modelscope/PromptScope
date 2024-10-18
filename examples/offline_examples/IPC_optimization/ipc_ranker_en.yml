@@ -39,14 +39,6 @@ model_config:
         max_tokens: 2000
         seed: 1234
 
-    # annotator:
-#     method : 'argilla'
-#     config:
-#         api_url: ''
-#         api_key: 'admin.apikey'
-#         workspace: 'admin'
-#         time_interval: 5
-
     predictor:
         module_name: 'openai_post'
         model_name: 'gpt-4o-mini'

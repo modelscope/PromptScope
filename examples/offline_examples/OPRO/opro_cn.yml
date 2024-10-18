@@ -11,16 +11,14 @@ basic_config:
 model_config:
     scorer:
         module_name: 'aio_generation'
-        model_name: qwen2-14b-instruct
-        clazz: 'models.llama_index_generation_model'
+        model_name: qwen2-72b-instruct
         max_tokens: 2000
         seed: 1234
         batch_size: &bs 1
 
     optim:
         module_name: 'aio_generation'
-        model_name: &optim_name qwen2-14b-instruct
-        clazz: 'models.llama_index_generation_model'
+        model_name: &optim_name qwen2-72b-instruct
         max_tokens: 2000
         seed: 1234
         temperature: &temp 1
@@ -35,10 +33,7 @@ evolution_config:
     dataset_name: *dataset
     task_name: *task_name
     initial_instructions: [
-        # "Let's solve the problem.",
         "请一步一步思考"
-        # "",
-        # "The answer is",
     ]
     instruction_pos: *ins_p
     few_shot_qa_pairs: True
