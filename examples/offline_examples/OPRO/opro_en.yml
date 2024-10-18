@@ -34,8 +34,6 @@ evolution_config:
     task_name: *task_name
     initial_instructions: [
         "Let's solve the problem.",
-        # "",
-        # "The answer is",
     ]
     instruction_pos: *ins_p
     few_shot_qa_pairs: True

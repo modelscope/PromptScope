@@ -5,10 +5,24 @@ import setuptools
 
 # released requires
 requires = [
+    "aiohttp",
+    "bm25s",
     "dashscope",
-    "scipy",
+    "easydict",
+    "faiss_cpu",
+    "immutabledict",
+    "loguru",
     "numpy",
-    "bm25s"
+    "openai",
+    "pandas",
+    "pydantic",
+    "pytz",
+    "pyyaml",
+    "requests",
+    "scikit_learn",
+    "scipy",
+    "torch",
+    "tqdm", 
 ]
 
 setuptools.setup(
@@ -16,7 +30,7 @@ setuptools.setup(
     version="v0.0.1",
     author="",
     author_email="",
-    description="A simple framework for prompt optimization",
+    description="A framework for demonstration augmentation and prompt optimization",
     packages=setuptools.find_packages(),
     install_requires=requires,
     license="Apache License 2.0",
