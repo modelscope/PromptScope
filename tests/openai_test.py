@@ -3,8 +3,9 @@ from unittest.mock import MagicMock, patch
 import openai
 import unittest.mock as mock
 
-from meta_icl.core.models.generation_model import OpenAIGenerationModel, OpenAIAioGenerationModel
+from meta_icl.core.models.generation_model import OpenAIGenerationModel, OpenAIAioGenerationModel, OpenAIAioPostModel, OpenAIPostModel
 from meta_icl.core.scheme.model_response import ModelResponse
+import asyncio
 
 class TestOpenAIGenerationModel(unittest.TestCase):
     """Tests for OpenAIGenerationModel"""
@@ -246,4 +247,20 @@ class TestOpenAIAioGenerationModel(unittest.IsolatedAsyncioTestCase):
         )
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    openai_async_config = {
+            "module_name": "openai_aio_generation",
+            "model_name": "gpt-4o-mini",
+            "max_tokens": 200,
+            "top_k": 1,
+            "seed": 1234,
+        }
+    openai_async_llm = OpenAIAioPostModel(**openai_async_config)
+    openai_llm = OpenAIPostModel(**openai_async_config)
+
+    prompts = ["Hello!", "Hi!", "How are you?"]
+    raw_answers = [x.message.content for x in asyncio.run(openai_async_llm.async_call(prompts=prompts, semaphore=5))]
+    print(raw_answers)
+    raw_answers = openai_llm.call(prompt=prompts[0])
+    print(raw_answers.message.content)
+
