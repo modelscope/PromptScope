@@ -50,7 +50,7 @@ ROOT_DATA_FOLDER_PATH = os.path.join(WORK_PATH, "data")
 
 
 def config():
-    config_dir = os.path.join(os.path.dirname(__file__), "opro_cn.yml")
+    config_dir = os.path.join(os.path.dirname(__file__), "opro_en.yml")
     args = load_yaml(config_dir)
     return args
 

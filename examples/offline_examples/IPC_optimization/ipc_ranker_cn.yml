@@ -28,41 +28,24 @@ eval_config:
 model_config:
     generation:
         module_name: 'dashscope_generation'
-        model_name: 'qwen2-57b-a14b-instruct'
-        clazz: 'models.llama_index_generation_model'
+        model_name: 'qwen2-72b-instruct'
         max_tokens: 2000
         seed: 1234
 
     annotator:
         module_name: 'dashscope_generation'
         model_name: 'qwen2-72b-instruct'
-        clazz: 'models.llama_index_generation_model'
         max_tokens: 2000
         seed: 1234
 
-    # annotator:
-#     method : 'argilla'
-#     config:
-#         api_url: ''
-#         api_key: 'admin.apikey'
-#         workspace: 'admin'
-#         time_interval: 5
-
     predictor:
         module_name: 'dashscope_generation'
-        model_name: 'qwen-max'
-        clazz: 'models.llama_index_generation_model'
+        model_name: 'qwen2-57b-a14b-instruct'
         max_tokens: 2000
         seed: 1234
 
     analyzer:
         module_name: 'dashscope_generation'
-        model_name: 'qwen2-57b-a14b-instruct'
-        clazz: 'models.llama_index_generation_model'
+        model_name: 'qwen2-72b-instruct'
         max_tokens: 2000
         seed: 1234
-
-# stop_criteria:
-#     max_usage: 2 #In $ in case of OpenAI models, otherwise number of tokens
-#     patience: 10 # Number of patience steps
-#     min_delta: 0.01 # Delta for the improvement definition

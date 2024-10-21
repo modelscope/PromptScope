@@ -13,7 +13,7 @@
 # limitations under the License.
 import collections
 import os
-
+import pickle as pkl
 import numpy as np
 import pandas as pd
 
@@ -207,7 +207,6 @@ class OPRO(PromptOptimizationWithFeedback):
         # 	json.dump(dict(self.evolution_config), f, indent=4)
         self.train_index = self.evolution_config.train_index
         self.eval_index = self.evolution_config.eval_index
-        # todo: by jm, how to optimize the prompt for other dataset or general applications.
         if self.dataset_name == "mmlu":
             self.is_multiple_choice = True
             self.is_multiple_choice_eval = True
@@ -292,6 +291,8 @@ class OPRO(PromptOptimizationWithFeedback):
                 print(f"old_instructions_and_scores: {self.old_instructions_and_scores}")
 
             self.step(i_step, **self.evolution_config)
+
+        self.extract_best_prompt(self.evolution_config['save_folder'])
 
     def step(self,
              i_step,
@@ -772,17 +773,15 @@ class OPRO(PromptOptimizationWithFeedback):
         results_dict["eval_detailed_results_df_dict"] = (
             self.eval_detailed_results_df_dict
         )
-
-        import pickle
         save_folder = kwargs.get('save_folder')
         with open(os.path.join(save_folder, "results_dict.pkl"), "wb") as fp:
-            pickle.dump(results_dict, fp)
+            pkl.dump(results_dict, fp)
         print(f"\nsaved all results to\n{save_folder}")
 
-    def extract_best_prompt(self):
-        # todo: by jm, return best prompt to align the interface definition.
+    def extract_best_prompt(self, save_folder):
         """
-		This method is intended to extract the best prompt from the evaluated results.
-		Currently, it is a placeholder and needs implementation.
+		This method is intended to extract the best prompt from the saved evaluated results.
 		"""
-        pass
+        with open(os.path.join(save_folder, "results_dict.pkl"), "rb") as fp:
+            results_dict = pkl.load(fp)
+        return sorted(results_dict['old_instructions_and_scores'])[-1][0]

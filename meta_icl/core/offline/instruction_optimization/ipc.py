@@ -45,7 +45,6 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         self.samples: List[str] = None  # Placeholder for generated sample texts
         self.cur_step: int = 0  # Tracks the current step in the iterative process
         self.cur_prompt: str = self.task_config.instruction  # Initial prompt instruction
-        # todo: by jm, eval module is only used in ipc optimization?
         self.eval = Eval(FILE_PATH=self.FILE_PATH)  # Instantiate evaluation module with file path
 
     def init_model(self):
@@ -163,8 +162,6 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm(
                 samples=[sample[-1] for sample in samples], prompt_handler=self.prompt_handler)
         else:
-            # todo: by zy, i have checked the prompt used in annotator and predictor, which are almost the same.
-            #  If we set the same llm for annotator and predictor, I am little confused by this evaluation.
             logger.info('Running annotator')
             annotations = self.annotate([sample[1].strip() if len(sample) > 1 else '' for sample in samples])
             logger.info('Running predictor')
@@ -509,7 +506,6 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         prompt_input = {'task_description': self.task_config.task_description}
         description_mod_prompt = self.prompt_handler.ipc_ranker_description_mod.format_map(prompt_input)
 
-        # todo: by zy, unify the llm call interface.
         try:
             mod_prompt = self.generation_llm.call(prompt=prompt_mod_prompt).message.content
             mod_description = self.generation_llm.call(prompt=description_mod_prompt).message.content
