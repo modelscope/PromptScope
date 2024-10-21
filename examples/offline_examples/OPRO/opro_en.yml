@@ -1,31 +1,31 @@
 # use_wandb: False
 
 basic_config:
-    task_name: &task_name boolean_expressions
+    task_name: &task_name train
     output_path: dump
     instruction_pos: &ins_p Q_begin
     meta_prompt_type: &meta_pt both_instructions_and_exemplars
-    dataset_name: &dataset bbh
+    dataset_name: &dataset gsm8k
     language: en
 
 model_config:
     scorer:
         module_name: openai_aio_post
-        model_name: gpt-4o
+        model_name: gpt-4o-mini
         max_tokens: 2000
         seed: 1234
         batch_size: &bs 1
 
     optim:
         module_name: openai_aio_post
-        model_name: &optim_name gpt-4o
+        model_name: &optim_name gpt-4o-mini
         max_tokens: 2000
         seed: 1234
         temperature: &temp 1
 
 
 evolution_config:
-    num_search_steps: 200
+    num_search_steps: 3
     old_instruction_score_threshold: 0.3
     extract_final_answer_by_prompting_again: False
     include_qa: False
@@ -34,8 +34,6 @@ evolution_config:
     task_name: *task_name
     initial_instructions: [
         "Let's solve the problem.",
-        # "",
-        # "The answer is",
     ]
     instruction_pos: *ins_p
     few_shot_qa_pairs: True

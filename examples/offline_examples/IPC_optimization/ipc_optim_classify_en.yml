@@ -38,17 +38,9 @@ model_config:
         max_tokens: 2000
         seed: 1234
 
-    # annotator:
-#     method : 'argilla'
-#     config:
-#         api_url: ''
-#         api_key: 'admin.apikey'
-#         workspace: 'admin'
-#         time_interval: 5
-
     predictor:
         module_name: 'openai_post'
-        model_name: 'gpt-4o'
+        model_name: 'gpt-4o-mini'
         max_tokens: 2000
         seed: 1234
 
@@ -57,8 +49,3 @@ model_config:
         model_name: 'gpt-4o'
         max_tokens: 2000
         seed: 1234
-
-# stop_criteria:
-#     max_usage: 2 #In $ in case of OpenAI models, otherwise number of tokens
-#     patience: 10 # Number of patience steps
-#     min_delta: 0.01 # Delta for the improvement definition
