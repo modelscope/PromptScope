@@ -10,7 +10,7 @@ from tqdm.asyncio import tqdm
 
 from prompt_scope.core.enumeration.model_enum import ModelEnum
 from prompt_scope.core.scheme.message import Message
-from prompt_scope.core.scheme.model_response import ModelResponse, ModelResponseGen
+from prompt_scope.core.scheme.model_response import ModelResponse
 from prompt_scope.core.utils.registry import Registry
 from prompt_scope.core.utils.timer import Timer
 
@@ -103,7 +103,7 @@ class BaseModel(metaclass=ABCMeta):
         return self.after_call(stream=stream, model_response=model_response, **kwargs)
 
     @abstractmethod
-    def after_call(self, model_response: ModelResponse, **kwargs) -> Union[ModelResponse, ModelResponseGen]:
+    def after_call(self, model_response: ModelResponse, **kwargs) -> ModelResponse:
         pass
 
 

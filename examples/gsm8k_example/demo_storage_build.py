@@ -1,4 +1,4 @@
-from meta_icl.core.offline.demonstration_storage_preparation.storage_builder_4_embedding import \
+from prompt_scope.core.offline.demonstration_storage_preparation.storage_builder_4_embedding import \
     prepare_embedding_storage
 
 if __name__ == '__main__':

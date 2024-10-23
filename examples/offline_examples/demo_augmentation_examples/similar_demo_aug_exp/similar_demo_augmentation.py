@@ -2,10 +2,10 @@ import json
 
 from loguru import logger
 
-from meta_icl.core.offline.demonstration_augmentation.generate_similar_demo import SimilarDemoAugmentation
-from meta_icl.core.offline.demonstration_augmentation.prompt.demo_augmentation_prompt import (
+from prompt_scope.core.offline.demonstration_augmentation.generate_similar_demo import SimilarDemoAugmentation
+from prompt_scope.core.offline.demonstration_augmentation.prompt.demo_augmentation_prompt import (
     Default_Instruction_4_Similar_Demonstration_Generation)
-from meta_icl.core.utils.sys_prompt_utils import call_llm_with_message
+from prompt_scope.core.utils.sys_prompt_utils import call_llm_with_message
 
 if __name__ == '__main__':
     augmentation_config = {
@@ -23,7 +23,7 @@ if __name__ == '__main__':
             }
         }
     ]
-    from meta_icl.core.utils.utils import get_current_date
+    from prompt_scope.core.utils.utils import get_current_date
 
     logger.add(f"log/similar_demo_augmentation_{get_current_date()}.log", rotation="10 MB")
     demo_generator = SimilarDemoAugmentation(augmentation_config)
@@ -38,6 +38,6 @@ if __name__ == '__main__':
     }
     res = call_llm_with_message(messages=generation_prompt, model_config=model_config, model="qwen-plus")
     logger.info(res)
-    from meta_icl.core.utils.demontration_utils import extract_from_markdown_json
+    from prompt_scope.core.utils.demontration_utils import extract_from_markdown_json
 
     logger.info(extract_from_markdown_json(res))
