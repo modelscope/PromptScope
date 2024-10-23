@@ -1,8 +1,8 @@
-from meta_icl.core.offline.demonstration_augmentation.generation_by_beam_search import GenerationByBeamSearch
-from meta_icl.core.utils.demontration_utils import (demonstration_var_score,
+from prompt_scope.core.offline.demonstration_augmentation.generation_by_beam_search import GenerationByBeamSearch
+from prompt_scope.core.utils.demontration_utils import (demonstration_var_score,
                                                     demonstration_expand)
-from meta_icl.core.utils.sys_prompt_utils import load_json_file, check_dir
-from meta_icl.core.utils.utils import get_current_date
+from prompt_scope.core.utils.sys_prompt_utils import load_json_file, check_dir
+from prompt_scope.core.utils.utils import get_current_date
 
 if __name__ == '__main__':
     # generation_config_pth = ("examples/example_demonstration_aug_by_beamsearch"

@@ -727,7 +727,6 @@ eval:
     你可以参考如下输出样例：
     1|
     报告概要：《量子智能时代：新兴环境挑战与前瞻治理框架》。本报告预见性地揭示了高科技未来中三大新兴环境威胁：（1）量子计算驱动的资源过度模拟与能耗激增；（2）AI普及引发的电子废弃物剧增与循环利用难题；（3）智能化生产对生物多样性的间接影响。针对这些挑战，报告创新性地提出“智驭未来”的综合策略框架：首先，研发量子级能效优化算法，减少计算过程中的能源消耗，并推动可再生能源在数据中心的应用；其次，建立AI电子产品生命周期管理平台，促进全球范围内的电子废物透明回收与升级再造；最后，应用AI生态监测与生物多样性保护系统，确保技术进步与自然生态的和谐共存。此框架强调跨学科合作、全球治理及科技伦理原则，旨在引导科技发展方向，守护地球家园。|4||
-    '''
 
     现在请评估以下{batch_size}个AI生成回答，评估结果请严格从{label_schema}中选择：
     ### 生成回答：{samples}
@@ -746,8 +745,6 @@ eval:
     1|
 
     Report Summary: "Quantum Intelligence Era: Emerging Environmental Challenges and Forward-Looking Governance Framework". This report foresightedly reveals three major emerging environmental threats in a high-tech future: (1) resource over-simulation and energy consumption surges driven by quantum computing; (2) a dramatic increase in electronic waste and recycling challenges triggered by the proliferation of AI; (3) indirect effects of intelligent production on biodiversity. In response to these challenges, the report innovatively proposes a comprehensive strategic framework called "Smartly Leading the Future": First, develop quantum-level energy efficiency optimization algorithms to reduce energy consumption during computations and promote the use of renewable energy in data centers; second, establish an AI lifecycle management platform for electronic products to facilitate transparent recycling and upgrading of electronic waste on a global scale; finally, apply AI ecological monitoring and biodiversity protection systems to ensure the harmonious coexistence of technological advancement and natural ecology. This framework emphasizes interdisciplinary cooperation, global governance, and principles of technology ethics, aiming to guide the direction of technological development and protect our Earth. |4||
-
-    '''
 
     Now, please evaluate the following {batch_size} AI-generated responses, and the evaluation results should strictly be selected from {label_schema}:
 

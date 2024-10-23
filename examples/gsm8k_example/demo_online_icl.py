@@ -1,6 +1,6 @@
-from meta_icl.core.online_icl.icl.ICL import EmbeddingICL
-from meta_icl.core.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
-from meta_icl.core.utils.config_utils import load_config
+from prompt_scope.core.online_icl.icl.ICL import EmbeddingICL
+from prompt_scope.core.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
+from prompt_scope.core.utils.config_utils import load_config
 
 if __name__ == '__main__':
     # load online icl configs

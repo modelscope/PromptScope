@@ -1,7 +1,7 @@
-from meta_icl.core.offline.demonstration_augmentation.generation_by_beam_search import GenerationByBeamSearch
-from meta_icl.core.utils import get_current_date
-from meta_icl.core.utils import load_json_file
-from meta_icl.core.utils.demontration_utils import (
+from prompt_scope.core.offline.demonstration_augmentation.generation_by_beam_search import GenerationByBeamSearch
+from prompt_scope.core.utils import get_current_date
+from prompt_scope.core.utils import load_json_file
+from prompt_scope.core.utils.demontration_utils import (
     demonstration_var_score,
     demonstration_expand)
 

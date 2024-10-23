@@ -3,10 +3,10 @@ from pathlib import Path
 
 from loguru import logger
 
-from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.offline.instruction_optimization.prompt_agent import PromptAgent
-from meta_icl.core.utils.utils import get_current_date
-from meta_icl.core.utils.utils import load_yaml
+from prompt_scope import CONFIG_REGISTRY
+from prompt_scope.core.offline.instruction_optimization.prompt_agent.prompt_agent import PromptAgent
+from prompt_scope.core.utils.utils import get_current_date
+from prompt_scope.core.utils.utils import load_yaml
 
 current_file_path = Path(__file__)
 

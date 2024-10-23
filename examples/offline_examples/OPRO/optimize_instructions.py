@@ -30,10 +30,10 @@ from pathlib import Path
 
 from loguru import logger
 
-from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.offline.instruction_optimization.opro import OPRO
-from meta_icl.core.utils.utils import get_current_date
-from meta_icl.core.utils.utils import load_yaml
+from prompt_scope import CONFIG_REGISTRY
+from prompt_scope.core.offline.instruction_optimization.opro.opro import OPRO
+from prompt_scope.core.utils.utils import get_current_date
+from prompt_scope.core.utils.utils import load_yaml
 
 current_file_path = Path(__file__)
 
@@ -43,7 +43,7 @@ logger.add(f"{current_file_path.parent}/log/{current_file_path.stem}_{get_curren
 WORK_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 import numpy as np
-from meta_icl.algorithm.opro.evaluation import eval_utils
+from prompt_scope.algorithm.opro.evaluation import eval_utils
 import pandas as pd
 
 ROOT_DATA_FOLDER_PATH = os.path.join(WORK_PATH, "data")

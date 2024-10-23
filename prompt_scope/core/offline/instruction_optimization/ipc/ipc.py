@@ -56,7 +56,6 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         The method uses the `GenerationModel` class to instantiate these models,
         passing respective configuration parameters for each model's unique role.
         """
-        print(self.model_config)
         generation_module_name = self.model_config.generation.get('module_name')
         if generation_module_name == 'dashscope_generation':
             self.generation_llm = GenerationModel(**self.model_config.generation)
