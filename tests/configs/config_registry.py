@@ -1,15 +1,15 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from meta_icl.core.offline.instruction_optimization.ipc import IPCOptimization
-from meta_icl.core.offline.instruction_optimization.opro import OPRO
-from meta_icl.core.offline.instruction_optimization.prompt_agent import PromptAgent
-from meta_icl.core.utils.utils import load_yaml
-from meta_icl import CONFIG_REGISTRY
-from meta_icl.core.evaluation.evaluator import Eval
-from meta_icl.algorithm.PromptAgent.search_algo.mcts import MCTS
-from meta_icl.algorithm.PromptAgent.search_algo.beam_search import BeamSearch
-from meta_icl.core.models.world_model import WorldModel
-from meta_icl.core.models.beam_world_model import BeamSearchWorldModel
+from prompt_scope.core.offline.instruction_optimization.ipc.ipc import IPCOptimization
+from prompt_scope.core.offline.instruction_optimization.opro.opro import OPRO
+from prompt_scope.core.offline.instruction_optimization.prompt_agent.prompt_agent import PromptAgent
+from prompt_scope.core.utils.utils import load_yaml
+from prompt_scope import CONFIG_REGISTRY
+from prompt_scope.core.evaluation.evaluator import Eval
+from prompt_scope.algorithm.PromptAgent.search_algo.mcts import MCTS
+from prompt_scope.algorithm.PromptAgent.search_algo.beam_search import BeamSearch
+from prompt_scope.core.models.world_model import WorldModel
+from prompt_scope.core.models.beam_world_model import BeamSearchWorldModel
 
 
 
