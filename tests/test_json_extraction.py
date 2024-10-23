@@ -2,7 +2,7 @@
 """
 Unit tests for import utils functions
 """
-from meta_icl.core.utils.utils import extract_from_markdown_json
+from prompt_scope.core.utils.utils import extract_from_markdown_json
 
 import unittest
 

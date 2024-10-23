@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 import unittest.mock as mock
 import dashscope
 
-from meta_icl.core.models.generation_model import GenerationModel, AioGenerationModel
-from meta_icl.core.scheme.model_response import ModelResponse
+from prompt_scope.core.models.generation_model import GenerationModel, AioGenerationModel
+from prompt_scope.core.scheme.model_response import ModelResponse
 
 class TestGenerationModel(unittest.TestCase):
     """Tests for GenerationModel"""

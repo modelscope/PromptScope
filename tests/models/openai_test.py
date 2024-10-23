@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 import openai
 import unittest.mock as mock
 
-from meta_icl.core.models.generation_model import OpenAIGenerationModel, OpenAIAioGenerationModel, OpenAIAioPostModel, OpenAIPostModel
-from meta_icl.core.scheme.model_response import ModelResponse
+from prompt_scope.core.models.generation_model import OpenAIGenerationModel, OpenAIAioGenerationModel, OpenAIAioPostModel, OpenAIPostModel
+from prompt_scope.core.scheme.model_response import ModelResponse
 import asyncio
 
 class TestOpenAIGenerationModel(unittest.TestCase):
@@ -263,4 +263,3 @@ if __name__ == '__main__':
     print(raw_answers)
     raw_answers = openai_llm.call(prompt=prompts[0])
     print(raw_answers.message.content)
-
