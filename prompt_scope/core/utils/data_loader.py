@@ -29,10 +29,8 @@ class JsonlDataLoader(BaseDataLoader):
 
 
 class CsvDataLoader(BaseDataLoader):
-    def __init__(self, file_path: str, delimiter: str = ',', quotechar: str = '"'):
-        super().__init__(file_path)
-        self.delimiter = delimiter
-        self.quotechar = quotechar
+    delimiter: str = Field(default=',', description="delimiter for the csv file")
+    quotechar: str = Field(default='"', description="quotechar for the csv file")
 
     def load_data(self) -> List[Dict[str, Any]]:
         with open(self.file_path, 'r', encoding='utf-8') as f:
@@ -46,8 +44,10 @@ class CsvDataLoader(BaseDataLoader):
 
 
 class HfDataLoader(BaseDataLoader):
+    split: str = Field(default='train', description="delimiter for the csv file")
+    subset: Optional[str] = Field(default=None, description="quotechar for the csv file")
+
     def __init__(self, dataset_name: str, split: str = 'train', subset: Optional[str] = None):
-        super().__init__(dataset_name)
         self.split = split
         self.subset = subset
 
@@ -59,5 +59,36 @@ class HfDataLoader(BaseDataLoader):
         dataset = load_dataset(self.file_path, name=self.subset, split=self.split)
         yield from dataset
 
+class BBHDataLoader(BaseDataLoader):
+    def load_data(self) -> List[Dict[str, Any]]:
+        with open(self.file_path, 'r') as file:
+            json_data = json.load(file)
+            self.data = json_data.get('example', [])
+        return self.data
+
+    def __iter__(self) -> Iterator[Dict[str, Any]]:
+        self.load_data()
+        return iter(self.data)
 
 
+class AQuADataLoader(JsonlDataLoader):
+    pass
+
+
+class GSMDataLoader(CsvDataLoader):
+    pass
+
+
+class MMLUDataLoader(CsvDataLoader):
+    pass
+
+
+class MultiArithDataLoader(BaseDataLoader):
+    def load_data(self) -> List[Dict[str, Any]]:
+        with open(self.file_path, 'r') as f:
+            self.data = json.load(f)
+    
+    def __iter__(self) -> Iterator[Dict[str, Any]]:
+        self.load_data()
+        for item in self.data:
+            yield item
