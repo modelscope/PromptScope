@@ -26,8 +26,8 @@ requires = [
 ]
 
 setuptools.setup(
-    name="meta_icl",
-    version="v0.0.1",
+    name="prompt_scope",
+    version="v1.0.0",
     author="",
     author_email="",
     description="A framework for demonstration augmentation and prompt optimization",

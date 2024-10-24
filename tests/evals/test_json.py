@@ -1,7 +1,7 @@
 import pytest
 
-from llamakit.core.evals.loading import load_evaluator
-from llamakit.core.evals.schema import EvaluatorType
+from prompt_scope.core.evals.loading import load_evaluator
+from prompt_scope.core.evals.schema import EvaluatorType
 
 
 VALIDJSON = """

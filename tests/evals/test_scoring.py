@@ -1,8 +1,8 @@
 import pytest
 
-from llamakit.core.evals.loading import load_evaluator
-from llamakit.core.evals.schema import EvaluatorType
-from llamakit.core.evals.scoring import ScoreSchema
+from prompt_scope.core.evals.loading import load_evaluator
+from prompt_scope.core.evals.schema import EvaluatorType
+from prompt_scope.core.evals.scoring import ScoreSchema
 
 
 QUESTION = "Tell me about Alibaba Group"

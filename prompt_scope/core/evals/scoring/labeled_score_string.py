@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from loguru import Logger
+from loguru import logger
 from prompt_scope.core.evals.scoring.prompts import SCORING_PROMPT_WITH_REFERENCE
 from prompt_scope.core.evals.scoring.score_string import ScoreStringEvaluator
 
 from . import ScoreSchema
 
-
-logger = Logger.get_logger()
 
 class LabeledScoreStringEvaluator(ScoreStringEvaluator):
     """scoring the output of a model on a scale of 1-10 according to the reference."""

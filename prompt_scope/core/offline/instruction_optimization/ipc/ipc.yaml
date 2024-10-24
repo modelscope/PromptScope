@@ -1,0 +1,198 @@
+adv_sample_classification:
+  cn: |
+    助手是一个大型语言模型，旨在为每个任务生成具挑战性的样本。
+
+    生成一个包含{batch_size}个具挑战性样本的列表，以用于以下任务。
+
+    ### 任务描述：
+    {task_description}
+
+    ### 任务说明：
+    {instruction}
+    ###
+    ### 具有挑战性的样本的要求：
+    生成的样本必须具有挑战性且多样化，以便使用任务说明作为提示时会导致错误结果。
+    从任务说明中的每个类别生成的样本数量应平衡（即每个类别的样本数量相同）。
+    生成的样本应是独特、现实的，并显著变化以确保多样性。
+
+  en: |
+    Assistant is a large language model designed to generate challenging samples for every task.
+    Generate a list of {batch_size} challenging samples for the following task.
+    ### Task description:
+    {task_description}
+    ### Task Instruction:
+    {instruction}
+    ###
+    ### Requirements for Challenging Samples:
+    1. The generated samples must be challenging and diverse such that using the task instruction as a prompt will result in the wrong result.
+    2. The number of generated samples from each class in the task instruction should be balanced (i.e. the same number of samples for each class)
+    3. The generated samples should be distinct, realistic, and vary significantly to ensure diversity.
+
+predict_batch:
+  cn: |
+    助手是一个旨在分类复杂语言任务的大型语言模型。
+
+    请根据任务说明和标签格式预测{batch_size}个样本的分类。
+
+    ### 任务说明：{instruction}
+    ### 样本：{samples}
+    ### 标签格式：{label_schema}
+
+  en: |
+    Assistant is a large language model designed to classify complex language tasks.
+
+    Please classify {batch_size} samples according to the task instructions and the label schema.
+
+    ### Task Instructions: {instruction}
+    ### Samples: {samples}
+    ### Label Schema：{label_schema}
+
+error_analysis_classification:
+  cn: |
+    请根据以下信息做出高质量错误分析。
+
+    任务描述：{task_description}
+
+    对模型的提示指令（prompt instruction）是：{instruction}
+
+    该指令的正确率为：{score}
+    该指令的混淆矩阵为: {confusion_matrix}
+    该指令的失败例子（Failure Cases）如下：
+    ## 失败例子:
+    {failure_cases}
+
+    ### 请注意，基准标签是__绝对正确__的，但是指令（任务描述）可能是不正确的，需要修改。
+    你的任务是提供对目前指令性能的简要分析。
+
+    你可以参考如下指南：
+    1. 分析中应只包含以下信息：
+        - 如果混淆矩阵中存在异常行为，请描述它。
+        - 常见失败案例的总结，请尝试将失败案例分组，并描述每个组。
+    2. 你的分析总长度应少于200个词。
+    ###
+    现在请开始分析。
+    分析:
+
+  en: |
+    Assistant is a large language model designed to provide a high quality analysis for every task.
+    You are given the following task description
+    {task_description}
+
+    Here is the prompt instructions that was given to the model:
+    {instruction}
+
+    The accuracy for this prompt is: {score}
+    The confusion matrix for this prompt is: {confusion_matrix}
+    ##
+    Here is a list of failure cases for the given prompt:
+    ##Failure Cases:
+    {failure_cases}
+
+    ###
+    Note that the ground-truth labels are __absolutely correct__, but the prompts (task descriptions) may be incorrect and need modification.
+    Your task is to provide a brief analysis of the given prompt performance.
+    Guidelines:
+    1. The analysis should contain only the following information:
+        - If there exists abnormal behavior in the confusion matrix, describe it.
+        - A summary of the common failure cases, try to cluster the failure cases into groups and describe each group.
+    3. The total length of your analysis should be less than 200 token!
+    ###
+    Analysis:
+
+update_prompt_classification:
+  cn: |
+    请为以下任务提供最佳提示。
+    下面是针对以下任务的几个建议提示及其评分：
+    {task_description}
+    ## 建议提示及评分
+    {history}
+    ######
+    这是对上一个提示的错误分析：
+    {error_analysis}
+    ######
+    要求：生成一个新的提示
+      - 它与上述所有提示不同
+      - 完全遵循错误分析的修改建议，并修正提示以防止出现失败情况（failure case）
+      - 得分高于上述所有提示
+    ######
+
+    你必须遵循错误分析指令！即使在任务指令与错误分析指令之间似乎存在矛盾时也要如此。错误分析是基于事实的测试，因此代表了任务的确切意图。 生成的提示应该明确表述为一个分类指令！它不应包含对提示应进行修改的任何指令和描述。 请注意，之前的提示中包含了对任务意图的隐含假设，这可能是不正确的。你应该使用先前提示的得分和错误分析来替换这一假设，以更准确地假设。 新提示应表明任务是一个分类任务，包含以下标签{labels}。
+
+    请注意，回答请严格遵循以下格式：
+    <新的提示>
+
+  en: |
+    Assistant is a large language model designed to provide the best prompt for every task.
+    Below are a few suggested prompts for the task and their score, for the following task:
+    {task_description}
+
+    ## Examples
+    {history}
+    ######
+    This is the error analysis for the last prompt:
+    {error_analysis}
+    ######
+    Your task is to generate a new prompt that is
+      -Different from all the prompts above
+      -Follows exactly the error analysis modification suggestions, and fix the prompt to prevent the failure cases.
+      -Has a higher score than all the prompts above.
+
+    You must adhere the error analysis instructions! even in case it seems there is a contradiction between these instructions, and the task. The error analysis is tested on a ground truth, thus represent the exact intent of the task.
+    The generated prompt should be phrased as a clear classification instruction! it should not include any instructions and descriptions on the modification that should be done to the prompt.
+    Note that the previous prompt contains an implicit assumptions on the intent of the task that might be incorrect. You should replace this assumption with more accurate assumptions using the score of the previous prompts and the error analysis.
+    The result prompt should indicate that the task is a classification class with the following labels {labels}!
+
+step_adv_sample_classification:
+  cn: |
+    请你根据以下信息生成任务样例，每个样例仅包含一个问题。
+
+    ## 该任务的描述是：
+    {task_description}
+
+    以下是根据上述任务描述从__现实情景__中衍生出的一些样本。
+    ## 现实样本：
+    {extra_samples}
+
+    以下是一些任务的执行失败案例。
+
+    ## 常见失败的示例，每个样本后面都跟着模型预测和真实情况（ground truth）。
+    {history}
+
+    以下是根据这些失败案例优化后的指令：
+    ## 指令：
+    {instruction}
+
+    请你根据以下指南生成{batch_size}个新样本:
+    1. 生成样本需要具有多样性。
+    2. 生成样本的风格和长度应该和给定的样本相同。
+    3. 生成的样本需要给模型的分类造成困难。可以通过如下方式：
+      - 针对模型在给定示例中展现出来的弱点。
+      - 针对模型未在已有示例中展现但可能存在的弱点。
+    4. 每个类生成的样本数量几乎平衡（即每个类的样本数量相同）
+    5. 生成的样本应该只包含样本内容，不包含其他信息！（如模型预测和基本事实）
+
+  en: |
+    Assistant is a large language model designed to generate challenging samples for every task.
+    Below a few prompts that were build to answer the given task description and their failure case.
+    Task description:
+    {task_description}
+
+    ## Examples of common failure, each sample is followed by the the model prediction and the GT (ground truth)
+    {history}
+    ######
+    Here are few unique samples derived from realistic scenarios for the task outlined above.
+    ## Realistic Samples
+    {extra_samples}
+    #####
+    This was the new proposed prompt:
+    ## Prompt
+    {instruction}
+
+    Your task is to generate {batch_size} by following this guidelines:
+    1. The generated samples should be diverse
+    2. They should preserve the style and the length of the given examples
+    3. The samples must be challenging and hard to classify by the model. This can be achieved by:
+        1. targeting the same weakness that the model failed on in the given examples
+        2. targeting weakness that are different from the existing examples in the failure cases
+    4. The number of generated samples from each class should be almost balanced (i.e. the same number of samples for each class)
+    5. The generated samples should include only the sample content without additional information! (like the model prediction and the ground truth)

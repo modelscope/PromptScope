@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 from pydantic import Field
-from loguru import Logger
+from loguru import logger
 
 from prompt_scope.core.models.base_model import BaseModel
 from prompt_scope.core.evals.schema import StringEvaluator
@@ -11,8 +11,6 @@ from prompt_scope.core.models.generation_model import GenerationModel
 
 from . import ScoreSchema
 
-
-logger = Logger.get_logger()
         
 class ScoreStringEvaluator(StringEvaluator):
     """score on a scale of 1-10 the output of a LLM."""
