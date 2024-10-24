@@ -1,54 +1,23 @@
 adv_sample_classification:
   cn: |
-    请你根据以下信息生成任务样例。
-    ### 要求:
-    1. 生成的样本必须足够具有挑战性和多样性，目标是在使用“任务指南”作为提示词时会导致错误的结果。
-    2. 任务指南中会给出多个分类，对于每个分类生成的样本数量应该平衡（即每类样本的数量相同）。
-    3. 生成的样本应该是独特的、现实的、多变的。
-    4. 样例中仅包含样本本身，不包含分类结果和回答。
+    助手是一个大型语言模型，旨在为每个任务生成具挑战性的样本。
 
-    请你按如下格式输出
-    <ID>|
-    <样例>||
-
-    你可以参考如下例子：
-    ### 任务描述：
-    你是一个专业的分类器，将对电影评论进行分类，并告知用户该评论是否包含了被评论电影的剧透。
-    ### 任务指南：
-    这个电影评论包含剧透吗？请回答是或者否。
-
-    1|
-    这部电影的结局真是出乎意料，当主角最后揭开自己才是幕后黑手的时候，我简直惊呆了！||
-
-    2|
-    导演在这部电影中运用了很多创新的手法，让整个故事看起来非常新颖。||
+    生成一个包含{num_samples}个具挑战性样本的列表，以用于以下任务。
 
     ### 任务描述：
-    评估生成的Python代码段质量，针对用户请求“请帮我写一段Python代码”。请依据以下标准给出评分，满分5分，分数越高代表质量越好，评分结果需为['1', '2', '3', '4', '5']中的一个：
-    1. 代码是否正确执行了预期功能，无逻辑错误。
-    2. 代码编写是否遵循Python的编码规范PEP 8，包括缩进、命名约定等。
-    3. 代码可读性强，结构清晰，注释充分，易于理解与维护。
-    4. 代码效率，包括算法选择、数据结构使用是否恰当，避免不必要的资源消耗。
-    5. 是否合理运用了Python的高级特性或库函数，提升代码的简洁度和效率。
-    ### 任务指南：
-    测试语言模型的编程能力，验证其生成的代码片段是否逻辑正确、可执行，且符合行业编码标准及规范，同时考察代码是否准确实现了用户提出的功能需求。
-
-    1|
-    def add_numbers(a, b):
-      return a + b'||
-
-    2|
-    squared_numbers = [i**2 for i in range(1, 11)]||
-
-    现在请为以下任务生成{batch_size}个任务样例。
-    ### 任务描述:
     {task_description}
-    ### 任务指南:
+
+    ### 任务说明：
     {instruction}
+    ###
+    ### 具有挑战性的样本的要求：
+    生成的样本必须具有挑战性且多样化，以便使用任务说明作为提示时会导致错误结果。
+    从任务说明中的每个类别生成的样本数量应平衡（即每个类别的样本数量相同）。
+    生成的样本应是独特、现实的，并显著变化以确保多样性。
 
   en: |
-    Assistant is a large language model designed to generate representative samples for every task.
-    Generate a list of {batch_size} representative samples for the following task.
+    Assistant is a large language model designed to generate challenging samples for every task.
+    Generate a list of {num_samples} challenging samples for the following task.
     ### Task description:
     {task_description}
     ### Task Instruction:
@@ -58,32 +27,6 @@ adv_sample_classification:
     1. The generated samples must be challenging and diverse such that using the task instruction as a prompt will result in the wrong result.
     2. The number of generated samples from each class in the task instruction should be balanced (i.e. the same number of samples for each class)
     3. The generated samples should be distinct, realistic, and vary significantly to ensure diversity.
-
-    Please output according to the following format:
-    <ID>|
-    <Sample Question>||
-
-    You can refer to the following example:
-
-    ### Task Description:
-    You are a professional classifier who will classify movie reviews and inform users whether the review contains spoilers of the movie being reviewed.
-    ### Task Instruction:
-    Does this movie review contain spoilers? Please answer yes or no.
-
-    1|
-    The ending of this movie was truly unexpected; I was shocked when the protagonist revealed that he was the mastermind behind everything!
-    Yes||
-
-    2|
-    The director employed many innovative techniques in this film, making the entire story feel very fresh.
-    No||
-
-    Now please generate {batch_size} task samples for the following task.
-
-    ### Task Description:
-    {task_description}
-    ### Task Guidelines:
-    {instruction}
 
 adv_sample_generation:
   cn: |

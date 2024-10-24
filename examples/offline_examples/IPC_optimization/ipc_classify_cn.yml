@@ -1,0 +1,11 @@
+# use_wandb: False
+task_type: classification
+language: cn
+
+instruction: 该电影评论是否存在剧透？请回答是或者否。
+label_schema: ["是", "否"]
+task_description: 你是一个专业的分类器，将判断一个电影评论是否包含剧透，并告知用户。
+batch_size: 2
+samples_per_step: 2
+
+eval_type: exact_match

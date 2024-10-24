@@ -1,19 +1,30 @@
 import json
 import os
 import pickle
+import asyncio
 # import wandb
 import random
 from pathlib import Path
-from typing import List
-
+from typing import List, Any, Literal, Dict
+from pydantic import Field, BaseModel
 from loguru import logger
+import math
+from sklearn.metrics import confusion_matrix
+from datetime import datetime, date
 
-from prompt_scope import CONFIG_REGISTRY
 from prompt_scope.algorithm.base_algorithm import PromptOptimizationWithFeedback
-from prompt_scope.core.evals.loading import load_evaluator
-from prompt_scope.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
-from prompt_scope.core.offline.demonstration_augmentation.ipc_aug import IPCGeneration
+from prompt_scope.core.evals.schema import StringEvaluator
+from prompt_scope.core.llms.base import BaseLLM
+from prompt_scope.core.llms.dashscope_llm import DashscopeLLM
 
+# from prompt_scope.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
+class PredictSchema(BaseModel): 
+    sample: str = Field(...)
+    prediction: str = Field(...)
+
+class SampleSchema(BaseModel): 
+    query: str = Field(...)
+    answer: str = Field(...)
 
 class IPCOptimization(PromptOptimizationWithFeedback):
     """
@@ -22,234 +33,138 @@ class IPCOptimization(PromptOptimizationWithFeedback):
     generating adversarial samples, evaluating them, updating the prompts based on feedback,
     and repeating the process to enhance prompt effectiveness over multiple iterations.
     """
-    FILE_PATH: str = __file__
+    # =============LLM Configuration=============
+    evaluate_llm: BaseLLM = Field(default=DashscopeLLM(max_retries=1))
+    annotate_llm: BaseLLM = Field(default=DashscopeLLM(max_retries=1))
 
-    def __init__(self, language="cn", **kwargs):
-        """
-        Initializes the IPC Optimization instance with necessary configurations, model setup,
-        and initializes key attributes used throughout the iterative prompt refinement process.
+    # =============Path Configuration=============
+    data_path: str = Field(default="", description="Dataset Path")
+    prompt_path: str = Field(default=__file__, description="Prompt file path")
+    store_path: str = Field(default=os.path.join(__file__, "ipc_output"))
+    
+    # =============Basic Configuration=============
+    label_schema: List[str] = Field(default=[])
+    task_description: str = Field(...)
+    task_type: Literal["classification", "generation"] = Field(...)
 
-        Args:
-            language (str): The language setting for the optimization process, defaulting to "cn".
-            **kwargs: Additional keyword arguments passed to the superclass initializer.
+    # =============Experiment Configuration=============
+    samples_per_step: int = Field(default=10, description="samples generated for each step")
+    batch_size: int = Field(default=10, description="number of samples generated in single LLM call")
+    max_samples: int = Field(default=50, description="maximum samples in storage")
+    warmup: int = Field(default=4, description="warmup epochs: patience and prompt update may be disabled")
+    history_length: int = Field(default=4, description="History length to look back")
+    num_errors_per_label: int = Field(default=5, alias='num_errors',
+                                      description="Number of errors to extract from the evaluator for each label")
+    num_extra_sample: int = Field(default=5, description="Extra samples to be included during step generation")
+    patience: int = Field(default=10, description="Patience for early stopping")
+    min_delta: float = Field(default=0.1, description="Minimum improvement to clear patience")
+    max_usage: int = Field(default=10000)
+    samples: List[str] = Field(default=[])
+    annotations: List[str] = Field(default=[])
+    predictions: List[str] = Field(default=[])
 
-        The method sets up the initial configuration, initializes the model tailored for the task,
-        and sets default values or placeholders for properties crucial to the algorithm's workflow,
-        such as patience level, sample texts, current step counter, initial prompt, and an evaluation object.
-        """
-        super().__init__(language=language, **kwargs)
+        
+    def _before_run(self):
+        pass
+    
+    def _after_run(self):
+        pass
 
-        self.init_config()  # ⭐ Initialize the configuration for optimization
-        self.init_model()  # ⭐ Set up the model used in the optimization process
-        self.patient: int = 0  # Patience counter for optimization steps
-        self.samples: List[str] = None  # Placeholder for generated sample texts
-        self.cur_step: int = 0  # Tracks the current step in the iterative process
-        self.cur_prompt: str = self.task_config.instruction  # Initial prompt instruction
-        self.eval = Eval(FILE_PATH=self.FILE_PATH)  # Instantiate evaluation module with file path
-
-    def init_model(self):
-        """
-        Initializes the language models required for the IPC_Optimization process.
-        This includes setting up the generation, predictor, and annotator models
-        with configurations specified in `self.model_config`.
-
-        The method uses the `GenerationModel` class to instantiate these models,
-        passing respective configuration parameters for each model's unique role.
-        """
-        generation_module_name = self.model_config.generation.get('module_name')
-        if generation_module_name == 'dashscope_generation':
-            self.generation_llm = GenerationModel(**self.model_config.generation)
-        elif generation_module_name == 'openai_generation':
-            self.generation_llm = OpenAIGenerationModel(**self.model_config.generation)
-        elif generation_module_name == 'openai_post':
-            self.generation_llm = OpenAIPostModel(**self.model_config.generation)
-
-        predictor_module_name = self.model_config.predictor.get('module_name')
-        if predictor_module_name == 'dashscope_generation':
-            self.predictor_llm = GenerationModel(**self.model_config.predictor)
-        elif predictor_module_name == 'openai_generation':
-            self.predictor_llm = OpenAIGenerationModel(**self.model_config.predictor)
-        elif predictor_module_name == 'openai_post':
-            self.predictor_llm = OpenAIPostModel(**self.model_config.predictor)
-
-        annotator_module_name = self.model_config.annotator.get('module_name')
-        if annotator_module_name == 'dashscope_generation':
-            self.annotator_llm = GenerationModel(**self.model_config.annotator)
-        elif annotator_module_name == 'openai_generation':
-            self.annotator_llm = OpenAIGenerationModel(**self.model_config.annotator)
-        elif annotator_module_name == 'openai_post':
-            self.annotator_llm = OpenAIPostModel(**self.model_config.annotator)
-
-    def init_config(self):
-        """
-        Initializes the configuration for the IPC_Optimization process by fetching necessary configurations from the registry.
-
-        This method sets up configurations for tasks, models, rankers, and evaluation, ensuring all components have their
-        respective settings ready before the optimization pipeline begins. If the class has an 'eval' attribute, its configuration
-        is also initialized.
-        """
-        self.task_config = CONFIG_REGISTRY.module_dict['task_config']
-        self.model_config = CONFIG_REGISTRY.module_dict['model_config']
-        self.ranker_config = CONFIG_REGISTRY.module_dict.get('ranker_config', None)
-        self.eval_config = CONFIG_REGISTRY.module_dict.get('eval_config', None)
-        if hasattr(self, 'eval'):
-            self.eval.init_config()
-
-    def run(self, **kwargs):
-        """
-        Executes the main optimization loop of the IPC Optimization process for a specified number of steps.
-
-        Args:
-            **kwargs: Additional keyword arguments that can modify the behavior of the optimization, including:
-                - mode (str, optional): If set to 'ranking', adjusts input handling for ranking tasks.
-                - ranking_prompt (str, optional): Custom evaluation instruction when ranking prompts.
-
-        The method iterates for 'num_steps', potentially modifying inputs based on 'mode', updating the evaluation
-        instruction with 'ranking_prompt', and checks for stop criteria after each step. Finally, it returns the best
-        refined instructional prompt post-optimization.
-        """
-        # Run the optimization pipeline for num_steps
-        if kwargs.get('mode', '') == 'ranking':
-            self.modify_input_for_ranker()
-        if 'ranking_prompt' in kwargs:
-            self.eval.eval_instruction = kwargs['ranking_prompt']
-        for _ in range(self.task_config.num_steps):
-            stop_criteria = self.step(**kwargs)
-            if stop_criteria:
-                break
-        final_result = self.extract_best_prompt()
-        return final_result
-
-    def step(self, **kwargs):
+    def _step(self) -> bool:
         """
         Executes the main iteration step of the IPC optimization process. This involves generating or processing samples,
         evaluating their performance, updating the current prompt, and checking the stop criteria.
-
-        Args:
-            **kwargs: Additional keyword arguments including:
-                - mode (str, optional): Specifies the operation mode, either 'generation' or 'classification'. Defaults to 'classification'.
 
         Returns:
           bool: Returns `True` if the stop criteria are met; otherwise, `False`.
         """
         logger.info(f'Starting step {self.cur_step}')
-        if kwargs.get('mode', '') == 'generation':
+
+        if self.task_type == 'generation':
             prompt_type = 'adv_sample_generation'
         else:
             prompt_type = 'adv_sample_classification'
 
-        mode = kwargs.get('mode', 'classification')
-
-        if not hasattr(kwargs, 'data'):
-            if not self.samples:
-                logger.info('Dataset is empty generating initial samples')
-                prompt_input = {'task_description': self.task_config.task_description, 'instruction': self.cur_prompt,
-                                'batch_size': self.task_config.batch_size}
-                generate_prompt = getattr(self.prompt_handler, prompt_type).format_map(prompt_input)
-                self.samples = self.generate(prompt=generate_prompt)
-            else:
-                logger.info('Generating Adversarials')
-                self.step_generate()
-
-        samples = [sample.split('|') for sample in self.samples]
-        eval_kwargs = {}
-        eval_kwargs['prompt'] = self.cur_prompt
-
-        if kwargs.get('mode', '') == 'generation':
-            logger.info('Calculating Score and Error Analysis')
-            self.eval.init_config()
-            eval_kwargs['score'], eval_kwargs['errors'] = self.eval.eval_with_llm(
-                samples=[sample[-1] for sample in samples], prompt_handler=self.prompt_handler)
+        if not (self.data_path or self.samples):
+            logger.info('Dataset is empty generating initial samples')
+            prompt_input = {
+                'task_description': self.task_description, 
+                'instruction': self.instruction,
+                'batch_size': self.batch_size
+                }
+            generate_prompt = getattr(self.prompt_handler, prompt_type) \
+                .format_map(prompt_input)
+            # new_samples = asyncio.run(self._agenerate(prompt=generate_prompt))
+            # in case you want to use batch:
+            new_samples = self._generate(prompt=generate_prompt)
+            self.samples.extend(new_samples)
         else:
-            logger.info('Running annotator')
-            annotations = self.annotate([sample[1].strip() if len(sample) > 1 else '' for sample in samples])
-            logger.info('Running predictor')
-            predictions = self.predict([sample[1].strip() if len(sample) > 1 else '' for sample in samples])
+            logger.info('Generating Adversarials')
+            new_samples = self._step_generate()
+            if not new_samples:
+                return True
+            self.samples.extend(new_samples)
+        
+        if self.task_type == 'generation':
             logger.info('Calculating Score and Error Analysis')
-            eval_kwargs['score'], eval_kwargs['corrects'], eval_kwargs['errors'], eval_kwargs[
-                'conf_matrix'] = self.eval.eval_accuracy(annotations, predictions, self.task_config.label_schema)
-        self.eval.error_analysis(prompt_handler=self.prompt_handler, **eval_kwargs)
+        elif self.task_type == 'classification':
+            logger.info('Annotating')
+            new_annotations = self._predict(
+                samples=new_samples, 
+                llm=self.annotate_llm)
+            self.annotations.extend(new_annotations)
+
+            logger.info('Running predictor')
+            new_predictions = self._predict(
+                samples=new_samples, 
+                llm=self.predictor_llm)
+            self.predictions.extend(new_predictions)
+            
+            logger.info('Calculating Score and Error Analysis')
+            history = self._evaluate_and_analyze(
+                input=new_samples,
+                reference=new_annotations, 
+                prediction=new_predictions, 
+                evaluator=self.evaluator, 
+                label_schema=self.label_schema)
+        
         logger.info('Updating Prompt')
-        self.update_cur_prompt(mode)
+        self._update_prompt(history)
         if self.stop_criteria():
             logger.info('Stop criteria reached')
             return True
-        self.save_state(mode)
         self.cur_step += 1
         return False
 
-    def annotate(self, samples: list[str]):
+    def _predict(self, *, samples: List[str], llm: BaseLLM) -> List[PredictSchema]:
         """
-        Annotates a list of text samples using a Large Language Model (LLM) (Argilla to be implemented),
-        following the instructions and batch size configurations set in `task_config`.
-
-        The method divides the input samples into batches, constructs an annotation prompt
-        for each batch, sends these prompts to the annotator (LLM), processes the responses
-        to extract annotations, and finally aggregates these into a list of dictionaries
-        containing IDs, questions, and corresponding annotations.
+        predicts a list of text samples using a Large Language Model (LLM) (Argilla annotation to be implemented),
+        following the instructions and batch size configurations.
 
         Args:
-            samples (list[str]): A list of strings, where each string is a sample to be annotated.
+            samples (list[str]): A list of strings, where each string is a sample to be predicted.
+            llm (BaseLLM): the predictor LLM
 
         Returns:
-        list[dict]: A list of dictionaries. Each dictionary contains keys 'ID', '问题' (Question),
-                    and '标注' (Annotation), representing the annotated data.
+        list[PredictSchema]: Each schema contains fields 'sample' and 'prediction'.
         """
-        samples_batches = [samples[i:i + self.task_config.batch_size] for i in
-                           range(0, len(samples), self.task_config.batch_size)]
-        batch, annotations = 0, []
+        class PredictsSchema(BaseModel):
+            predictions: List[PredictSchema]= Field(..., min_length=self.batch_size, max_length=self.batch_size)
+        
+        samples_batches = [samples[i:i + self.batch_size] for i in
+                           range(0, len(samples), self.batch_size)]
+        results = []
         for sample_batch in samples_batches:
             sample_str = "|".join(sample_batch)
-            annotate_prompt = self.prompt_handler.annotate.format(samples=sample_str,
-                                                                  instruction=self.task_config.instruction,
-                                                                  batch_size=self.task_config.batch_size)
-            # print('#############\n', annotate_prompt, '################\n')
-            response = self.annotator_llm.call(prompt=annotate_prompt)
-            try:
-                response_list = [item for item in response.message.content.split("||") if item]
-            except Exception:
-                response_list = [item for item in response.output.text.split("||") if item]
-            # print('#############\n', response_list, '################\n')
-            annotations.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "标注": lines[-1]} for lines in
-                                (sample.split('|') for sample in response_list if sample)])
-            batch += 1
-        logger.info(annotations)
-        return annotations
-
-    def predict(self, samples: list[str]):
-        """
-        Generates predictions for a list of samples by dividing them into batches,
-        processing each batch with the annotator, and formatting the responses.
-
-        Args:
-            samples (list[str]): A list of strings, where each string represents a sample.
-
-        Returns:
-            list[dict]: A list of dictionaries, each containing the ID, question, and prediction
-                        for a processed sample.
-        """
-        # Divide samples into batches based on the configured batch size
-        samples_batches = [samples[i:i + self.task_config.batch_size] for i in
-                           range(0, len(samples), self.task_config.batch_size)]
-        batch, predictions = 0, []
-        for sample_batch in samples_batches:
-            sample_str = "|".join(sample_batch)
-            prediction_prompt = self.prompt_handler.predict.format(samples=sample_str,
-                                                                   instruction=self.task_config.instruction,
-                                                                   batch_size=self.task_config.batch_size)
-            # print('#############\n', prediction_prompt, '################\n')
-            response = self.predictor_llm.call(prompt=prediction_prompt)
-            try:
-                response_list = [item for item in response.message.content.split("||") if item]
-            except Exception:
-                response_list = [item for item in response.output.text.split("||") if item]
-            # print('#############\n', response_list, '################\n')
-            predictions.extend([{"ID": f"{batch}_{lines[0].strip()}", "问题": lines[1], "预测": lines[-1]} for lines in
-                                (sample.split('|') for sample in response_list if sample)])
-            batch += 1
-        logger.info(predictions)
-        return predictions
-
+            prompt_input = {'samples': sample_str, 'instruction': self.instruction,
+                            'batch_size': len(sample_batch), 'label_schema': self.label_schema}
+            predict_prompt = self.prompt_handler.predict_batch.format_map(prompt_input)
+            results.extend(llm.structured_output(
+                messages=predict_prompt,
+                schema=PredictsSchema).predictions)
+        logger.info(results)
+        return results
+    
     def extract_best_prompt(self):
         """
         Extracts the best prompt from the evaluation history based on the score.
@@ -264,14 +179,14 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         """
         # Sort the evaluation history based on the score, considering only entries after the warmup period
         sorted_history = sorted(
-            self.eval.history[min(self.task_config.warmup - 1, len(self.eval.history) - 1):],
+            self.history[min(self.warmup - 1, len(self.history) - 1):],
             key=lambda x: x['score'],
             reverse=False)
 
         # Return the prompt and score of the entry with the best score
         return {'prompt': sorted_history[-1]['prompt'], 'score': sorted_history[-1]['score']}
 
-    def update_cur_prompt(self, mode):
+    def _update_prompt(self, history):
         """
         Updates the current prompt by generating a new prompt suggestion based on historical data and task description.
         It also estimates the score of the previous prompt and prepares a set of challenging samples for the updated prompt.
@@ -293,57 +208,122 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             - The function handles exceptions during the LLM call to ensure prompt retrieval.
             - Warmup steps might skip prompt updates initially to stabilize the process.
         """
-        step_num = len(self.eval.history)
-        if (step_num < self.task_config.warmup) or (step_num % 3) > 0:
-            self.last_history = self.eval.history[-self.task_config.history_length:]
+        step_num = len(history)
+        if (step_num < self.warmup) or (step_num % 3) > 0:
+            last_history = history[-self.history_length:]
         else:
-            sorted_history = sorted(self.eval.history[self.task_config.warmup - 1:], key=lambda x: x['score'],
+            sorted_history = sorted(history[self.warmup - 1:], key=lambda x: x['score'],
                                     reverse=False)
-            self.last_history = sorted_history[-self.task_config.history_length:]
-        history_prompt = '\n'.join([self.eval.sample_to_text(sample) for sample in self.last_history])
-        prompt_input = {"history": history_prompt, "task_description": self.task_config.task_description,
-                        'error_analysis': self.last_history[-1]['analysis']}
-        if hasattr(self.task_config, 'label_schema'):
-            prompt_input["labels"] = json.dumps(self.task_config.label_schema)
-        if mode == 'generation':
-            generate_prompt = self.prompt_handler.prompt_generation_generation.format_map(prompt_input)
-        else:
-            generate_prompt = self.prompt_handler.prompt_generation.format_map(prompt_input)
-        try:
-            prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).message.content
-        except Exception:
-            prompt_suggestion = self.generation_llm.call(prompt=generate_prompt).output.text
-        logger.info(prompt_suggestion)
-        logger.info(f'Previous prompt score:\n{self.eval.mean_score}\n#########\n')
+            last_history = sorted_history[-self.history_length:]
+
+        history_prompt = '\n'.join([f"####\n##Prompt Score: {history['score']:.2f}\n##Prompt:\n{history['instruction']}\n#################\n"for history in last_history])
+        prompt_input = {"history": history_prompt, "task_description": self.task_description,
+                        'error_analysis': last_history[-1]['analysis'], "labels": self.label_schema}
+        if self.task_type == 'generation':
+            generate_prompt = self.prompt_handler.update_prompt_generation \
+                .format_map(prompt_input)
+        elif self.task_type == 'classification':
+            generate_prompt = self.prompt_handler.update_prompt_classification \
+                .format_map(prompt_input)
+        prompt_suggestion = self.generation_llm.chat(messages=generate_prompt).message.content
         logger.info(f'Get new prompt:\n{prompt_suggestion}')
-        self.cur_prompt = prompt_suggestion
+        self.instruction = prompt_suggestion
 
-    def generate(self, prompt: str):
+    def _evaluate_and_analyze(self, 
+                              *, 
+                              input: List[str]=[],
+                              reference: List[PredictSchema]=[], 
+                              prediction: List[PredictSchema],
+                              evaluator: StringEvaluator,
+                              label_schema: Any) -> List[Dict[str, Any]]:
+        
+        if self.task_type == 'generation':
+            return self._evaluate_and_analyze_generation(
+                input=input, reference=reference, prediction=prediction, 
+                evaluator=evaluator, label_schema=label_schema)
+        elif self.task_type == 'classification':
+            return self._evaluate_and_analyze_classfication(
+                input=input, reference=reference, prediction=prediction, 
+                evaluator=evaluator, label_schema=label_schema)
+        
+    def _evaluate_and_analyze_classfication(self, 
+                              *, 
+                              input: List[str]=[],
+                              reference: List[PredictSchema]=[], 
+                              prediction: List[PredictSchema],
+                              evaluator: StringEvaluator,
+                              label_schema: Any) -> List[Dict[str, Any]]:
+
+        scores = list(map(lambda p, r: 
+                                evaluator.evaluate_strings(prediction=p, reference=r), 
+                                [x.prediction for x in prediction], [x.prediction for x in reference]))
+        correct_indices = [i for i, d in enumerate(scores) if d['score'] == 1]
+        accuracy = len(correct_indices) / len(scores)
+        error_indices = [[i for i, d in enumerate(scores) if d['score'] == 0 and reference[i] == label] for label in label_schema]
+        correct_sample = [prediction[i] for i in correct_indices]
+        error_sample = [[prediction[i] for i in error_indices_label] for error_indices_label in error_indices]
+        conf_matrix = confusion_matrix(y_true=[x.prediction for x in reference], y_pred=[x.prediction for x in prediction], labels=label_schema)
+
+        # error_to_str
+        error_str = ''
+        for error_indices_label in error_indices:
+            for idx in error_indices_label[-self.num_errors_per_label:]:
+                error_str += f"Sample: {input[idx]}\nPrediction: {prediction[idx].prediction}, GT: {reference[idx].prediction}\n#\n"
+
+        conf_text = f"Confusion matrix columns:{self.label_schema} the matrix data:"
+        for i, row in enumerate(conf_matrix):
+            conf_text += f"\n{self.label_schema[i]}: {row}"
+        prompt_input = {"task_description": self.task_description, 
+                        "instruction": self.instruction,
+                        "score": accuracy,
+                        "confusion_matrix": conf_text,
+                        "failure_cases": error_str}
+        analyze_prompt = self.prompt_handler.error_analysis_classification.format_map(prompt_input)
+        analysis = self.analyzer_llm.chat(messages=analyze_prompt).message.content
+        prompt_input['analysis'] = analysis
+        prompt_input['error_str'] = error_str
+        prompt_input['errors'] = error_sample
+        self.history.append(prompt_input)
+        return self.history
+    
+    def _generate(self, prompt: str):
         """
-        Generates a list of samples based on the given prompt using the configured language model.
-        The function first creates a batch of inputs from the prompt, then distributes the generation task
-        across multiple workers. It handles both cases where the output is in the message content or the text property.
-        After collecting all generated samples, it returns a flattened list of non-empty, stripped samples.
-
+        Generates a list of samples based on the given prompt using the generation_llm.
         Args:
             prompt (str): The initial instructional prompt to generate samples from.
-
+            
         Returns:
             List[str]: A list of generated samples, each a possible variation or response to the input prompt.
         """
-        batch_input = prompt
-        batch_inputs = IPCGeneration.generate_samples_batch(batch_input, self.task_config.samples_per_step,
-                                                            self.task_config.batch_size)
-        samples_batches = IPCGeneration.batch_call(batch_inputs, self.task_config.workers, self.generation_llm)
-        try:
-            samples_lists = [samples_batch.message.content.split("||") for samples_batch in samples_batches]
-        except Exception:
-            samples_lists = [samples_batch.output.text.split("||") for samples_batch in samples_batches]
-        samples_list = [item.strip() for sample_list in samples_lists for item in sample_list if item]
+        class SamplesSchema(BaseModel):
+            samples: List[SampleSchema]= Field(..., min_length=self.batch_size, max_length=self.batch_size)
+        
+        num_batches = math.ceil(self.samples_per_step / self.batch_size)
+        new_samples = []
+        for _ in range(num_batches):
+            new_samples += [x.query for x in self.generation_llm.structured_output(
+            messages=prompt,
+            schema=SamplesSchema).samples]
+        logger.info(new_samples)
+        return new_samples
+    
+    async def _agenerate(self, prompt: str) -> List[SampleSchema]:
+        """
+        Generates a list of samples based on the given prompt asynchronously.
+        Args:
+            prompt (str): The initial instructional prompt to generate samples from.
+            
+        Returns:
+            List[str]: A list of generated samples, each a possible variation or response to the input prompt.
+        """
+        prompts = [prompt] * self.samples_per_step
+        samples_list = await self.generation_llm.astructured_output(
+            list_of_messages=prompts,
+            schema=SampleSchema)
         logger.info(samples_list)
         return samples_list
 
-    def step_generate(self):
+    def _step_generate(self):
         """
         Generates new samples based on updated prompts, incorporating extra samples and historical data when available.
 
@@ -368,25 +348,34 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         Note: The effectiveness of this method relies on the external functions for sample handling, prompt formatting,
         and the actual generation process, which are not shown here.
         """
-        if len(self.samples) < self.task_config.max_samples:
-            prompt_input = {'task_description': self.task_config.task_description, 'prompt': self.cur_prompt,
-                            'batch_size': self.task_config.batch_size}
-            random.shuffle(self.samples)
-            txt_res = '##\n'
-            for sample in self.samples[:self.task_config.num_extra_sample]:
-                txt_res += f"Sample:\n {sample}\n#\n"
-            prompt_input['extra_samples'] = txt_res
-            if all([all(len(error_label) == 0 for error_label in t['errors']) for t in self.last_history]):
-                history_samples = '\n'.join([self.eval.sample_to_text(sample,
-                                                                      num_errors_per_label=self.task_config.num_errors_per_label,
-                                                                      is_score=False) for sample in self.last_history])
+        if len(self.samples) < self.max_samples:
+            step_num = len(self.history)
+            if (step_num < self.warmup) or (step_num % 3) > 0:
+                last_history = self.history[-self.history_length:]
+            else:
+                sorted_history = sorted(self.history[self.warmup - 1:], key=lambda x: x['score'],
+                                        reverse=False)
+                last_history = sorted_history[-self.history_length:]
+
+            indices = random.choices(range(len(self.samples)), k=self.num_extra_sample)
+            extra_samples_text = '##\n'
+            for sample in [self.samples[i] for i in indices]:
+                extra_samples_text += f"Sample:\n {sample}\n#\n"
+            prompt_input = {'task_description': self.task_description, 'instruction': self.instruction,
+                            'batch_size': self.batch_size, 'extra_samples': extra_samples_text}
+            if sum([len(t['errors']) for t in last_history]) > 0:
+                history_samples = "\n".join([f"####\n##Prompt:\n{sample['instruction']}\n{sample['error_str']}####\n"
+                                             for sample in last_history])
                 prompt_input['history'] = history_samples
             else:
                 prompt_input['history'] = 'No previous errors information'
             generate_prompt = self.prompt_handler.step_adv_sample_classification.format_map(prompt_input)
-            new_samples = self.generate(prompt=generate_prompt)
+            new_samples = self._generate(prompt=generate_prompt)
             self.samples.extend(new_samples)
             logger.info(self.samples)
+            return new_samples
+        else:
+            return []
 
     def stop_criteria(self):
         """
@@ -401,55 +390,38 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         """
         # if 0 < self.config.stop_criteria.max_usage < self.calc_usage():
         #     return True
-        if len(self.eval.history) <= self.task_config.warmup:
+        if len(self.history) <= self.warmup:
             self.patient = 0
             return False
 
-        if len(self.eval.history) == 1:
+        if len(self.history) == 1:
             max_score = 0
         else:
-            max_score = self.eval.get_max_score(self.task_config.warmup)
+            max_score = sorted(self.history[:-1], lambda x: x['score'])[-1]['score']
 
-        if max_score - self.eval.history[-1]['score'] > -self.task_config.min_delta:
+        if max_score - self.history[-1]['score'] > -self.min_delta:
             self.patient += 1
         else:
             self.patient = 0
 
-        if self.patient > self.task_config.patience:
+        if self.patient > self.patience:
             return True
         return False
 
-    def save_state(self, mode):
+    def save_state(self):
         """
         Saves the current state of the iterative process, including evaluation history,
         the current step, prompts, task description, and patient data (if applicable),
         to a pickle file. This function is called to persist the progress made during
         the optimization of instructional prompts.
-
-        Args:
-            mode (str): The mode indicating the specific state or configuration to save.
-                         Determines the subdirectory within the output path where the state will be saved.
-
-        Returns:
-        None
-
-        Note:
-            - The function checks if the 'output_path' attribute exists in 'task_config' and is not None before proceeding.
-            - If the specified directory does not exist, it will be created.
-            - The state is pickled into a file named 'history.pkl' within the respective mode's directory.
         """
-        if not mode:
-            return
-        if not hasattr(self.task_config, 'output_path') or self.task_config.output_path is None:
-            return
+        
         logger.info('Save state')
-        output_path = os.path.join(self.task_config.output_path, mode)
-        if not os.path.isdir(output_path):
-            os.makedirs(output_path)
+        output_path = create_dated_directory(self.store_path)
         output_path = Path(output_path)
 
-        state = {'history': self.eval.history, 'step': self.cur_step,
-                 'prompt': self.cur_prompt, 'task_description': self.task_config.task_description,
+        state = {'history': self.history, 'step': self.cur_step,
+                 'prompt': self.instruction, 'task_description': self.task_description,
                  'patient': self.patient}
         pickle.dump(state, open(output_path / 'history.pkl', 'wb'))
 
@@ -517,3 +489,20 @@ class IPCOptimization(PromptOptimizationWithFeedback):
 
         self.task_config.instruction = mod_prompt
         self.task_config.task_description = mod_description
+
+
+def create_dated_directory(base_path):
+    # Get current date in YYYYMMDD format
+    current_date = datetime.now().strftime("%Y%m%d")
+    version = 1
+    
+    # Keep incrementing version until we find a directory that doesn't exist
+    while True:
+        dir_name = f"{current_date}_v{version}"
+        full_path = os.path.join(base_path, dir_name)
+        
+        if not os.path.exists(full_path):
+            os.makedirs(full_path)
+            return full_path
+        
+        version += 1

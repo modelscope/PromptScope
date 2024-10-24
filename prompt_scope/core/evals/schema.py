@@ -10,12 +10,9 @@ import asyncio
 from pydantic import Field
 
 
-from loguru import Logger
+from loguru import logger
 from prompt_scope.core.models.base_model import BaseModel
 from prompt_scope.core.models.generation_model import GenerationModel
-
-
-logger = Logger.get_logger()
 
 
 class EvaluatorType(str, Enum):
