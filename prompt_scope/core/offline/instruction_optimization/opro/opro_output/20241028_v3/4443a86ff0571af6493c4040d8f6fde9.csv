@@ -1,0 +1,14 @@
+index_in_raw_dataset,raw_prompt,raw_answer,parsed_answer,true_answer,accuracy
+6447,"Please think step by step
+A fruit stand is selling apples for $2 each. Emmy has $200 while Gerry has $100. If they want to buy apples, how many apples can Emmy and Gerry buy altogether?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","First, determine how many apples Emmy can buy with her $200.
+$$\frac{\$200}{\$2/apple} = 100 \text{ apples}$$
+
+Next, determine how many apples Gerry can buy with his $100.
+$$\frac{\$100}{\$2/apple} = 50 \text{ apples}$$
+
+Finally, add the number of apples Emmy can buy to the number of apples Gerry can buy to find the total number of apples they can buy together.
+$$100 \text{ apples} + 50 \text{ apples} = 150 \text{ apples}$$
+
+Therefore, **150** apples can Emmy and Gerry buy altogether.",150,150,1.0
+6827,"Please think step by step
+At the height of cranberry season, there are 60000 cranberries in a bog. 40% are harvested by humans and another 20000 are eaten by elk. How many cranberries are left?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.",**36000**,36000,16000,0.0

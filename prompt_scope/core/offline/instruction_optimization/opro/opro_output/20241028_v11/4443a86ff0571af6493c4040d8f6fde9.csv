@@ -1,0 +1,49 @@
+index_in_raw_dataset,raw_prompt,raw_answer,parsed_answer,true_answer,accuracy
+2,"Please think step by step
+Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","**3**
+
+To find out how much more money Betty needs to buy the wallet, follow these steps:
+
+1. **Determine how much money Betty currently has:** Since she has half of the $100 needed for the wallet, she has \( \frac{1}{2} \times 100 = 50 \) dollars.
+
+2. **Calculate the amount given by her grandparents:** They give her twice as much as her parents, so \( 2 \times 15 = 30 \) dollars.
+
+3. **Add the amounts from her parents and grandparents to her current savings:** \( 50 + 15 + 30 = 95 \) dollars.
+
+4. **Subtract this total from the cost of the wallet to find out how much more she needs:** \( 100 - 95 = 5 \) dollars.
+
+Therefore, Betty needs **5** more dollars to buy the wallet.",5,5,1.0
+4,"Please think step by step
+James writes a 3-page letter to 2 different friends twice a week.  How many pages does he write a year?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","To calculate how many pages James writes in a year, let's break down the process step-by-step.
+
+1. **Pages per Letter**: Each letter contains 3 pages.
+2. **Letters per Friend**: James writes the letter to 2 different friends.
+3. **Weekly Letters**: He writes each set of letters (to both friends) twice a week.
+4. **Annual Letters**: To find out how many times he writes these sets of letters in a year, we need to consider there are 52 weeks in a year.
+
+Let's perform the calculation:
+
+- **Pages per Letter**: \(3\) pages
+- **Letters per Friend**: \(2\) letters
+- **Weekly Letters**: \(2 \times 2 = 4\) letters (to both friends twice)
+- **Annual Letters**: \(4 \times 52 = 208\)
+
+James writes \(208\) pages a year.",,624,0.0
+8,"Please think step by step
+Alexis is applying for a new job and bought a new set of business clothes to wear to the interview. She went to a department store with a budget of $200 and spent $30 on a button-up shirt, $46 on suit pants, $38 on a suit coat, $11 on socks, and $18 on a belt. She also purchased a pair of shoes, but lost the receipt for them. She has $16 left from her budget. How much did Alexis pay for the shoes?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","To find out how much Alexis paid for the shoes, we first need to calculate the total amount she spent on other items:
+
+\[ \text{Total spent} = \$30 (\text{shirt}) + \$46 (\text{pants}) + \$38 (\text{coat}) + \$11 (\text{socks}) + \$18 (\text{belt}) \]
+
+\[ \text{Total spent} = \$30 + \$46 + \$38 + \$11 + \$18 \]
+
+\[ \text{Total spent} = \$153 \]
+
+Given that Alexis had a budget of $200 and has $16 left after purchasing items, we can subtract the total amount spent (excluding the shoes) from her total budget to find out how much she spent on the shoes:
+
+\[ \text{Budget} - \text{(Total spent on other items)} - \text{Remaining money} = \text{Cost of shoes} \]
+
+\[ \$200 - \$153 - \$16 = \$\_\_\_ \]
+
+\[ \$200 - \$153 - \$16 = \$31 \]
+
+Therefore, Alexis paid **\$31** for the shoes.",31,41,0.0

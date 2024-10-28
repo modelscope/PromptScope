@@ -1,0 +1,24 @@
+index_in_raw_dataset,raw_prompt,raw_answer,parsed_answer,true_answer,accuracy
+2,"To calculate the cost of an item when you know the total budget, the costs of other items, and the remaining budget, follow these step-by-step instructions:
+Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","**1**
+
+To find out how much more money Betty needs, let's break down the information given and solve step by step.
+
+1. The cost of the wallet: $100
+2. Betty already has half of the money she needs: \( \frac{1}{2} \times 100 = 50 \) dollars
+3. Her parents gave her: $15
+4. Her grandparents gave her twice as much as her parents: \( 2 \times 15 = 30 \) dollars
+
+Now, let's add up what Betty has in total after receiving money from both her parents and grandparents:
+
+\[ 50 + 15 + 30 = 95 \] dollars
+
+Finally, subtract the amount Betty has from the total cost of the wallet to find out how much more she needs:
+
+\[ 100 - 95 = 5 \]
+
+Therefore, **5** dollars is how much more money Betty needs to buy the wallet.",5,5,1.0
+4,"To calculate the cost of an item when you know the total budget, the costs of other items, and the remaining budget, follow these step-by-step instructions:
+James writes a 3-page letter to 2 different friends twice a week.  How many pages does he write a year?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.",**10080**,10080,624,0.0
+8,"To calculate the cost of an item when you know the total budget, the costs of other items, and the remaining budget, follow these step-by-step instructions:
+Alexis is applying for a new job and bought a new set of business clothes to wear to the interview. She went to a department store with a budget of $200 and spent $30 on a button-up shirt, $46 on suit pants, $38 on a suit coat, $11 on socks, and $18 on a belt. She also purchased a pair of shoes, but lost the receipt for them. She has $16 left from her budget. How much did Alexis pay for the shoes?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.",**41**,41,41,1.0

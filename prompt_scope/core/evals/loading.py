@@ -8,6 +8,7 @@ from prompt_scope.core.evals.parsing.json_validity import JsonValidityEvaluator
 from prompt_scope.core.evals.parsing.json_schema import JsonSchemaEvaluator
 from prompt_scope.core.evals.scoring.score_string import ScoreStringEvaluator
 from prompt_scope.core.evals.scoring.labeled_score_string import LabeledScoreStringEvaluator
+from prompt_scope.core.evals.customized.opro_match import OPROMatchStringEvaluator
 from prompt_scope.core.evals.schema import EvaluatorType, StringEvaluator
 
 
@@ -19,6 +20,7 @@ _EVALUATOR_MAP: Dict[
     EvaluatorType.JSON_SCHEMA_VALIDATION: JsonSchemaEvaluator,
     EvaluatorType.REGEX_MATCH: RegexMatchStringEvaluator,
     EvaluatorType.EXACT_MATCH: ExactMatchStringEvaluator,
+    EvaluatorType.OPRO_MATCH: OPROMatchStringEvaluator,
 }
 
 

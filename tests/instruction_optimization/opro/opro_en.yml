@@ -1,0 +1,8 @@
+# use_wandb: False
+
+task_name: train
+instruction_pos: Q_begin
+meta_prompt_type: both_instructions_and_exemplars
+dataset_name: gsm8k
+eval_type: regex_match
+train_ratio: 0.00035
