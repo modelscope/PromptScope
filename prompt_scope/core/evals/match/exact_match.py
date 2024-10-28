@@ -60,6 +60,7 @@ class ExactMatchStringEvaluator(StringEvaluator):
         *,
         prediction: str,
         reference: str,
+        input: str | None = None,
         **kwargs: Any,
     ) -> dict:
         """

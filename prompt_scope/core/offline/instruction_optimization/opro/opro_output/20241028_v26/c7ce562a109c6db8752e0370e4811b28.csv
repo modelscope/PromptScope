@@ -1,0 +1,48 @@
+index_in_raw_dataset,raw_prompt,raw_answer,parsed_answer,true_answer,accuracy
+2,"Following step-by-step instructions to solve this problem, let's calculate the total amount Alexis spent on items other than the shoes first:
+Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","To find out how much more money Betty needs to buy the wallet, let's break down the steps:
+
+1. Betty initially has half of the $100 wallet cost, which means she has:
+   \[ \frac{1}{2} \times 100 = 50 \]
+
+2. Her parents give her an additional $15, bringing her total to:
+   \[ 50 + 15 = 65 \]
+
+3. Her grandparents give her twice as much as her parents, which is:
+   \[ 2 \times 15 = 30 \]
+   Adding this to her current total:
+   \[ 65 + 30 = 95 \]
+
+4. The wallet costs $100, so the amount of money Betty still needs is:
+   \[ 100 - 95 = 5 \]
+
+Therefore, **5** is the number indicating how much more money Betty needs to buy the wallet.",5,5,1
+4,"Following step-by-step instructions to solve this problem, let's calculate the total amount Alexis spent on items other than the shoes first:
+James writes a 3-page letter to 2 different friends twice a week.  How many pages does he write a year?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","To find out how many pages James writes in a year, we need to break down the problem into smaller steps:
+
+1. **Pages per letter:** Each letter consists of 3 pages.
+2. **Letters per person per week:** James writes 2 letters to 2 different friends, so that's \(2 \times 2 = 4\) letters per week.
+3. **Pages written per week:** Since each letter is 3 pages long, for 4 letters, James writes \(3 \times 4 = 12\) pages per week.
+4. **Weeks in a year:** There are 52 weeks in a year.
+
+Now, to find out how many pages James writes in a year, multiply the pages written per week by the number of weeks in a year:
+
+\[12 \text{ pages/week} \times 52 \text{ weeks/year} = 624 \text{ pages/year}.\]
+
+So, the total number of pages James writes in a year is **624**.",624,624,1
+8,"Following step-by-step instructions to solve this problem, let's calculate the total amount Alexis spent on items other than the shoes first:
+Alexis is applying for a new job and bought a new set of business clothes to wear to the interview. She went to a department store with a budget of $200 and spent $30 on a button-up shirt, $46 on suit pants, $38 on a suit coat, $11 on socks, and $18 on a belt. She also purchased a pair of shoes, but lost the receipt for them. She has $16 left from her budget. How much did Alexis pay for the shoes?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","To find out how much Alexis paid for the shoes, we need to subtract the total amount she spent on the other items and what she has left from her budget.
+
+First, add up the cost of the items we know she bought:
+\[ \text{Total spent} = \$30 + \$46 + \$38 + \$11 + \$18 \]
+\[ \text{Total spent} = \$143 \]
+
+Next, subtract the total amount spent on these items from her original budget to find out how much was left before buying the shoes:
+\[ \text{Budget} - \text{Total spent} = \$200 - \$143 \]
+\[ \text{Amount remaining} = \$57 \]
+
+Finally, subtract the amount she had left after buying the shoes from the amount remaining to find out how much she spent on the shoes:
+\[ \text{Amount remaining} - \text{Left after shoes} = \$57 - \$16 \]
+\[ \text{Cost of shoes} = \$41 \]
+
+Therefore, Alexis paid **\$41** for the shoes.",41,41,1

@@ -32,6 +32,8 @@ class EvaluatorType(str, Enum):
     """Check if a prediction is valid JSON."""
     JSON_SCHEMA_VALIDATION = "json_schema_validation"
     """Check if a prediction is valid JSON according to a JSON schema."""
+    OPRO_MATCH = "opro_match"
+    """Evaluation implemented by OPRO."""
 
 
 class _EvalArgsMixin:
@@ -168,8 +170,8 @@ class StringEvaluator(_EvalArgsMixin, ABC):
         self,
         *,
         prediction: str,
-        reference: Optional[str] = None,
-        input: Optional[str] = None,
+        reference: str | None = None,
+        input: str | None = None,
         **kwargs: Any,
     ) -> dict:
         """Evaluate Chain or LLM output, based on optional input and label.

@@ -1,0 +1,24 @@
+index_in_raw_dataset,raw_prompt,raw_answer,parsed_answer,true_answer,accuracy
+6447,"Please think step by step
+A fruit stand is selling apples for $2 each. Emmy has $200 while Gerry has $100. If they want to buy apples, how many apples can Emmy and Gerry buy altogether?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","First, calculate the amount of money Emmy and Gerry have together:
+
+- Emmy's money: $200
+- Gerry's money: $100
+
+Total money = **$300**
+
+Next, find out how many apples they can buy together with $300 at a price of $2 per apple:
+
+Number of apples = Total money / Price per apple = **$300 / $2 = 150 apples**",150,150,1.0
+6827,"Please think step by step
+At the height of cranberry season, there are 60000 cranberries in a bog. 40% are harvested by humans and another 20000 are eaten by elk. How many cranberries are left?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","To find the number of cranberries left after harvesting and being eaten by elk, follow these steps:
+
+1. Calculate 40% of 60000 cranberries that are harvested by humans:
+\[60000 \times 0.40 = 24000\]
+
+2. Note that 20000 are eaten by elk.
+
+3. Subtract both from the original total:
+\[60000 - 24000 - 20000 = 16000\]
+
+Therefore, **16000** cranberries are left.",16000,16000,1.0

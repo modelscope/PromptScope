@@ -1,0 +1,8 @@
+{
+    "prediction_treat_as_number": true,
+    "prediction_treat_as_bool": false,
+    "train_ratio": 0.01,
+    "eval_ratio": 0,
+    "is_multiple_choice": false,
+    "is_multiple_choice_eval": false,
+    "train_index": 

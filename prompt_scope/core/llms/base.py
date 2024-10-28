@@ -51,7 +51,7 @@ class BaseLLM(BaseModel):
 
         raise NotImplementedError
 
-    async def achat(self, messages: Union[List[ChatMessage], str], **kwargs) -> ChatResponse:
+    async def achat(self, index, messages: Union[List[ChatMessage], str], **kwargs) -> ChatResponse:
         """
 
         Args:
@@ -62,7 +62,7 @@ class BaseLLM(BaseModel):
 
         """
         result = await asyncio.to_thread(self.chat, messages, **kwargs)
-        return result
+        return {"index": index, "result": result}
 
     def structured_output(
             self,
@@ -96,12 +96,13 @@ class BaseLLM(BaseModel):
             )
         list_of_messages = list(map(self._convert_messages, list_of_messages))
         list_of_messages = list(map(output_parser.generate_prompt, list_of_messages))
-        tasks = [self.achat(messages, **kwargs) for messages in list_of_messages]
+        tasks = [self.achat(i, messages, **kwargs) for i, messages in enumerate(list_of_messages)]
         responses = []
         for result in tqdm.as_completed(tasks):
             # As each task completes, the progress bar will be updated
             value = await result
             responses.append(value)
+        responses = [response["result"] for response in sorted(responses, key=lambda x: x["index"])]
         parsed = list(map(lambda resp: output_parser.parse(resp.message.content), responses))
         return parsed
 

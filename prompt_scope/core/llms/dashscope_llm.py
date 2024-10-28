@@ -19,6 +19,7 @@ class DashScopeLlmName(str, Enum):
     QWEN_TURBO = "qwen-turbo"
     QWEN_LONG = "qwen-long"
     QWEN2_7B_INST = "qwen2-7b-instruct"
+    QWEN2_72B_INST = "qwen2-72b-instruct"
 
 
 def _convert_chat_message_to_dashscope_message(messages: List[ChatMessage]) -> List[Message]:

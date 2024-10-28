@@ -1,0 +1,13 @@
+index_in_raw_dataset,raw_prompt,raw_answer,parsed_answer,true_answer,accuracy
+2,"To find out how much Alexis paid for the shoes, let's first calculate the total amount she spent on other items and subtract that from her original budget.
+Betty is saving money for a new wallet which costs $100. Betty has only half of the money she needs. Her parents decided to give her $15 for that purpose, and her grandparents twice as much as her parents. How much more money does Betty need to buy the wallet?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.",**30**,30,5,0
+4,"To find out how much Alexis paid for the shoes, let's first calculate the total amount she spent on other items and subtract that from her original budget.
+James writes a 3-page letter to 2 different friends twice a week.  How many pages does he write a year?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.","To find out how many pages James writes in a year, you can follow these steps:
+
+1. Calculate the number of pages James writes to one friend: 3 pages * 2 times a week = **6** pages per week for one friend.
+2. Since he writes to 2 different friends, multiply the weekly pages by 2: **6** pages/week/friend * 2 friends = **12** pages per week for both friends combined.
+3. To find out how many pages he writes in a year, multiply the weekly pages by the number of weeks in a year (assuming no leap year): **12** pages/week * 52 weeks/year = **624** pages per year.
+
+So, James writes **624** pages a year.",624,624,1
+8,"To find out how much Alexis paid for the shoes, let's first calculate the total amount she spent on other items and subtract that from her original budget.
+Alexis is applying for a new job and bought a new set of business clothes to wear to the interview. She went to a department store with a budget of $200 and spent $30 on a button-up shirt, $46 on suit pants, $38 on a suit coat, $11 on socks, and $18 on a belt. She also purchased a pair of shoes, but lost the receipt for them. She has $16 left from her budget. How much did Alexis pay for the shoes?The answer can be a sentence, however the final answer should be a number which should be able to correctly answer the problem. Please surround this number with **, e.g. **24**.",**65**,65,41,0

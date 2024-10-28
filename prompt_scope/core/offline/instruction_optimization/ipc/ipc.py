@@ -34,18 +34,22 @@ class IPCOptimization(PromptOptimizationWithFeedback):
     and repeating the process to enhance prompt effectiveness over multiple iterations.
     """
     # =============LLM Configuration=============
+    generation_llm: BaseLLM = Field(default=DashscopeLLM(max_retries=3))
+    predictor_llm: BaseLLM = Field(default=DashscopeLLM(max_retries=1))
+    analyzer_llm: BaseLLM = Field(default=DashscopeLLM(max_retries=1))
     evaluate_llm: BaseLLM = Field(default=DashscopeLLM(max_retries=1))
     annotate_llm: BaseLLM = Field(default=DashscopeLLM(max_retries=1))
 
     # =============Path Configuration=============
-    data_path: str = Field(default="", description="Dataset Path")
     prompt_path: str = Field(default=__file__, description="Prompt file path")
-    store_path: str = Field(default=os.path.join(__file__, "ipc_output"))
-    
+    store_path: str = Field(Path(__file__).parent.joinpath("ipc_output"))
+
     # =============Basic Configuration=============
+    task_type: Literal["classification", "generation"] = Field(...)
     label_schema: List[str] = Field(default=[])
     task_description: str = Field(...)
-    task_type: Literal["classification", "generation"] = Field(...)
+    cur_step: int = Field(default=0)  # Tracks the current step in the iterative process
+    history: List = []
 
     # =============Experiment Configuration=============
     samples_per_step: int = Field(default=10, description="samples generated for each step")
@@ -68,7 +72,10 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         pass
     
     def _after_run(self):
-        pass
+        output_path = create_dated_directory(self.store_path)
+        output_path = Path(output_path)
+        self.save_state(output_path)
+        return self.extract_best_prompt()
 
     def _step(self) -> bool:
         """
@@ -165,7 +172,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         logger.info(results)
         return results
     
-    def extract_best_prompt(self):
+    def extract_best_prompt(self) -> Dict[str, Any]:
         """
         Extracts the best prompt from the evaluation history based on the score.
 
@@ -408,17 +415,14 @@ class IPCOptimization(PromptOptimizationWithFeedback):
             return True
         return False
 
-    def save_state(self):
+    def save_state(self, output_path):
         """
         Saves the current state of the iterative process, including evaluation history,
         the current step, prompts, task description, and patient data (if applicable),
         to a pickle file. This function is called to persist the progress made during
         the optimization of instructional prompts.
         """
-        
         logger.info('Save state')
-        output_path = create_dated_directory(self.store_path)
-        output_path = Path(output_path)
 
         state = {'history': self.history, 'step': self.cur_step,
                  'prompt': self.instruction, 'task_description': self.task_description,
