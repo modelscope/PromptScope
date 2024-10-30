@@ -1,16 +1,13 @@
-import time
-from datetime import timedelta
-
 from loguru import logger
+from typing import Literal, Dict, List, Tuple
+from pydantic import Field, model_validator, ConfigDict
+from pathlib import Path, PosixPath
 
-from prompt_scope import CONFIG_REGISTRY
-from prompt_scope.algorithm.PromptAgent.search_algo import get_search_algo
-from prompt_scope.algorithm.PromptAgent.tasks import get_task
-from prompt_scope.algorithm.PromptAgent.utils import get_pacific_time
-from prompt_scope.algorithm.base_algorithm import PromptOptimizationWithFeedback
-from prompt_scope.core.enumeration.language_enum import LanguageEnum
-from prompt_scope.core.models.base_model import MODEL_REGISTRY
-from prompt_scope.core.models.generation_model import GenerationModel, OpenAIGenerationModel, OpenAIPostModel
+from prompt_scope.core.models.search_algo.base_algo import BaseSearchAlgo
+from prompt_scope.core.offline.instruction_optimization.prompt_agent.tasks.base_task import BaseTask
+from prompt_scope.core.offline.instruction_optimization.base_algorithm import PromptOptimizationWithFeedback
+from prompt_scope.core.models.search_algo.beam_search import BeamNode
+from prompt_scope.core.models.search_algo.mcts import MCTSNode
 
 
 class PromptAgent(PromptOptimizationWithFeedback):
@@ -19,146 +16,96 @@ class PromptAgent(PromptOptimizationWithFeedback):
     is designed to optimize prompts for language models, by initializing tasks, configuring settings,
     selecting search algorithms and models, logging progress, and determining the most effective prompt through iterative refinement.
     """
-    FILE_PATH: str = __file__
+    model_config = ConfigDict(
+        arbitrary_types_allowed = True
+    )
+    # =============LLM and model Configuration=============
+    search_algo: BaseSearchAlgo = Field(..., description="Search Algorithm.")
 
-    def __init__(self,
-                 dataset_path: str = __file__,
-                 language: LanguageEnum = "en",
-                 **kwargs
-                 ) -> None:
-        """
-        Initialize the PromptAgent with necessary configurations, task setup, search algorithm selection,
-        and logging initialization. The agent then readies the model for the prompt optimization process.
+    # =============Path Configuration=============
+    dataset_name: Literal["bbh"] = Field(default="bbh", description="Name of the dataset")
+    task: BaseTask = Field(..., description="task for the experiment")
+    task_name: str = Field(default="bigbench", description="task name for the experiment")
+    prompt_path: str = Field(default=__file__, description="Prompt file path")
+    store_path: str = Field(default=Path(__file__).parent.joinpath("pagent_output"))
 
-        Args:
-            dataset_path (str): Path to the dataset used for the task.
-            language (LanguageEnum): Language setting for the tasks and prompts.
-            **kwargs: Additional keyword arguments for flexibility in configurations.
+    # =============Experiment Configuration=============
+    search_algo_name: Literal["mcts", "beam_search"] = Field(...)
+    world_model_name: Literal["base", "beam_search"] = Field(...)
+    verbose: bool = True
+    train_size: int = 4
+    eval_size: int = Field(default=3, description="data split for reward calculation")
+    test_size: int = Field(default=3, description="if test_size is not 0, the optimized nodes will be tested at last.")
+    seed: int = Field(default=42, description="if need to fixed shuffled dataset.")
+    post_instruction: bool = Field(default=False, description="false: prompt + task question | true: task question + prompt")
 
-        Post Init:
-            - Configurations are initialized and potentially updated based on kwargs.
-            - A task instance is created according to the specified task name and configuration.
-            - An appropriate search algorithm is set up based on the chosen strategy.
-            - A logging mechanism is configured to track the experiment under a named experiment ID.
-            - The AI model is initialized in preparation for prompt evaluations and optimizations.
-        """
-        super().__init__(language=language, **kwargs)
-        self.init_config()
+    # =============Search Configuration=============
+    iteration_num: int = 2
+    expand_width: int = Field(default=2, description="num of branches of each node")
+    depth_limit: int = Field(default=2, description="the max depth of mcts")
+    # mcts setting
+    min_depth: int | None = Field(default=None, examples=[2], description="min depth of mcts for early stop")
+    w_exp: float | None = Field(default=None, examples=[2.5], description="balance exploration and exploitation")
+    # beam search setting
+    beam_width: int | None = Field(default=None, examples=[2])
 
-        task_name = self.basic_config.task_name
-        self.dataset_path = dataset_path
-        self.task_config.data_dir = self.dataset_path
-        self.task = get_task(task_name)(**self.task_config)
-        self.initial_prompt = self.basic_config.init_prompt
-        self.search_algo = self.basic_config.search_algo
-        if self.task_config.get('data_dir', None) and task_name == "bigbench":
-            task_name = task_name + "_" + self.task_config["data_dir"].split('/')[-1].split('.')[-2]
-        exp_name = f'{get_pacific_time().strftime("%Y%m%d_%H%M%S")}-{task_name}-algo_{self.search_algo}'
-        logger.info(exp_name)
+    # =============World Model Configuration=============
+    # mcts world model setting
+    train_shuffle: bool = True
+    num_new_prompts: int = 1 # 3 if beam search
+    train_batch_size: int = 5
+    prompt_length_limit: int = 200
 
-        self.init_model()
 
-    def init_config(self):
-        """
-        Initializes the configuration for the agent by retrieving various configuration sections
-        from the global CONFIG_REGISTRY. This sets up the basic, task-specific, model, search,
-        and world model configurations required for the agent's operation.
+    @model_validator(mode='before')
+    def validate(cls, data: Dict) -> Dict:
+        """Check the configuration of the algorithm"""
+        if data["search_algo_name"] == "mcts":
+            assert data["world_model_name"] == "base"
+        elif data["search_algo_name"] == "beam_search":
+            assert data["world_model_name"] == "beam_search"
+        return data
 
-        The configurations are retrieved from a registry module which centralizes the access to
-        different parts of the setup, ensuring modularity and easier management of settings.
-        """
-        self.basic_config = CONFIG_REGISTRY.module_dict["basic_config"]
-        self.task_config = CONFIG_REGISTRY.module_dict["task_config"]
-        self.model_config = CONFIG_REGISTRY.module_dict["model_config"]
-        self.search_config = CONFIG_REGISTRY.module_dict["search_config"]
-        self.world_model_config = CONFIG_REGISTRY.module_dict["world_model_config"]
 
-    def init_model(self):
-        """
-        Initializes the models and search algorithm for the prompt optimization process.
+    def _before_run(self) -> None:
+        logger.info(f'init_prompt: {self.instruction}')
 
-        This method sets up the base model, optimization model, world model, and search algorithm
-        based on the configurations provided. It also initializes the logging mechanism for tracking
-        the optimization process.
-        """
-        base_module_name = self.model_config.base.get('module_name')
-        if base_module_name == 'dashscope_generation':
-            self.base_model = GenerationModel(**self.model_config.base)
-        elif base_module_name == 'openai_generation':
-            self.base_model = OpenAIGenerationModel(**self.model_config.base)
-        elif base_module_name == 'openai_post':
-            self.base_model = OpenAIPostModel(**self.model_config.base)
+        self.search_algo.before_search(init_state=self.instruction)
+        if self.search_algo == 'mcts':
+            self.num_step = self.iteration_num
+        elif self.search_algo == 'beam_search':
+            self.num_step = self.depth_limit
 
-        optim_module_name = self.model_config.optim.get('module_name')
-        if optim_module_name == 'dashscope_generation':
-            self.optim_model = GenerationModel(**self.model_config.optim)
-        elif optim_module_name == 'openai_generation':
-            self.optim_model = OpenAIGenerationModel(**self.model_config.optim)
-        elif optim_module_name == 'openai_post':
-            self.optim_model = OpenAIPostModel(**self.model_config.optim)
 
-        self.world_model = MODEL_REGISTRY.module_dict[self.search_algo](
-            task=self.task,
-            logger=logger,
-            base_model=self.base_model,
-            optim_model=self.optim_model,
-            prompt_handler=self.prompt_handler,
-            **self.world_model_config
-        )
+    def _after_run(self):
+        best_prompt = self.extract_best_prompt(self.store_path)
+        return best_prompt
 
-        self.search_algo = get_search_algo(self.search_algo)(
-            task=self.task,
-            world_model=self.world_model,
-            logger=logger,
-            log_dir=self.basic_config.output_path,
-            **self.search_config
-        )
 
-    def run(self):
-        """
-        Orchestrates the search for the best prompt by initializing the search with a given prompt,
-        executing iterations as per the configured search algorithm, logging each step, measuring
-        total execution time, and extracting the optimal prompt along with related metadata.
-
-        The specific number of iterations is determined by the configuration of the search algorithm
-        ('mcts' uses `iteration_num`, while 'beam_search' refers to `depth_limit`).
-
-        Returns:
-            tuple: A pair containing:
-                - states: Relevant states or information from the search process leading to the best prompt.
-                - result_dict: A dictionary encapsulating details about the best prompt and potentially its score or metrics.
-        """
-        logger.info(f'init_prompt: {self.initial_prompt}')
-        start_time = time.time()
-
-        self.search_algo.before_search(init_state=self.initial_prompt)
-        if self.basic_config.search_algo == 'mcts':
-            iteration_num = self.search_algo.iteration_num
-        elif self.basic_config.search_algo == 'beam_search':
-            iteration_num = self.search_algo.depth_limit
-
-        for i in range(iteration_num):
-            logger.info(
-                f'---------------------  iteration {i} ------------------------')
-            self.step()
-
-        states, result_dict = self.extract_best_prompt()
-        end_time = time.time()
-        exe_time = str(timedelta(seconds=end_time - start_time)).split('.')[0]
-        logger.info(f'\nDone!Excution time: {exe_time}')
-        return states, result_dict
-
-    def step(self):
+    def _step(self, i_step) -> bool:
         """
         Executes a single step in the optimization process which includes searching for the best path
         and updating prompts based on error analysis.
         """
         logger.info('Searching Path')
-        path = self.search_algo.search()  # ⭐ Conducts a search for the optimal path
-        logger.info('Update Prompt According to Error Analysis')
-        path, cum_rewards = self.update_with_error(path)  # ⭐ Refines prompts along the found path using error feedback
+        path = self._predict(i_step=i_step)  # ⭐ Conducts a search for the optimal path
+        logger.info('Update Prompt According to Trajectory Prompts')
+        path, cum_rewards = self._update_prompt(path=path)  # ⭐ Refines prompts along the found path using error feedback
+        ## TODO: implement early stop
+        return False
 
-    def update_with_error(self, path):
+    def _predict(self, **kwargs) -> List[BeamNode] | List[MCTSNode]:
+        return self.search_algo.search(**kwargs)
+
+
+    def _evaluate_and_analyze(self):
+        """
+        TODO: included in the self.search_algo.
+        """
+        raise NotImplementedError
+
+
+    def _update_prompt(self, *, path: List) -> Tuple[List[BeamNode] | List[MCTSNode], List[float]]:
         """
         Updates nodes within the search algorithm's data structure based on the error from the executed path,
         effectively refining the prompts.
@@ -170,12 +117,19 @@ class PromptAgent(PromptOptimizationWithFeedback):
           A tuple containing the updated path and cumulative rewards from this update step.
         """
         return self.search_algo.update_nodes(path)
+        
+        
 
-    def extract_best_prompt(self):
+    def extract_best_prompt(self, store_path: PosixPath) -> str:
         """
         Retrieves the best prompt discovered by the search algorithm after completing the search process.
 
         Returns:
             The most effective prompt generated by the optimization, intended to enhance AI system interactions.
         """
-        return self.search_algo.after_search()
+        _, output = self.search_algo.after_search(store_path=store_path)
+        if self.search_algo_name == 'mcts':
+            best_node = output.get("best_reward_path_selected_node", [MCTSNode(prompt="")])[0]
+        elif self.search_algo_name == 'beam_search':
+            best_node = output.get("best_global_node", [BeamNode(prompt="")])[0]
+        return best_node.prompt
