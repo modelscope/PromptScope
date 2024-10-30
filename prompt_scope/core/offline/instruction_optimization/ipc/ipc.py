@@ -12,7 +12,7 @@ import math
 from sklearn.metrics import confusion_matrix
 from datetime import datetime, date
 
-from prompt_scope.algorithm.base_algorithm import PromptOptimizationWithFeedback
+from prompt_scope.core.offline.instruction_optimization.base_algorithm import PromptOptimizationWithFeedback
 from prompt_scope.core.evals.schema import StringEvaluator
 from prompt_scope.core.llms.base import BaseLLM
 from prompt_scope.core.llms.dashscope_llm import DashscopeLLM

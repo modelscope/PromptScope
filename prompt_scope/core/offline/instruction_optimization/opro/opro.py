@@ -25,7 +25,7 @@ import json
 from pathlib import Path
 import asyncio
 
-from prompt_scope.algorithm.base_algorithm import PromptOptimizationWithFeedback
+from prompt_scope.core.offline.instruction_optimization.base_algorithm import PromptOptimizationWithFeedback
 from prompt_scope.core.evals.loading import load_evaluator
 from prompt_scope.core.evals.schema import StringEvaluator
 from prompt_scope.core.llms.base import BaseLLM
