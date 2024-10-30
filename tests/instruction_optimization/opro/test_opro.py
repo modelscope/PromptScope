@@ -89,44 +89,6 @@ def test_update_prompt():
     assert isinstance(new_instructions, Sequence)
     assert len(new_md5) > 0
     
-# def test_annotation():
-#     annotation = ipc_optimization._predict(
-#         samples=samples,
-#         llm=ipc_optimization.annotate_llm
-#     )
-#     assert isinstance(annotation, List)
-#     assert isinstance(annotation[0], PredictSchema)
-#     assert len(annotation) == 2
-
-# def test_evaluate_and_analyze():
-#     history = ipc_optimization._evaluate_and_analyze(
-#         reference=reference,
-#         prediction=prediction,
-#         evaluator=load_evaluator('exact_match'),
-#         label_schema=label_schema
-#     )
-#     assert isinstance(history, List)
-#     assert isinstance(history[0], Dict)
-#     assert len(history) == 1
-    
-# def test_step_generate():
-#     extra_samples_text = '##\n'
-#     for sample in samples:
-#         extra_samples_text += f"Sample:\n {sample}\n#\n"
-#     prompt_input = {
-#         'history': 'No previous errors information', 
-#         'instruction': ipc_optimization.instruction,
-#         'batch_size': ipc_optimization.batch_size,
-#         'task_description': ipc_optimization.task_description, 
-#         'extra_samples': extra_samples_text
-#         }
-#     generate_prompt = ipc_optimization.prompt_handler.step_adv_sample_classification.format_map(prompt_input)
-#     new_samples = ipc_optimization._generate(
-#         prompt=generate_prompt
-#     )
-#     assert isinstance(new_samples, List)
-#     assert isinstance(new_samples[0], str)
-#     assert len(new_samples) == ipc_optimization.samples_per_step
 
 # 运行测试
 if __name__ == "__main__":

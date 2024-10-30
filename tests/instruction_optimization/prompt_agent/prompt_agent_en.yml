@@ -1,6 +1,6 @@
 task_name: bigbench # bigbench | ncbi | ... | or your own task
-search_algo_name: beam_search # mcts | beam_search
-world_model_name: beam_search
+search_algo_name: mcts # mcts | beam_search
+world_model_name: base # base | beam_search
 print_log: true
 instruction: Answer questions about a table of penguins and their attributes.
 language: en
@@ -14,6 +14,7 @@ data_dir: /mnt1/yunze.gy/PromptScope/prompt_scope/datasets/benchmarks/bbh_prompt
 # specific .py class inplemented in the tasks folder.
 post_instruction: false # false: prompt + task question | true: task question + prompt
 eval_type: custom
+
 
 iteration_num: 2
 expand_width: 2 # num of branches of each node

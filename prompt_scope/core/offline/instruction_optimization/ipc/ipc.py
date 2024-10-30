@@ -77,7 +77,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         self.save_state(output_path)
         return self.extract_best_prompt()
 
-    def _step(self) -> bool:
+    def _step(self, *, i_step: int) -> bool:
         """
         Executes the main iteration step of the IPC optimization process. This involves generating or processing samples,
         evaluating their performance, updating the current prompt, and checking the stop criteria.
@@ -85,7 +85,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         Returns:
           bool: Returns `True` if the stop criteria are met; otherwise, `False`.
         """
-        logger.info(f'Starting step {self.cur_step}')
+        logger.info(f'Starting step {i_step}')
 
         if self.task_type == 'generation':
             prompt_type = 'adv_sample_generation'
@@ -140,7 +140,7 @@ class IPCOptimization(PromptOptimizationWithFeedback):
         if self.stop_criteria():
             logger.info('Stop criteria reached')
             return True
-        self.cur_step += 1
+        self.cur_step = i_step
         return False
 
     def _predict(self, *, samples: List[str], llm: BaseLLM) -> List[PredictSchema]:

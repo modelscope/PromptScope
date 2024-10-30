@@ -1,7 +1,0 @@
-{
-    "prediction_treat_as_number": true,
-    "prediction_treat_as_bool": false,
-    "train_ratio": 0.0035,
-    "eval_ratio": 0,
-    "num_examples": 7473
-}
