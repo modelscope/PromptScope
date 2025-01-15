@@ -7,7 +7,7 @@ logs
 wandb/
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__
 *.py[cod]
 *$py.class
 
@@ -152,6 +152,5 @@ log
 flagged
 meta_icl/core/offline/langchain_ipc_backup
 dump
-data
 examples/dump
 

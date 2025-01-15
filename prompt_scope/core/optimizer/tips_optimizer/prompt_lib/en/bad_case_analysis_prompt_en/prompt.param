@@ -1,0 +1,31 @@
+<user>
+**[Task Requirements]**
+${system_prompt}
+
+**[Historical Conversation Record]**
+${history}
+
+**[User Input]**
+${query}
+
+Based on the **[Task Requirements]**, **[Historical Conversation Record]**, and **[User Input]**, the **[Prediction Result]** is:
+${prediction}
+
+Based on the **[Task Requirements]**, **[Historical Conversation Record]**, and **[User Input]**, the **[Correct Result]** is:
+${ground_truth}
+
+## Analysis Task Instructions
+Please complete the following analysis tasks based on the above content:
+1. Compare and analyze the **[Prediction Result]** and **[Correct Result]**, and analyze the reasons why the **[Prediction Result]** is incorrect.
+2. Summarize the points to pay attention to in order to "correctly solve similar problems". Keep the language concise and clear, and output in the following format:
+<tips>
+- When ... is the case, it is recommended to ... (optionally, not recommended to ...)
+- ...
+</tips>
+
+## Sample Final Output
+<tips>
+- When ... is the case, it is recommended to ... (optionally, not recommended to ...)
+- ...
+</tips>
+</placeholders>

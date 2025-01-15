@@ -1,3 +1,4 @@
+import time
 from typing import Any, Dict, List, Optional, Type, Union
 from enum import Enum
 import asyncio
@@ -6,11 +7,12 @@ import dashscope
 import openai
 from dashscope.api_entities.dashscope_response import GenerationResponse, Message
 from pydantic import model_validator, Field, BaseModel
+from loguru import logger
 
-from prompt_scope.core.llms.base import BaseLLM
-from prompt_scope.core.output_parsers.pydantic import PydanticOutputParser
-from prompt_scope.core.schemas.message import ChatMessage, ChatResponse
-from prompt_scope.core.utils.env import get_from_dict_or_env
+from .base import BaseLLM
+from ..output_parsers.pydantic import PydanticOutputParser
+from ..schemas.message import ChatMessage, ChatResponse, MessageRole
+from ..utils.env import get_from_dict_or_env
 
 
 class DashScopeLlmName(str, Enum):
@@ -32,20 +34,36 @@ def _convert_chat_message_to_dashscope_message(messages: List[ChatMessage]) -> L
 
 
 def _convert_dashscope_response_to_response(response: GenerationResponse) -> ChatResponse:
-    message = response.output.choices[0].message
-    additional_kwargs = {}  # TODO
-    message = ChatMessage(
-        role=message.role,  # type: ignore
-        content=message.content,
-        name=message.get("name", None),
-        tool_calls=message.get("tool_calls", None),
-        additional_kwargs=additional_kwargs
-    )
+    try:
+        message = response.output.choices[0].message
+        additional_kwargs = {}  # TODO
+        message = ChatMessage(
+            role=message.role,  # type: ignore
+            content=message.content,
+            name=message.get("name", None),
+            tool_calls=message.get("tool_calls", None),
+            additional_kwargs=additional_kwargs
+        )
 
-    return ChatResponse(
-        message=message,
-        raw=response
-    )
+        return ChatResponse(
+            message=message,
+            raw=response
+        )
+    except:
+        logger.debug(response)
+        additional_kwargs = {}  # TODO
+        message = ChatMessage(
+            role=MessageRole.ASSISTANT,  # type: ignore
+            content="",
+            name=None,
+            tool_calls=None,
+            additional_kwargs=additional_kwargs
+        )
+
+        return ChatResponse(
+            message=message,
+            raw=response
+        )
 
 
 class DashscopeLLM(BaseLLM):
@@ -85,6 +103,9 @@ class DashscopeLLM(BaseLLM):
         return call_params
 
     def chat(self, messages: List[ChatMessage] | str, **kwargs) -> ChatResponse:
+        if self.sleep_time > 0:
+            time.sleep(self.sleep_time)
+
         messages = self._convert_messages(messages)
         # update the chat kwargs according to the kwargs
         call_params = self.chat_kwargs

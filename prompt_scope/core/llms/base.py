@@ -3,13 +3,12 @@
 
 import asyncio
 from typing import List, Dict, Any, Union, Optional, Type
-from loguru import logger
 from pydantic import BaseModel, Field
 from tqdm.asyncio import tqdm
 
-from prompt_scope.core.output_parsers.llm_parser import LlmOutputParser, PYDANTIC_FORMAT_INSTRUCTIONS, \
+from ..output_parsers.llm_parser import LlmOutputParser, PYDANTIC_FORMAT_INSTRUCTIONS, \
     PYDANTIC_FORMAT_INSTRUCTIONS_SIMPLE
-from prompt_scope.core.schemas.message import ChatMessage, ChatResponse, MessageRole
+from ..schemas.message import ChatMessage, ChatResponse, MessageRole
 
 
 class BaseLLM(BaseModel):
@@ -23,6 +22,7 @@ class BaseLLM(BaseModel):
     tool_choice: Union[str, Dict] = Field(default="auto", description="tool choice when user passed the tool list")
     api_key: Optional[str] = None
     base_url: Optional[str] = None
+    sleep_time: float = 0.0
 
     @staticmethod
     def _convert_messages(messages: List[ChatMessage] | ChatMessage | str) -> List[ChatMessage]:
