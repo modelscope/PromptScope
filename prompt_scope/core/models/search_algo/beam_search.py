@@ -6,7 +6,7 @@ from typing import Generic, List, Dict, Any, Tuple
 from loguru import logger
 from pathlib import PosixPath
 
-from prompt_scope.core.offline.instruction_optimization.prompt_agent.tasks.base_task import BaseTask
+from prompt_scope.core.optimizer.research_optimizers.prompt_agent_optimizer.tasks.base_task import BaseTask
 from prompt_scope.core.models.search_algo.base_algo import BaseSearchAlgo
 from prompt_scope.core.models.search_algo.nodes import BeamNode, State, Action
 

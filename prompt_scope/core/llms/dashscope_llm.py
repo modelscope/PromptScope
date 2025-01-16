@@ -103,9 +103,6 @@ class DashscopeLLM(BaseLLM):
         return call_params
 
     def chat(self, messages: List[ChatMessage] | str, **kwargs) -> ChatResponse:
-        if self.sleep_time > 0:
-            time.sleep(self.sleep_time)
-
         messages = self._convert_messages(messages)
         # update the chat kwargs according to the kwargs
         call_params = self.chat_kwargs

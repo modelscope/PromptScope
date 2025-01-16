@@ -167,3 +167,9 @@ class MultiArithDataLoader(BaseDataLoader):
         self.load_data()
         for item in self.data:
             yield item
+
+class THUNEWSDataLoader(JsonlDataLoader):
+    pass
+
+class CMMLUDataLoader(JsonlDataLoader):
+    pass

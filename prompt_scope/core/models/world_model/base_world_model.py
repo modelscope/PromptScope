@@ -11,7 +11,7 @@ from prompt_scope.core.models.search_algo.mcts import MCTSNode
 from prompt_scope.core.utils.prompt_handler import PromptHandler
 from prompt_scope.core.models.world_model.gradient_descent import GradientDescent
 from prompt_scope.core.llms.base import BaseLLM
-from prompt_scope.core.offline.instruction_optimization.prompt_agent.tasks.base_task import BaseTask
+from prompt_scope.core.optimizer.research_optimizers.prompt_agent_optimizer.tasks.base_task import BaseTask
 
 class WorldModelName(str, Enum):
     BASE_WORLD_MODEL = "base"

@@ -8,7 +8,7 @@ train_size: 4
 eval_size: 3 # data split for reward calculation
 test_size: 3 # if test_size is not 0, the optimized nodes will be tested at last.
 seed: 42 # if need to fixed shuffled dataset
-data_dir: /mnt1/yunze.gy/PromptScope/prompt_scope/datasets/benchmarks/bbh_prompt_agent/penguins_in_a_table.json # if data is downloaded
+data_dir: Path/to/PromptScope/prompt_scope/datasets/benchmarks/bbh_prompt_agent/penguins_in_a_table.json # if data is downloaded
 # Note: the current supported bigbench tasks are specified by
 # data_dir using the same task_name (bigbench), if there is not
 # specific .py class inplemented in the tasks folder.

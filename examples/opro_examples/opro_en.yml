@@ -1,0 +1,11 @@
+task_name: train
+instruction_pos: Q_begin
+meta_prompt_type: both_instructions_and_exemplars
+dataset_name: gsm8k
+eval_type: exact_match
+train_ratio: 0.0035
+eval_ratio: 0
+language: en
+num_generated_instructions_in_each_step: 8
+num_few_shot_questions_for_instruction_refinement: 5
+num_steps: 20
