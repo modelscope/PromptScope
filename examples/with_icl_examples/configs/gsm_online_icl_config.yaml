@@ -7,13 +7,12 @@ task_configs:
       max_tokens: 2000
       seed: 1234
   prompt_config:
-    template_path: examples/gsm8k_example/prompt/online_prompt.yaml
+    template_path: prompt/online_prompt.yaml
     language: en
 icl_configs:
   embedding_retriever_configs:
-    embedding_pth: storage/gsm8k_emb_model:<text_embedding_v2>_search_key:['input']_examples_ver_2025-01-20
-      11:44:58.index
+    embedding_pth: PATH/TO/PromptScope/examples/with_icl_examples/storage/gsm8k_emb_model:<text_embedding_v2>_search_key:['input']_examples_ver_2025-01-20 14:00:54.index
     embedding_model: text_embedding_v2
     search_key:
     - input
-    examples_pth: storage/gsm8k_icl_examples_ver_2025-01-20 11:44:58.json
+    examples_pth: PATH/TO/PromptScope/examples/with_icl_examples/storage/gsm8k_icl_examples_ver_2025-01-20 14:00:53.json

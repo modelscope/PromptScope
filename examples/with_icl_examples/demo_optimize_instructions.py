@@ -30,7 +30,6 @@ from pathlib import Path
 
 from loguru import logger
 
-from prompt_scope import CONFIG_REGISTRY
 from prompt_scope.core.optimizer.research_optimizers.opro_optimizer.opro import OPRO
 from prompt_scope.core.utils.utils import get_current_date
 from prompt_scope.core.utils.utils import load_yaml
@@ -60,12 +59,12 @@ def config(config_dir=None):
     return args
 
 
-def run_gsm_opro(gsm_data_pth):
-    scorer_llm_name = CONFIG_REGISTRY.module_dict['model_config'].scorer.model_name
-    optimizer_llm_name = CONFIG_REGISTRY.module_dict['model_config'].optim.model_name
-    dataset_name = CONFIG_REGISTRY.module_dict['task_config'].dataset_name.lower()
-    task_name = CONFIG_REGISTRY.module_dict['basic_config'].task_name
-    language = CONFIG_REGISTRY.module_dict['basic_config'].language
+def run_gsm_opro(args, gsm_data_pth):
+    scorer_llm_name = DashScopeLlmName.QWEN_PLUS
+    optim_llm_name = DashScopeLlmName.QWEN_MAX
+    optim_llm = DashscopeLLM(model=optim_llm_name, temperature=0.1)
+    scorer_llm = DashscopeLLM(model=scorer_llm_name, temperature=0.0)
+    config_params = load_yaml(basic_config_path)
 
     assert dataset_name == "gsm8k"
     root_data_folder_path = gsm_data_pth

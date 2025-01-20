@@ -16,7 +16,7 @@ from loguru import logger
 
 from prompt_scope.core.enumeration.language_enum import LanguageEnum
 from prompt_scope.core.models.generation_model import GenerationModel
-from prompt_scope.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
+from prompt_scope.core.augmentor.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
 from prompt_scope.core.utils.demontration_utils import demo_augmentation_by_llm_prompt_org
 from prompt_scope.core.utils.prompt_handler import PromptHandler
 from prompt_scope.core.utils.sys_prompt_utils import (call_llm_with_message, text_rerank,

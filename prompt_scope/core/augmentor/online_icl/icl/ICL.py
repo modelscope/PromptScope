@@ -3,10 +3,9 @@ from typing import List
 
 from loguru import logger
 
-from prompt_scope import CONFIG_REGISTRY
 from prompt_scope.core.models.generation_model import GenerationModel
-from prompt_scope.core.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
-from prompt_scope.core.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
+from prompt_scope.core.augmentor.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
+from prompt_scope.core.augmentor.online_icl.icl.base_retriever import CosineSimilarityRetriever, BM25Retriever, FaissRetriever
 from prompt_scope.core.utils.sys_prompt_utils import (message_formatting,
                                                   call_llm_with_message)
 from prompt_scope.core.utils.utils import load_file, organize_text_4_embedding, get_single_embedding
@@ -61,7 +60,7 @@ class BM25ICL(BaseICL):
                  BM25_index_pth,
                  examples_pth,
                  retriever_key_list,
-                 task_configs=None):
+                 task_configs):
         """
         The BM25ICL class is an intelligent code assistant based on the BM25 algorithm, inheriting from the BaseICL class.
 
@@ -82,10 +81,7 @@ class BM25ICL(BaseICL):
         self._load_demonstration_list(examples_pth)
         self._load_demonstration_selector()
         self.retriever_key_list = retriever_key_list
-        if task_configs is not None:
-            self.task_configs = task_configs
-        else:
-            self.task_configs = CONFIG_REGISTRY.module_dict['task_configs']
+        self.task_configs = task_configs
         if base_model is not None:
             self.base_model = base_model
         else:
@@ -131,15 +127,15 @@ class BM25ICL(BaseICL):
 
 
 class EmbeddingICL(BaseICL):
-    def __init__(self, base_model=None,
+    def __init__(self, 
+                 task_configs,
+                 base_model=None,
                  embedding_pth=None,
                  examples_pth=None,
                  embedding_model=None,
-                 task_configs=None,
                  retriever_key_list: List = None
                  ):
         """
-
         :param base_model: the base model to generate the intention analysis results.
         currently available choices: "Qwen_200B", "Qwen_70B", and "Qwen_14B"
         :param embedding_pth: the path storing the embedding vectors of the examples
@@ -152,10 +148,7 @@ class EmbeddingICL(BaseICL):
             self.embedding_model = embedding_model
         else:
             self.embedding_model = "text_embedding_v1"
-        if task_configs is not None:
-            self.task_configs = task_configs
-        else:
-            self.task_configs = CONFIG_REGISTRY.module_dict['task_configs']
+        self.task_configs = task_configs
         if base_model is not None:
             self.base_model = base_model
         else:

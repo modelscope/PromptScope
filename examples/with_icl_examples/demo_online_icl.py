@@ -1,17 +1,20 @@
+import os
+
 from prompt_scope.core.augmentor.online_icl.icl.ICL import EmbeddingICL
 from prompt_scope.core.augmentor.online_icl.icl.ICL_prompt_handler import ICLPromptHandler
 from prompt_scope.core.utils.config_utils import load_config
 
 if __name__ == '__main__':
     # load online icl configs
-    online_icl_config_pth = "./configs/gsm_online_icl_config.yaml"
+    work_dir = os.path.dirname(__file__)
+    online_icl_config_pth = os.path.join(work_dir, "configs", "gsm_online_icl_config.yaml")
     icl_configs = load_config(online_icl_config_pth)
     embedding_pth = icl_configs.get('icl_configs').get('embedding_retriever_configs').get('embedding_pth')
     task_configs = icl_configs.get('task_configs')
     example_pth = icl_configs.get('icl_configs').get('embedding_retriever_configs').get('examples_pth')
     embedding_model = icl_configs.get('icl_configs').get('embedding_retriever_configs').get('embedding_model')
     retriever_key_list = icl_configs.get('icl_configs').get('embedding_retriever_configs').get('search_key')
-    prompt_pth = icl_configs.get('task_configs').get('prompt_config').get('template_path')
+    prompt_pth = os.path.join(work_dir, icl_configs.get('task_configs').get('prompt_config').get('template_path'))
     language = icl_configs.get('task_configs').get('prompt_config').get('language')
 
     query = "3+4 = ?"

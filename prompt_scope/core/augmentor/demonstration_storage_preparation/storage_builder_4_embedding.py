@@ -137,12 +137,13 @@ class EmbeddingStorageBuilder(BaseStorageBuilder):
         return None
 
 
-def prepare_embedding_storage(storage_builder_config_pth: str):
+def prepare_embedding_storage(storage_builder_config_pth: str, **kwargs):
     """
     Prepare the embedding storage. Load the storage builder configuration and build the embedding storage.
 
     :param storage_builder_config_pth (str): The path to the storage builder configuration.
     """
     storage_builder_configs = load_config(config_pth=storage_builder_config_pth, as_edict=False)
+    storage_builder_configs.update(**kwargs)
     embedding_storage_builder = EmbeddingStorageBuilder(storage_builder_configs)
     embedding_storage_builder.build_storage()
