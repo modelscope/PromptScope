@@ -12,7 +12,7 @@ Welcome to PromptScope! In the ever-evolving landscape of artificial intelligenc
 
 <p align="center">
     <br>
-    <img src="resources/diagram.png"/>
+    <img src="resources/diagram.jpg"/>
     <br>
 <p>
 <p align="center">
@@ -20,7 +20,8 @@ Welcome to PromptScope! In the ever-evolving landscape of artificial intelligenc
 PromptScope supports English and Chinese, with OpenAI and Qwen Models for now. Dive in to unlock the full potential of intelligent language generation!
 
 ## 🎉 News
-- : PromptScope is released.
+- 2025-01-20: Add TipsOptimizer for Instruction Optimization
+- 2024-12-12: PromptScope is released.
 
 ## 🛠️ Installation:
 
@@ -29,20 +30,16 @@ PromptScope requires Python 3.9 or higher.
 Note: This project is currently in active development, it's recommended to install from source.
 
 ## 🚀 Getting Started
-
-We propose that an effective prompt structure consists of three key components: the instruction, which outlines the task description; the demonstration, which provides ideal input-output examples; and the query, which specifies the particular question being posed. This tripartite framework facilitates a clearer understanding of the task at hand, enhances the quality of the model's responses, and ultimately improves overall performance in various applications.
-
-<p align="center">
-    <br>
-    <img src="resources/prompt.png"/>
-    <br>
-<p>
-<p align="center">
-
-On top of that, we provide:
-- [Examples](examples/offline_examples/demo_augmentation_examples/) for similar and diversity demonstration generation.
-- [Examples](examples/offline_examples/example.md) for instruction optimization with IPC, OPRO and PromptAgent.
-- [Example](examples/gsm8k_example) for an end-to-end prompt optimization workflow on GSM-8K benchmark, with both demonstration augmentation and instruction optimization.
+We provide:
+- Examples for Instruction Optimization:
+  - [Example](examples/static_tips_optimization_examples) for Tips Optimization.
+  - [Example](examples/ipc_examples) for IPC.
+  - [Example](examples/opro_examples) for OPRO.
+  - [Example](examples/prompt_agent_examples) for PromptAgent.
+- Examples for Demonstration Augmentation:
+  - [Examples](examples/diversity_augmentation_examples) for diversity example generation.
+  - [Examples](examples/similar_augmentation_examples) for similar example generation.
+  - [Examples](examples/hard_augmentation_examples) for hard example generation.
 
 ## 💡 Contribute
 
