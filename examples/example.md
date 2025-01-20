@@ -1,57 +1,17 @@
 # Prompt Optimization
 
-Prompt optimization is a process of improving the quality of prompts by applying various techniques. Currently, we support three popular methods used for prompt optimization:
+Prompt optimization is a process of improving the quality of prompts by applying various techniques. 
+Currently, we integrate three popular methods used for prompt optimization:
 - Large language models as optimizers (OPRO). [[Paper](https://arxiv.org/abs/2309.03409)][[Code](https://github.com/google-deepmind/opro)]
 - Intent-based Prompt Calibration: Enhancing prompt optimization with synthetic boundary cases (IPC). [[Paper](https://arxiv.org/abs/2402.03099)][[Code](https://github.com/Eladlev/AutoPrompt)]
 - PromptAgent: Strategic Planning with Language Models Enables Expert-level Prompt Optimization
 . [[Paper](https://arxiv.org/abs/2310.16427)][[Code](https://github.com/XinyuanWangCS/PromptAgent)]
 
-## Quick Start
-
-All of the three algorithms are inhereted from **PromptOptimizationWithFeedback** class from `meta_icl/algorithm/base_algorithm.py`.
-```python
-class PromptOptimizationWithFeedback(ABC):
-
-    def __init__(self,
-                 language: LanguageEnum = "cn",
-                 **kwargs):
-        self.language = language
-        self._prompt_handler: Union[PromptHandler, None] = None
-        self.kwargs: dict = kwargs
-
-    @property
-    def prompt_handler(self):
-        if self._prompt_handler is None:
-            self._prompt_handler = PromptHandler(
-                self.FILE_PATH, language=self.language, **self.kwargs)
-        return self._prompt_handler
-
-    @abstractmethod
-    def init_model(self):
-        pass
-
-    @abstractmethod
-    def init_config(self):
-        pass
-
-    @abstractmethod
-    def run(self):
-        pass
-
-    @abstractmethod
-    def step(self):
-        pass
-
-    @abstractmethod
-    def extract_best_prompt(self):
-        pass
-```
-We welcome contributions of other prompt optimization algorithms.
 
 ### OPRO
 OPRO (Optimization by PROmpting) is a system designed to iteratively refine and optimize prompts for language models. It orchestrates a step-by-step process to create, assess, and refine instructions or prompts targeting specific tasks within designated datasets such as MMLU, BBH, or GSM8K.
 
-Run `python examples/offline_examples/OPRO/optimize_instructions.py` to optimize a prompt. The configuration file `opro.yml` located in the same directory is employed.
+Run `python examples/opro_examples/optimize_instructions.py` to optimize a prompt. The configuration file `opro_*.yml` located in the same directory is employed.
 
 ```python
 The meaning of some parameters are:
@@ -75,15 +35,13 @@ The meaning of some parameters are:
 
 Intent-based Prompt Calibration (IPC) is designed to refine instructional prompts for language models by iteratively generating boundary cases, evaluating them, updating the prompts based on feedback, and repeating the process to enhance prompt effectiveness over multiple iterations.
 
-- For classification tasks: Run `python examples/offline_examples/IPC_optimization/ipc_optim_classify.py` to optimize a prompt. The configuration file `ipc_optim_classify.yml` located in the same directory is employed. Remember to configure your labels by modifying the `label_schema`.
-
-- For generation tasks: Run `python examples/offline_examples/IPC_optimization/ipc_optim_generate.py` to optimize a prompt. The configuration file `ipc_optim_generate.yml` and `ipc_ranker.yml` located in the same directory are employed. Also remember to configure your labels by modifying the `label_schema`.
+- For classification tasks: Run `python examples/ipc_examples/IPC_optimization/ipc_classify.py` to optimize a prompt. The configuration file `ipc_optim_classify.yml` located in the same directory is employed. Remember to configure your labels by modifying the `label_schema`.
 
 ### PromptAgent
 
 PromptAgent is a system designed to optimize prompts for language models. It uses a strategic planning approach to optimize prompts by iteratively selecting the best action from a set of actions based on the current state of the system. The search algorithm is chosen from MCTS and beamsearch.
 
-Run `python examples/offline_examples/PromptAgent/prompt_agent.py` to optimize a prompt. The configuration file `prompt_agent.yml` located in the same directory is employed.
+Run `python examples/prompt_agent_examples/prompt_agent.py` to optimize a prompt. The configuration file `prompt_agent_*.yml` located in the same directory is employed.
 
 
 
