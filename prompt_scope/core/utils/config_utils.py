@@ -3,7 +3,8 @@ from easydict import EasyDict as edict
 from loguru import logger
 
 from prompt_scope.core.utils.sys_prompt_utils import load_json_file
-from prompt_scope.core.utils.utils import sav_yaml, sav_json
+from prompt_scope.core.utils.utils import sav_yaml
+from prompt_scope.core.utils.sys_prompt_utils import sav_json
 
 
 def whether_yaml_file(config_pth):

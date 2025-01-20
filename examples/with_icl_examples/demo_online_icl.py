@@ -4,7 +4,7 @@ from prompt_scope.core.utils.config_utils import load_config
 
 if __name__ == '__main__':
     # load online icl configs
-    online_icl_config_pth = "examples/gsm8k_example/configs/gsm_online_icl_config.yaml"
+    online_icl_config_pth = "./configs/gsm_online_icl_config.yaml"
     icl_configs = load_config(online_icl_config_pth)
     embedding_pth = icl_configs.get('icl_configs').get('embedding_retriever_configs').get('embedding_pth')
     task_configs = icl_configs.get('task_configs')

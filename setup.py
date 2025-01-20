@@ -22,7 +22,8 @@ requires = [
     "scikit_learn",
     "scipy",
     "torch",
-    "tqdm", 
+    "tqdm",
+    "openpyxl"
 ]
 
 setuptools.setup(

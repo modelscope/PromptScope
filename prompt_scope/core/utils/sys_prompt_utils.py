@@ -1,4 +1,5 @@
 import copy
+import os
 import random
 import time
 from http import HTTPStatus
@@ -16,7 +17,7 @@ from scipy.spatial.distance import cdist
 from prompt_scope.core.models.generation_model import GenerationModel
 
 KEY = "" # DASHSCOPE KEY HERE
-dashscope.api_key = KEY
+dashscope.api_key = os.environ["DASHSCOPE_API_KEY"]
 
 DASHSCOPE_MAX_BATCH_SIZE = 25
 DefaultModelConfig = {

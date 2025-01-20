@@ -253,6 +253,7 @@ def convert_json_2_yaml(json_file_path, yaml_file_path):
     sav_yaml(data=data, yaml_file_path=yaml_file_path)
 
 
+
 def load_yaml(yaml_path: str, as_edict: bool = True) -> edict:
     """
     Reads the yaml file and enrich it with more vales.

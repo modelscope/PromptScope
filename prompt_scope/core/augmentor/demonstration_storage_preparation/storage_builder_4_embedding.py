@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 
-from prompt_scope.core.offline.demonstration_storage_preparation.storage_builder_4_bm25 import BaseStorageBuilder
+from prompt_scope.core.augmentor.demonstration_storage_preparation.base_storage_builder import BaseStorageBuilder
 from prompt_scope.core.utils.config_utils import load_config, update_icl_configs_embedding
 from prompt_scope.core.utils.retrieve_utils import demonstration_backup
 from prompt_scope.core.utils.sys_prompt_utils import load_json_file, get_embedding
