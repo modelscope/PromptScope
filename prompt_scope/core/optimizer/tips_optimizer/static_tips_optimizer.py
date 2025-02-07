@@ -28,7 +28,6 @@ class StaticTipsOptimizer(BaseTipsOptimizer):
                  train_set: List[Dict] = None,
                  test_set: List[Dict] = None,
                  bad_case_analysis_prompt_dir: str = None,
-                 summarize_prompt_dir: str = None,
                  details_save_dir: str = None,
                  is_good_case_func: Callable[[str, str], bool] = None,
                  resume_generate: bool = True,
@@ -53,7 +52,6 @@ class StaticTipsOptimizer(BaseTipsOptimizer):
                          train_bach_size=train_bach_size,
                          save_steps=save_steps,
                          max_workers_num=max_workers_num)
-        self.summarize_prompt_dir = summarize_prompt_dir
         self.early_stopping = early_stopping
 
         self._init_optimizer_config()
@@ -61,11 +59,11 @@ class StaticTipsOptimizer(BaseTipsOptimizer):
     def _init_optimizer_config(self):
         super()._init_optimizer_config()
 
-        if self.summarize_prompt_dir is None:
-            self.summarize_prompt_dir = \
-                f"{current_file_dir}/prompt_lib/{self.language}/summarize_prompt_{self.language}"
-
-        self.summarize_prompt = BasePromptGen.load(promptgen_load_dir=self.summarize_prompt_dir)
+        # if self.summarize_prompt_dir is None:
+        #     self.summarize_prompt_dir = \
+        #         f"{current_file_dir}/prompt_lib/{self.language}/summarize_prompt_{self.language}"
+        #
+        # self.summarize_prompt = BasePromptGen.load(promptgen_load_dir=self.summarize_prompt_dir)
 
     def _before_run(self) -> Dict[str, Any]:
         if self.init_system_prompt is not None:

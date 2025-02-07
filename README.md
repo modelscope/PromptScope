@@ -42,7 +42,6 @@ We provide:
   - [Examples](examples/hard_augmentation_examples) for hard example generation.
 
 ## 💡 Contribute
-
 Contributions are always encouraged!
 
 We highly recommend install pre-commit hooks in this repo before committing pull requests.
@@ -50,7 +49,6 @@ These hooks are small house-keeping scripts executed every time you make a git c
 which will take care of the formatting and linting automatically.
 ```shell
 pip install -e .
-pre-commit install
 ```
 
 ## 🏛 License

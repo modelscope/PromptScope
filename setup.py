@@ -23,7 +23,8 @@ requires = [
     "scipy",
     "torch",
     "tqdm",
-    "openpyxl"
+    "openpyxl",
+    "ipykernel"
 ]
 
 setuptools.setup(
