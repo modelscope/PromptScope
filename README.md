@@ -25,7 +25,7 @@ PromptScope supports English and Chinese, with OpenAI and Qwen Models for now. D
 
 ## 🛠️ Installation:
 
-PromptScope requires Python 3.9 or higher.
+PromptScope requires Python 3.10 or higher.
 
 Note: This project is currently in active development, it's recommended to install from source.
 
