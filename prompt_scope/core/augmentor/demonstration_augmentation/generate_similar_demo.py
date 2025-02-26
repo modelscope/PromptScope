@@ -1,10 +1,10 @@
 from typing import List, Union, Dict
 
-from prompt_scope.core.offline.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
+from prompt_scope.core.augmentor.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
 # from meta_icl import CONFIG_REGISTRY
 from prompt_scope.core.utils.demontration_utils import demo_augmentation_by_llm_prompt_org
 from prompt_scope.core.utils.sys_prompt_utils import call_llm_with_message
-from prompt_scope.core.utils.demontration_utils import extract_from_markdown_json
+from prompt_scope.core.utils.utils import extract_from_markdown_json
 from loguru import logger
 
 
@@ -12,8 +12,14 @@ class SimilarDemoAugmentation(BaseDemonstrationAugmentation):
 
     def __init__(self, aug_config: Dict, **kwargs):
         super().__init__()
+        self.init_config(aug_config)
+        self.init_model()
+
+    def init_config(self, aug_config: Dict):
         self.augmentation_config = aug_config
 
+    def init_model(self):
+        pass
     def run(self,
                  seed_demonstration: Union[str, List[str], Dict, List[Dict]],
                  n: int) -> List:

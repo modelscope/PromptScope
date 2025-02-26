@@ -1,5 +1,5 @@
 import pytest
-from prompt_scope.core.offline.instruction_optimization.ipc.ipc import IPCOptimization, PredictSchema, SampleSchema
+from prompt_scope.core.optimizer.research_optimizers.ipc_optimizer.ipc import IPCOptimization, PredictSchema, SampleSchema
 from prompt_scope.core.evals.loading import load_evaluator
 from prompt_scope.core.utils.utils import load_yaml
 from pathlib import Path

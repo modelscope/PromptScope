@@ -6,18 +6,32 @@ from loguru import logger
 
 from prompt_scope.core.utils.sys_prompt_utils import (message_formatting)
 
+# Default_Instruction_4_Demonstration_Generation = """请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。
+
+# 要求：
+# 1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的
+# 2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。
+# 3. 和提供的参考样例保持一致输出格式，并且每个样例用markdown json 形式单独区分。
+# ${other_requirements}
+
+# 参考样例：
+# ```json
+# ${demonstration}
+# ```
+
+# 请给出${num_generated_examples}个类似样例:
+# """
+
 Default_Instruction_4_Demonstration_Generation = """请根据提供的样例，给出${num_generated_examples}个类似样例，要求和现在的样例的任务类型一致。
 
 要求：
 1. 生成的语言和提供的参考样例保持一致， 即提供的参考样例是英文的，你给出的样例也应该是英文的；如果提供的参考样例是中文的，你给出的样例也应该是中文的
 2. 给出的样例尽量与参考样例属于同一个任务类型，但和参考样例有较大区别，并且是不同domain的。
-3. 和提供的参考样例保持一致输出格式，并且每个样例用markdown json 形式单独区分。
+3. 和提供的参考样例保持一致输出格式，并且每个样例用<json>形式单独区分。
 ${other_requirements}
 
 参考样例：
-```json
 ${demonstration}
-```
 
 请给出${num_generated_examples}个类似样例:
 """
@@ -48,12 +62,15 @@ def demo_augmentation_by_llm_prompt_org(
         demonstration_generation_instruction = Default_Instruction_4_Demonstration_Generation
     # extract demonstration text
     if isinstance(demonstration_text, dict):
-        demonstration_text = f"```json\n{json.dumps(demonstration_text, ensure_ascii=False)}\n```"
+        # demonstration_text = f"```json\n{json.dumps(demonstration_text, ensure_ascii=False)}\n```"
+        demonstration_text = f"{json.dumps(demonstration_text, ensure_ascii=False)}"
     if isinstance(demonstration_text, List):
         if isinstance(demonstration_text[0], str):
             demonstration_text = "\n".join(demonstration_text)
         elif isinstance(demonstration_text[0], dict):
-            demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```"
+            # demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```"
+            #                                for item in demonstration_text)
+            demonstration_text = "\n".join(f"{json.dumps(item, ensure_ascii=False)}"
                                            for item in demonstration_text)
             logger.info("demonstration_text: \n{}\n".format(demonstration_text))
     demonstration_generation_instruction = demonstration_generation_instruction.replace("${demonstration}",
@@ -62,5 +79,5 @@ def demo_augmentation_by_llm_prompt_org(
                                                                                         str(num_generated_examples))
     prompt = demonstration_generation_instruction.replace("${other_requirements}", demonstration_requirements)
     logger.info("prompt: \n{}\n".format(prompt))
-    prompt = message_formatting(system_prompt=None, query=prompt)
+    # prompt = message_formatting(system_prompt=None, query=prompt)
     return prompt

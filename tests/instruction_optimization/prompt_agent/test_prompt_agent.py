@@ -6,8 +6,8 @@ import numpy as np
 
 from prompt_scope.core.utils.utils import load_yaml
 from prompt_scope.core.utils.prompt_handler import PromptHandler
-from prompt_scope.core.offline.instruction_optimization.prompt_agent.prompt_agent import PromptAgent
-from prompt_scope.core.offline.instruction_optimization.prompt_agent.tasks import get_task
+from prompt_scope.core.optimizer.research_optimizers.prompt_agent_optimizer.prompt_agent import PromptAgent
+from prompt_scope.core.optimizer.research_optimizers.prompt_agent_optimizer.tasks import get_task
 from prompt_scope.core.llms.dashscope_llm import DashscopeLLM
 from prompt_scope.core.models.search_algo.loading import load_search_algo
 from prompt_scope.core.models.world_model.loading import load_world_model

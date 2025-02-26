@@ -5,7 +5,7 @@ import Stemmer
 import bm25s
 from loguru import logger
 
-from prompt_scope.core.offline.demonstration_storage_preparation.base_storage_builder import BaseStorageBuilder
+from prompt_scope.core.augmentor.demonstration_storage_preparation.base_storage_builder import BaseStorageBuilder
 from prompt_scope.core.utils.config_utils import update_icl_configs_BM25, load_config
 from prompt_scope.core.utils.retrieve_utils import STOPWORDS_EN, STOPWORDS_ZH, demonstration_backup
 from prompt_scope.core.utils.sys_prompt_utils import load_json_file

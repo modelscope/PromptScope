@@ -8,11 +8,8 @@ if __name__ == '__main__':
     demonstration_requirements = ""
     demonstration_dir = "examples/with_icl_examples/results"
     model_config = {
-        "module_name": 'dashscope_generation',
         "model_name": "qwen-plus",
-        "clazz": 'models.llama_index_generation_model',
         "max_tokens": 2000,
-        "seed": 1234,
         "temperature": 1
     }
     seed_demonstration_json_pth = "examples/with_icl_examples/seed_data/seed_demonstration.json"

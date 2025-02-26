@@ -15,7 +15,7 @@ import numpy as np
 from loguru import logger
 
 from prompt_scope.core.enumeration.language_enum import LanguageEnum
-from prompt_scope.core.models.generation_model import GenerationModel
+from prompt_scope.core.llms.dashscope_llm import DashscopeLLM
 from prompt_scope.core.augmentor.demonstration_augmentation.base_demo_augmention import BaseDemonstrationAugmentation
 from prompt_scope.core.utils.demontration_utils import demo_augmentation_by_llm_prompt_org
 from prompt_scope.core.utils.prompt_handler import PromptHandler
@@ -284,11 +284,13 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         # Determine how to handle the state based on the type of the last element in the `state` list
         if isinstance(state[-1], str):
             # If the last element is a string, join the elements in `state` with a specific format
-            demonstration_text = "\n".join(f"```json\n{item}\n```" for item in state)
+            # demonstration_text = "\n".join(f"```json\n{item}\n```" for item in state)
+            demonstration_text = "\n".join(f"{item}" for item in state)
         else:
             # If the last element is not a string,
             # join the elements in `state` with a specific format and use `json.dumps`
-            demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```" for item in state)
+            # demonstration_text = "\n".join(f"```json\n{json.dumps(item, ensure_ascii=False)}\n```" for item in state)
+            demonstration_text = "\n".join(f"{json.dumps(item, ensure_ascii=False)}" for item in state)
             logger.info("demonstration_text: \n{}\n".format(demonstration_text))
 
         logger.info("demonstration_requirements: {}".format(self.demonstration_requirements))
@@ -328,7 +330,9 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         """
 
         # Ensure either model_config or model_name is provided, which is necessary for generating demonstrations
-        assert (model_config is not None) or (model_name is not None)
+        # assert (model_config is not None) or (model_name is not None)
+
+        assert model_config is not None, "call with model_name is deprecated!"
 
         # Build the initial prompt to generate similar demonstration text via a language model
         prompt = demo_augmentation_by_llm_prompt_org(
@@ -339,20 +343,24 @@ class BeamSearchGenerationByDiversity(BaseAugmentationByBeamSearch):
         )
 
         # Determine how to instantiate the generation model based on whether model_config is provided
-        if model_config is not None:
-            logger.info(model_config)
-            generation_model = GenerationModel(**model_config)
-        else:
-            # If only model_name is provided, convert it to model configuration
-            model_config = convert_model_name_to_model_config(model_name=model_name, add_random=True)
-            generation_model = model_name
+        # if model_config is not None:
+        #     logger.info(model_config)
+        #     generation_model = GenerationModel(**model_config)
+        # else:
+        #     # If only model_name is provided, convert it to model configuration
+        #     model_config = convert_model_name_to_model_config(model_name=model_name, add_random=True)
+        #     generation_model = model_name
+
+        generation_model = DashscopeLLM(**model_config)
 
         # Call the language model with the constructed prompt and model/config to generate demonstration text
-        results = call_llm_with_message(prompt, model=generation_model, model_config=model_config)
+        # results = call_llm_with_message(prompt, model=generation_model, model_config=model_config)
+        results = generation_model.chat(messages=prompt, response_format={"type": "json_object"}).message.content
         logger.info("[generate_similar_demonstration]-generated results: {}".format(results))
 
         # Extract the required demonstration data from the generated results and return
-        return extract_from_markdown_json(results)
+        # return extract_from_markdown_json(results)
+        return json.loads(results)
 
     def score_fn(self, state: List) -> float:
         """

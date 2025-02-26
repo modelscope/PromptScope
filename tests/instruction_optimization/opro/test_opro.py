@@ -5,8 +5,8 @@ import pandas as pd
 import numpy as np
 
 from prompt_scope.core.utils.utils import load_yaml
-from prompt_scope.core.offline.instruction_optimization.opro.utils import load_data
-from prompt_scope.core.offline.instruction_optimization.opro.opro import OPRO
+from prompt_scope.core.optimizer.research_optimizers.opro_optimizer.utils import load_data
+from prompt_scope.core.optimizer.research_optimizers.opro_optimizer.opro import OPRO
 
 # 测试数据
 # samples = ["这部电影揭示了主角的全部背景故事，对于接下来的发展有重大影响。", "观众对这周上映的新片有极高的期待值。"]
