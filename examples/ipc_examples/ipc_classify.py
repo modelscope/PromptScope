@@ -3,7 +3,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from prompt_scope.core.optimizer.research_optimizers.ipc_optimizer.ipc import IPCOptimization
+from prompt_scope.core.optimizer.research_optimizers.ipc_optimizer.ipc import IPCConfig, IPCOptimization
 from prompt_scope.core.utils.utils import get_current_date
 from prompt_scope.core.utils.utils import load_yaml
 
@@ -14,6 +14,7 @@ basic_config_path = os.path.join(os.path.dirname(__file__), 'ipc_classify_cn.yml
 
 config_params = load_yaml(basic_config_path)
 logger.info(config_params)
+ipc_config = IPCConfig(**config_params)
 # Initializing the pipeline
-pipeline = IPCOptimization(**config_params)
+pipeline = IPCOptimization(config=ipc_config)
 best_prompt = pipeline.run()

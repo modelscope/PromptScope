@@ -1,30 +1,54 @@
-import logging
+import sys
+from loguru import logger
+from typing import Optional
+from pathlib import Path
 
-logger = logging.getLogger(__name__)
 
+class LoggerFactory:
+    _instance = None
+    _initialized = False
 
-class CustomFormatter(logging.Formatter):
-    """Logging colored formatter, adapted from
-    https://stackoverflow.com/a/56944256/3638629"""
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
-    def __init__(self, fmt):
-        super().__init__()
-        grey = '\x1b[38;21m'
-        blue = '\x1b[38;5;39m'
-        yellow = "\x1b[33;20m"
-        red = '\x1b[38;5;196m'
-        bold_red = '\x1b[31;1m'
-        reset = '\x1b[0m'
+    def __init__(self, log_dir: Optional[str] = None):
+        if not LoggerFactory._initialized:
+            self.setup_logger(log_dir)
+            LoggerFactory._initialized = True
 
-        self.FORMATS = {
-            logging.DEBUG: grey + fmt + reset,
-            logging.INFO: blue + fmt + reset,
-            logging.WARNING: yellow + fmt + reset,
-            logging.ERROR: red + fmt + reset,
-            logging.CRITICAL: bold_red + fmt + reset
-        }
+    def setup_logger(self, log_dir: Optional[str] = None):
+        # Remove default handler
+        logger.remove()
 
-    def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+        # Set up log directory
+        if log_dir is None:
+            log_dir = "logs"  # default path
+        
+        # Create log directory if it doesn't exist
+        log_path = Path(log_dir)
+        log_path.mkdir(parents=True, exist_ok=True)
+
+        # Add console handler
+        logger.add(
+            sys.stdout,
+            colorize=True,
+            format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | "
+                   "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+            level="INFO"
+        )
+
+        # Add file handler
+        log_file = log_path / "app.log"
+        logger.add(
+            str(log_file),
+            rotation="500 MB",
+            retention="10 days",
+            compression="zip",
+            level="DEBUG",
+            enqueue=True
+        )
+
+    def get_logger(self, name: Optional[str] = None):
+        return logger.bind(context=name) if name else logger
